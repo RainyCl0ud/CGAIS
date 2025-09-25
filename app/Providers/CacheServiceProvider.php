@@ -76,6 +76,11 @@ class CacheServiceProvider extends ServiceProvider
      */
     protected function configureCacheStrategies(): void
     {
+        // Skip caching during migration to avoid table not found errors
+        if (app()->runningInConsole() && isset($_SERVER['argv'][1]) && str_starts_with($_SERVER['argv'][1], 'migrate')) {
+            return;
+        }
+
         // Cache frequently accessed data
         $this->cacheFrequentlyAccessedData();
     }
