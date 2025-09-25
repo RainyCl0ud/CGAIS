@@ -1,10 +1,17 @@
 <x-app-layout>
     <div class="flex flex-col items-center justify-start py-4 sm:py-8 px-2 sm:px-4">
             <div class="w-full max-w-6xl mx-auto">
-                <div class="bg-white/80 rounded-lg sm:rounded-2xl shadow-lg sm:shadow-2xl border border-blue-100 p-4 sm:p-8 backdrop-blur">
+                <div class="bg-red-100 rounded-lg sm:rounded-2xl shadow-lg sm:shadow-2xl border border-blue-100 p-4 sm:p-8 backdrop-blur">
                     <div class="mb-6">
-                        <h1 class="text-xl lg:text-2xl xl:text-3xl font-bold text-gray-900 mb-2">
-                            Welcome, {{ auth()->user()->isCounselor() || auth()->user()->isAssistant() ? 'Dr. ' : '' }}{{ Auth::user()->full_name }}!
+                        <h1 class="text-xl lg:text-2xl xl:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-4">
+                            <span>
+                                Welcome, {{ auth()->user()->isCounselor() || auth()->user()->isAssistant() ? 'Dr. ' : '' }}{{ Auth::user()->full_name }}!
+                            </span>
+                            @if(isset($nextAppointment) && $nextAppointment)
+                                <span class="text-sm font-medium text-gray-700 bg-yellow-100 border border-yellow-300 rounded-md px-3 py-1">
+                                    Next Appointment: {{ $nextAppointment->appointment_date->format('M d, Y') }} at {{ \Carbon\Carbon::parse($nextAppointment->start_time)->format('h:i A') }}
+                                </span>
+                            @endif
                         </h1>
                         <div class="text-gray-600 text-sm">{{ now()->format('l, F d, Y') }} | Manage your counseling sessions</div>
                     </div>
@@ -137,48 +144,7 @@
                                         <p class="text-lg lg:text-2xl font-bold text-gray-900">{{ $stats['unread_notifications'] ?? 0 }}</p>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-4 lg:p-6 rounded-xl border border-blue-200">
-                                <div class="flex items-center">
-                                    <div class="p-2 lg:p-3 bg-blue-500 rounded-lg">
-                                        <svg class="w-5 h-5 lg:w-6 lg:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                        </svg>
-                                    </div>
-                                    <div class="ml-3 lg:ml-4">
-                                        <p class="text-xs lg:text-sm font-medium text-gray-600">Total Appointments</p>
-                                        <p class="text-lg lg:text-2xl font-bold text-gray-900">{{ $stats['total_appointments'] ?? 0 }}</p>
-                                    </div>
-                                </div>
-                            </div>
 
-                            <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 p-4 lg:p-6 rounded-xl border border-yellow-200">
-                                <div class="flex items-center">
-                                    <div class="p-2 lg:p-3 bg-yellow-500 rounded-lg">
-                                        <svg class="w-5 h-5 lg:w-6 lg:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                        </svg>
-                                    </div>
-                                    <div class="ml-3 lg:ml-4">
-                                        <p class="text-xs lg:text-sm font-medium text-gray-600">Pending</p>
-                                        <p class="text-lg lg:text-2xl font-bold text-gray-900">{{ $stats['pending_appointments'] ?? 0 }}</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="bg-gradient-to-br from-green-50 to-green-100 p-4 lg:p-6 rounded-xl border border-green-200">
-                                <div class="flex items-center">
-                                    <div class="p-2 lg:p-3 bg-green-500 rounded-lg">
-                                        <svg class="w-5 h-5 lg:w-6 lg:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                        </svg>
-                                    </div>
-                                    <div class="ml-3 lg:ml-4">
-                                        <p class="text-xs lg:text-sm font-medium text-gray-600">Today's Appointments</p>
-                                        <p class="text-lg lg:text-2xl font-bold text-gray-900">{{ $stats['today_appointments'] ?? 0 }}</p>
-                                    </div>
-                                </div>
-                            </div>
                         @else
                             <!-- Student/Faculty Statistics -->
                             <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-4 lg:p-6 rounded-xl border border-blue-200">

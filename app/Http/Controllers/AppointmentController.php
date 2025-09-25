@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Appointment;
-use App\Models\Schedule;
-use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\View\View;
 use Carbon\Carbon;
+use App\Models\User;
+use App\Models\Schedule;
+use App\Models\Notification;
+use Illuminate\View\View;
+use App\Models\Appointment;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\RedirectResponse;
 
 class AppointmentController extends Controller
 {
@@ -18,18 +21,15 @@ class AppointmentController extends Controller
         $appointments = collect();
 
         if ($user->isCounselor() || $user->isAssistant()) {
-            // Counselors and assistants see all appointments they're assigned to
-            // Prioritize urgent appointments first
             $appointments = Appointment::with(['user', 'counselor'])
                 ->where('counselor_id', $user->id)
-                ->orderByRaw("CASE WHEN type = 'urgent' THEN 0 ELSE 1 END") // Urgent first
+                ->orderByRaw("CASE WHEN type = 'urgent' THEN 0 ELSE 1 END")
                 ->orderBy('appointment_date')
                 ->orderBy('start_time')
                 ->paginate(10);
         } else {
-            // Students and faculty see their own appointments
             $appointments = $user->appointments()
-                ->orderByRaw("CASE WHEN type = 'urgent' THEN 0 ELSE 1 END") // Urgent first
+                ->orderByRaw("CASE WHEN type = 'urgent' THEN 0 ELSE 1 END")
                 ->orderBy('appointment_date')
                 ->orderBy('start_time')
                 ->paginate(10);
@@ -38,7 +38,7 @@ class AppointmentController extends Controller
         return view('appointments.index', compact('appointments'));
     }
 
-    public function create(Request $request): View
+    public function create(Request $request): View|RedirectResponse
     {
         $user = $request->user();
         
@@ -47,10 +47,7 @@ class AppointmentController extends Controller
                 ->with('error', 'Counselors and assistants cannot book appointments.');
         }
 
-        // Get available counselors
         $counselors = User::where('role', 'counselor')->get();
-        
-        // Get next 30 days of available dates
         $availableDates = $this->getAvailableDates();
         
         return view('appointments.create', compact('counselors', 'availableDates'));
@@ -74,45 +71,30 @@ class AppointmentController extends Controller
             'reason' => 'required|string|max:1000',
         ];
 
-        // Add counseling category validation based on user role
         if ($user->isStudent()) {
             $validationRules['counseling_category'] = 'required|in:conduct_intake_interview,information_services,internal_referral_services,counseling_services,conduct_exit_interview';
         }
 
         try {
             $validatedData = $request->validate($validationRules);
-            
-            // Manual validation for end_time after start_time
             if ($request->start_time >= $request->end_time) {
                 return back()->withErrors(['end_time' => 'End time must be after start time.'])->withInput();
             }
         } catch (\Illuminate\Validation\ValidationException $e) {
-            \Log::error('Appointment validation failed', [
+            Log::error('Appointment validation failed', [
                 'errors' => $e->errors(),
                 'input' => $request->all()
             ]);
             return back()->withErrors($e->errors())->withInput();
         }
 
-        \Log::info('Appointment creation started', [
-            'user_id' => $user->id,
-            'counselor_id' => $request->counselor_id,
-            'appointment_date' => $request->appointment_date,
-            'start_time' => $request->start_time,
-            'end_time' => $request->end_time,
-            'type' => $request->type,
-            'reason' => $request->reason,
-        ]);
-
-        // Check if appointment is on Monday or Friday
         $appointmentDate = Carbon::parse($request->appointment_date);
-        $dayOfWeek = strtolower($appointmentDate->format('l'));
-        
-        if ($dayOfWeek !== 'monday' && $dayOfWeek !== 'friday') {
-            return back()->withErrors(['appointment_date' => 'Appointments are only available on Monday and Friday.']);
+        $dayOfWeek = $appointmentDate->dayOfWeek;
+
+        if ($dayOfWeek === 0 || $dayOfWeek === 6) {
+            return back()->withErrors(['appointment_date' => 'Appointments are only available from Monday to Friday.']);
         }
 
-        // Check if counselor is available on this date and time
         $schedule = Schedule::where('counselor_id', $request->counselor_id)
             ->where('day_of_week', $dayOfWeek)
             ->where('is_available', true)
@@ -122,7 +104,6 @@ class AppointmentController extends Controller
             return back()->withErrors(['appointment_date' => 'Counselor is not available on this date.']);
         }
 
-        // Check if time slot is within counselor's schedule
         $startTime = Carbon::parse($request->start_time);
         $endTime = Carbon::parse($request->end_time);
         $scheduleStart = Carbon::parse($schedule->start_time);
@@ -132,7 +113,6 @@ class AppointmentController extends Controller
             return back()->withErrors(['start_time' => 'Appointment time must be within counselor\'s schedule.']);
         }
 
-        // Check if slot is available
         $existingAppointment = Appointment::where('counselor_id', $request->counselor_id)
             ->where('appointment_date', $request->appointment_date)
             ->where('status', '!=', 'cancelled')
@@ -146,12 +126,10 @@ class AppointmentController extends Controller
             })
             ->first();
 
-        // For urgent appointments, allow override but warn about conflicts
         if ($existingAppointment && $request->type !== 'urgent') {
             return back()->withErrors(['start_time' => 'This time slot is already booked.']);
         }
 
-        // If urgent appointment conflicts with existing appointment, create a note
         $conflictNote = '';
         if ($existingAppointment && $request->type === 'urgent') {
             $conflictNote = "URGENT: This appointment conflicts with existing booking (ID: {$existingAppointment->id}) for {$existingAppointment->user->full_name}. Counselor review required.";
@@ -168,71 +146,47 @@ class AppointmentController extends Controller
             'status' => 'pending',
         ];
 
-        // Set counseling category based on user role
         if ($user->isStudent()) {
             $appointmentData['counseling_category'] = $request->counseling_category;
         } else {
             $appointmentData['counseling_category'] = 'consultation';
         }
 
-        // Add conflict note for urgent appointments
         if ($request->type === 'urgent' && !empty($conflictNote)) {
             $appointmentData['counselor_notes'] = $conflictNote;
         }
 
         $appointment = Appointment::create($appointmentData);
 
-        \Log::info('Appointment created successfully', [
-            'appointment_id' => $appointment->id,
-            'user_id' => $appointment->user_id,
-            'counselor_id' => $appointment->counselor_id,
-        ]);
+        $successMessage = $request->type === 'urgent'
+            ? 'URGENT appointment requested successfully. The counselor will review your request and may contact you for immediate assistance.'
+            : 'Appointment requested successfully. Please wait for confirmation.';
 
-        $successMessage = 'Appointment requested successfully. Please wait for confirmation.';
-        
-        // Special message for urgent appointments
-        if ($request->type === 'urgent') {
-            $successMessage = 'URGENT appointment requested successfully. The counselor will review your request and may contact you for immediate assistance.';
-        }
-
-        return redirect()->route('appointments.index')
-            ->with('success', $successMessage);
+        return redirect()->route('appointments.index')->with('success', $successMessage);
     }
 
     public function show(Appointment $appointment, Request $request): View
     {
         $user = $request->user();
-        
-        // Check if user can view this appointment
         if (!$user->isCounselor() && !$user->isAssistant() && $appointment->user_id !== $user->id) {
             abort(403);
         }
-
-        if ($user->isCounselor() || $user->isAssistant()) {
-            if ($appointment->counselor_id !== $user->id) {
-                abort(403);
-            }
+        if (($user->isCounselor() || $user->isAssistant()) && $appointment->counselor_id !== $user->id) {
+            abort(403);
         }
-
         return view('appointments.show', compact('appointment'));
     }
 
     public function edit(Appointment $appointment, Request $request): View
     {
         $user = $request->user();
-        
         if (!$user->isCounselor() && !$user->isAssistant() && $appointment->user_id !== $user->id) {
             abort(403);
         }
-
-        if ($user->isCounselor() || $user->isAssistant()) {
-            if ($appointment->counselor_id !== $user->id) {
-                abort(403);
-            }
+        if (($user->isCounselor() || $user->isAssistant()) && $appointment->counselor_id !== $user->id) {
+            abort(403);
         }
-
         $counselors = User::where('role', 'counselor')->get();
-        
         return view('appointments.edit', compact('appointment', 'counselors'));
     }
 
@@ -240,7 +194,6 @@ class AppointmentController extends Controller
     {
         $user = $request->user();
         
-        // Check if user can update this appointment
         if ($user->isCounselor() || $user->isAssistant()) {
             if ($appointment->counselor_id !== $user->id) {
                 abort(403, 'You can only update appointments assigned to you.');
@@ -249,60 +202,34 @@ class AppointmentController extends Controller
             if ($appointment->user_id !== $user->id) {
                 abort(403, 'You can only update your own appointments.');
             }
-            
-            // Students can only reschedule pending or confirmed appointments
             if (!in_array($appointment->status, ['pending', 'confirmed'])) {
                 return back()->with('error', 'You can only reschedule pending or confirmed appointments.');
             }
         }
 
-        // If status is being updated
         if ($request->has('status')) {
             $request->validate([
                 'status' => 'required|in:pending,confirmed,completed,cancelled,no_show',
             ]);
-
-            // Validate status transitions
             $currentStatus = $appointment->status;
             $newStatus = $request->status;
-            
-            // Check if status transition is allowed
             $allowedTransitions = $this->getAllowedStatusTransitions($currentStatus);
             if (!in_array($newStatus, $allowedTransitions)) {
                 return back()->withErrors(['status' => "Cannot change status from '{$currentStatus}' to '{$newStatus}'. Allowed transitions: " . implode(', ', $allowedTransitions)]);
             }
-
-            // Special validation for no_show status
-            if ($newStatus === 'no_show') {
-                $appointmentDateTime = $appointment->getAppointmentDateTime();
-                if ($appointmentDateTime->isFuture()) {
-                    return back()->withErrors(['status' => 'Cannot mark as "No Show" for future appointments.']);
-                }
+            if ($newStatus === 'no_show' && $appointment->getAppointmentDateTime()->isFuture()) {
+                return back()->withErrors(['status' => 'Cannot mark as "No Show" for future appointments.']);
             }
-
-            $appointment->update([
-                'status' => $request->status,
-            ]);
-
-            return redirect()->route('appointments.show', $appointment)
-                ->with('success', 'Appointment status updated successfully.');
+            $appointment->update(['status' => $request->status]);
+            return redirect()->route('appointments.show', $appointment)->with('success', 'Appointment status updated successfully.');
         }
 
-        // If only counselor notes are being updated (for counselors/assistants)
         if ($user->isCounselor() || $user->isAssistant()) {
-            $request->validate([
-                'counselor_notes' => 'nullable|string|max:1000',
-            ]);
-
-            $appointment->update([
-                'counselor_notes' => $request->counselor_notes,
-            ]);
-
-            return redirect()->route('appointments.show', $appointment)
-                ->with('success', 'Counselor notes updated successfully.');
+            $request->validate(['counselor_notes' => 'nullable|string|max:1000']);
+            $appointment->update(['counselor_notes' => $request->counselor_notes]);
+            return redirect()->route('appointments.show', $appointment)->with('success', 'Counselor notes updated successfully.');
         }
 
-        // For students - reschedule appointment
         $request->validate([
             'counselor_id' => 'required|exists:users,id',
             'appointment_date' => 'required|date|after_or_equal:today',
@@ -314,20 +241,17 @@ class AppointmentController extends Controller
             'notes' => 'nullable|string|max:1000',
         ]);
 
-        // Check if the new date is Monday or Friday
         $appointmentDate = Carbon::parse($request->appointment_date);
         $dayOfWeek = $appointmentDate->dayOfWeek;
-        if ($dayOfWeek !== 1 && $dayOfWeek !== 5) { // 1 = Monday, 5 = Friday
-            return back()->withErrors(['appointment_date' => 'Appointments are only available on Monday and Friday.']);
+        if ($dayOfWeek === 0 || $dayOfWeek === 6) {
+            return back()->withErrors(['appointment_date' => 'Appointments are only available from Monday to Friday.']);
         }
 
-        // Check if the selected counselor is available
         $counselor = User::find($request->counselor_id);
         if (!$counselor || $counselor->role !== 'counselor') {
             return back()->withErrors(['counselor_id' => 'Selected counselor is not available.']);
         }
 
-        // Check for conflicts
         $conflict = Appointment::where('counselor_id', $request->counselor_id)
             ->where('appointment_date', $request->appointment_date)
             ->where('id', '!=', $appointment->id)
@@ -349,7 +273,6 @@ class AppointmentController extends Controller
             return back()->withErrors(['start_time' => 'The selected time slot conflicts with an existing appointment.']);
         }
 
-        // Update the appointment
         $appointment->update([
             'counselor_id' => $request->counselor_id,
             'appointment_date' => $request->appointment_date,
@@ -359,24 +282,20 @@ class AppointmentController extends Controller
             'counseling_category' => $request->counseling_category,
             'reason' => $request->reason,
             'notes' => $request->notes,
-            'status' => 'pending', // Reset to pending when rescheduled
+            'status' => 'pending',
         ]);
 
-        return redirect()->route('appointments.index')
-            ->with('success', 'Appointment rescheduled successfully. Please wait for counselor confirmation.');
+        return redirect()->route('appointments.index')->with('success', 'Appointment rescheduled successfully. Please wait for counselor confirmation.');
     }
 
-    /**
-     * Get allowed status transitions based on current status
-     */
     private function getAllowedStatusTransitions(string $currentStatus): array
     {
         return match($currentStatus) {
             'pending' => ['confirmed', 'cancelled'],
             'confirmed' => ['cancelled', 'no_show'],
-            'completed' => [], // No transitions allowed
-            'cancelled' => [], // No transitions allowed
-            'no_show' => [], // No transitions allowed
+            'completed' => [],
+            'cancelled' => [],
+            'no_show' => [],
             default => [],
         };
     }
@@ -384,106 +303,95 @@ class AppointmentController extends Controller
     public function destroy(Appointment $appointment, Request $request): RedirectResponse
     {
         $user = $request->user();
-        
         if (!$user->isCounselor() && !$user->isAssistant() && $appointment->user_id !== $user->id) {
             abort(403);
         }
-
-        if ($user->isCounselor() || $user->isAssistant()) {
-            if ($appointment->counselor_id !== $user->id) {
-                abort(403);
-            }
+        if (($user->isCounselor() || $user->isAssistant()) && $appointment->counselor_id !== $user->id) {
+            abort(403);
         }
-
         $appointment->update(['status' => 'cancelled']);
 
-        return redirect()->route('appointments.index')
-            ->with('success', 'Appointment cancelled successfully.');
+        // Notify student of appointment cancellation by counselor
+        $appointment->user->notifications()->create([
+            'appointment_id' => $appointment->id,
+            'title' => 'Appointment Cancelled by Counselor',
+            'message' => "Your appointment on {$appointment->getFormattedDateTime()} has been cancelled by the counselor.",
+            'type' => 'appointment_cancelled',
+            'is_read' => false,
+            'read_at' => null,
+        ]);
+
+        return redirect()->route('appointments.index')->with('success', 'Appointment cancelled successfully.');
     }
 
-    /**
-     * Cancel appointment (for students)
-     */
     public function cancel(Appointment $appointment, Request $request): RedirectResponse
     {
         $user = $request->user();
-        
-        // Only the appointment owner can cancel
         if ($appointment->user_id !== $user->id) {
             abort(403, 'You can only cancel your own appointments.');
         }
-
-        // Only pending or confirmed appointments can be cancelled
         if (!in_array($appointment->status, ['pending', 'confirmed'])) {
             return back()->with('error', 'Only pending or confirmed appointments can be cancelled.');
         }
-
         $appointment->update(['status' => 'cancelled']);
 
-        return redirect()->route('appointments.index')
-            ->with('success', 'Appointment cancelled successfully.');
+        // Notify counselor of appointment cancellation by student
+        $appointment->counselor->notifications()->create([
+            'appointment_id' => $appointment->id,
+            'title' => 'Appointment Cancelled by Student',
+            'message' => "The appointment with {$appointment->user->full_name} on {$appointment->appointment_date->format('M d, Y')} has been cancelled by the student.",
+            'type' => 'appointment_cancelled',
+            'is_read' => false,
+            'read_at' => null,
+        ]);
+
+        return redirect()->route('appointments.index')->with('success', 'Appointment cancelled successfully.');
     }
 
-    /**
-     * Show session history for counselors and students
-     */
     public function sessionHistory(Request $request): View
     {
         $user = $request->user();
-        
+
         $query = Appointment::with(['user', 'counselor']);
-        
+
         if ($user->isCounselor() || $user->isAssistant()) {
-            // Counselors and assistants see their assigned appointments
             $query->where('counselor_id', $user->id);
         } else {
-            // Students see their own appointments
             $query->where('user_id', $user->id);
         }
-        
-        // Show past appointments (completed, cancelled, no_show, rejected, rescheduled)
-        $query->whereIn('status', ['completed', 'cancelled', 'no_show', 'rejected', 'rescheduled']);
 
-        // Search functionality
+        $query->where('status', 'completed');
+
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search, $user) {
                 if ($user->isCounselor() || $user->isAssistant()) {
-                    // Counselors search by client name
                     $q->whereHas('user', function($userQuery) use ($search) {
                         $userQuery->where('first_name', 'like', "%{$search}%")
                                  ->orWhere('last_name', 'like', "%{$search}%")
-                                 ->orWhere('email', 'like', "%{$search}%");
+                                 ->orWhere('id', '=', $search);
                     });
                 } else {
-                    // Students search by counselor name
                     $q->whereHas('counselor', function($counselorQuery) use ($search) {
                         $counselorQuery->where('first_name', 'like', "%{$search}%")
                                       ->orWhere('last_name', 'like', "%{$search}%");
                     });
                 }
-                $q->orWhere('reason', 'like', "%{$search}%")
-                  ->orWhere('notes', 'like', "%{$search}%")
-                  ->orWhere('counselor_notes', 'like', "%{$search}%");
             });
         }
 
-        // Filter by status
         if ($request->filled('status') && $request->status !== 'all') {
             $query->where('status', $request->status);
         }
 
-        // Filter by type
         if ($request->filled('type') && $request->type !== 'all') {
             $query->where('type', $request->type);
         }
 
-        // Filter by counseling category
         if ($request->filled('category') && $request->category !== 'all') {
             $query->where('counseling_category', $request->category);
         }
 
-        // Date range filter
         if ($request->filled('date_from')) {
             $query->where('appointment_date', '>=', $request->date_from);
         }
@@ -492,7 +400,6 @@ class AppointmentController extends Controller
             $query->where('appointment_date', '<=', $request->date_to);
         }
 
-        // Sort options
         $sortBy = $request->get('sort_by', 'appointment_date');
         $sortOrder = $request->get('sort_order', 'desc');
         
@@ -505,20 +412,14 @@ class AppointmentController extends Controller
 
         $appointments = $query->paginate(15)->withQueryString();
 
-        // Get statistics for the filtered results
         $stats = [
             'total_sessions' => $query->count(),
-            'completed_sessions' => $query->where('status', 'completed')->count(),
-            'cancelled_sessions' => $query->where('status', 'cancelled')->count(),
-            'no_show_sessions' => $query->where('status', 'no_show')->count(),
+            'completed_sessions' => $query->count(),
         ];
 
         return view('appointments.session-history', compact('appointments', 'stats'));
     }
 
-    /**
-     * Export session history to CSV
-     */
     public function exportSessionHistory(Request $request)
     {
         $user = $request->user();
@@ -526,37 +427,28 @@ class AppointmentController extends Controller
         $query = Appointment::with(['user', 'counselor']);
         
         if ($user->isCounselor() || $user->isAssistant()) {
-            // Counselors and assistants export their assigned appointments
             $query->where('counselor_id', $user->id);
         } else {
-            // Students export their own appointments
             $query->where('user_id', $user->id);
         }
-        
-        // Export past appointments (completed, cancelled, no_show, rejected, rescheduled)
-        $query->whereIn('status', ['completed', 'cancelled', 'no_show', 'rejected', 'rescheduled']);
 
-        // Apply same filters as session history
+        $query->where('status', 'completed');
+
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search, $user) {
                 if ($user->isCounselor() || $user->isAssistant()) {
-                    // Counselors search by client name
                     $q->whereHas('user', function($userQuery) use ($search) {
                         $userQuery->where('first_name', 'like', "%{$search}%")
                                  ->orWhere('last_name', 'like', "%{$search}%")
-                                 ->orWhere('email', 'like', "%{$search}%");
+                                 ->orWhere('id', '=', $search);
                     });
                 } else {
-                    // Students search by counselor name
                     $q->whereHas('counselor', function($counselorQuery) use ($search) {
                         $counselorQuery->where('first_name', 'like', "%{$search}%")
                                       ->orWhere('last_name', 'like', "%{$search}%");
                     });
                 }
-                $q->orWhere('reason', 'like', "%{$search}%")
-                  ->orWhere('notes', 'like', "%{$search}%")
-                  ->orWhere('counselor_notes', 'like', "%{$search}%");
             });
         }
 
@@ -591,8 +483,6 @@ class AppointmentController extends Controller
 
         $callback = function() use ($appointments) {
             $file = fopen('php://output', 'w');
-            
-            // CSV headers
             fputcsv($file, [
                 'Date',
                 'Time',
@@ -605,8 +495,6 @@ class AppointmentController extends Controller
                 'Counselor Notes',
                 'Created At'
             ]);
-
-            // CSV data
             foreach ($appointments as $appointment) {
                 fputcsv($file, [
                     $appointment->appointment_date->format('Y-m-d'),
@@ -621,20 +509,15 @@ class AppointmentController extends Controller
                     $appointment->created_at->format('Y-m-d H:i:s')
                 ]);
             }
-
             fclose($file);
         };
 
         return response()->stream($callback, 200, $headers);
     }
 
-    /**
-     * Get appointment statistics for dashboard
-     */
     public function getStatistics(Request $request)
     {
         $user = $request->user();
-        
         if (!$user->isCounselor() && !$user->isAssistant()) {
             abort(403);
         }
@@ -673,35 +556,25 @@ class AppointmentController extends Controller
     {
         $dates = [];
         $startDate = Carbon::today();
-        
         for ($i = 0; $i < 30; $i++) {
             $date = $startDate->copy()->addDays($i);
-            $dayOfWeek = strtolower($date->format('l'));
-            
-            // Only allow Monday and Friday
-            if ($dayOfWeek !== 'monday' && $dayOfWeek !== 'friday') {
+            $dayOfWeek = $date->dayOfWeek;
+            if ($dayOfWeek === 0 || $dayOfWeek === 6) {
                 continue;
             }
-            
-            // Check if any counselor is available on this day
             $availableCounselors = Schedule::where('day_of_week', $dayOfWeek)
                 ->where('is_available', true)
                 ->count();
-                
             if ($availableCounselors > 0) {
                 $dates[] = $date->format('Y-m-d');
             }
         }
-        
         return $dates;
     }
 
-    /**
-     * Approve an appointment (Counselor only).
-     */
     public function approve(Appointment $appointment): RedirectResponse
     {
-        if (!auth()->user()->canApproveAppointments()) {
+        if (!Auth::user()->canApproveAppointments()) {
             return redirect()->route('appointments.index')
                 ->with('error', 'You do not have permission to approve appointments.');
         }
@@ -711,42 +584,62 @@ class AppointmentController extends Controller
             'counselor_notes' => $appointment->counselor_notes . "\n\n[Approved on " . now()->format('M d, Y g:i A') . "]"
         ]);
 
-        // Create notification for the user
+        // Notify the approved student
         $appointment->user->notifications()->create([
+            'appointment_id' => $appointment->id,
             'title' => 'Appointment Approved',
             'message' => "Your appointment on {$appointment->getFormattedDateTime()} has been approved.",
             'type' => 'appointment_approved',
+            'is_read' => false,
             'read_at' => null,
         ]);
 
-        return redirect()->route('appointments.show', $appointment)
-            ->with('success', 'Appointment approved successfully.');
-    }
+        // Cancel all other pending appointments for the same counselor and date
+        $otherPendingAppointments = Appointment::where('counselor_id', $appointment->counselor_id)
+            ->where('appointment_date', $appointment->appointment_date)
+            ->where('status', 'pending')
+            ->where('id', '!=', $appointment->id)
+            ->get();
 
-    /**
-     * Reject an appointment (Counselor only).
-     */
-    public function reject(Request $request, Appointment $appointment): RedirectResponse
-    {
-        if (!auth()->user()->canApproveAppointments()) {
-            return redirect()->route('appointments.index')
-                ->with('error', 'You do not have permission to reject appointments.');
+        foreach ($otherPendingAppointments as $pendingAppointment) {
+            $pendingAppointment->update(['status' => 'cancelled']);
+
+            // Notify each student whose appointment was cancelled
+            $pendingAppointment->user->notifications()->create([
+                'appointment_id' => $pendingAppointment->id,
+                'title' => 'Appointment Automatically Cancelled',
+                'message' => "Your appointment request for {$pendingAppointment->appointment_date->format('M d, Y')} has been automatically cancelled because another appointment was confirmed for that day.",
+                'type' => 'appointment_cancelled',
+                'is_read' => false,
+                'read_at' => null,
+            ]);
         }
 
-        $request->validate([
-            'rejection_reason' => 'required|string|max:500'
-        ]);
+        return redirect()->route('appointments.show', $appointment)
+            ->with('success', 'Appointment approved successfully. Other pending requests for this day have been cancelled.');
+    }
+
+    public function reject(Request $request, Appointment $appointment): RedirectResponse
+    {
+      if (!Auth::check() || !Auth::user()->canApproveAppointments()) {
+    return redirect()->route('appointments.index')
+        ->with('error', 'You do not have permission to reject appointments.');
+}
+
+
+        $request->validate(['rejection_reason' => 'required|string|max:500']);
 
         $appointment->update([
             'status' => 'cancelled',
             'counselor_notes' => $appointment->counselor_notes . "\n\n[Rejected on " . now()->format('M d, Y g:i A') . " - Reason: {$request->rejection_reason}]"
         ]);
 
-        // Create notification for the user
         $appointment->user->notifications()->create([
+            'appointment_id' => $appointment->id,
             'title' => 'Appointment Rejected',
             'message' => "Your appointment on {$appointment->getFormattedDateTime()} has been rejected. Reason: {$request->rejection_reason}",
             'type' => 'appointment_rejected',
+            'is_read' => false,
             'read_at' => null,
         ]);
 
@@ -754,9 +647,6 @@ class AppointmentController extends Controller
             ->with('success', 'Appointment rejected successfully.');
     }
 
-    /**
-     * Reschedule an appointment (Counselor only).
-     */
     public function reschedule(Request $request, Appointment $appointment): RedirectResponse
     {
         if (!auth()->user()->canApproveAppointments()) {
@@ -771,7 +661,6 @@ class AppointmentController extends Controller
             'reschedule_reason' => 'required|string|max:500'
         ]);
 
-        // Check if new time slot is available
         $conflictingAppointment = Appointment::where('counselor_id', $appointment->counselor_id)
             ->where('appointment_date', $request->new_appointment_date)
             ->where('status', '!=', 'cancelled')
@@ -799,7 +688,6 @@ class AppointmentController extends Controller
             'counselor_notes' => $appointment->counselor_notes . "\n\n[Rescheduled on " . now()->format('M d, Y g:i A') . " from {$oldDateTime} to " . $appointment->getFormattedDateTime() . " - Reason: {$request->reschedule_reason}]"
         ]);
 
-        // Create notification for the user
         $appointment->user->notifications()->create([
             'title' => 'Appointment Rescheduled',
             'message' => "Your appointment has been rescheduled from {$oldDateTime} to {$appointment->getFormattedDateTime()}. Reason: {$request->reschedule_reason}",
@@ -815,17 +703,15 @@ class AppointmentController extends Controller
     {
         $date = $request->get('date');
         $isUrgent = $request->get('urgent', false);
-        $dayOfWeek = strtolower(Carbon::parse($date)->format('l'));
-        
-        // Only allow Monday and Friday
-        if ($dayOfWeek !== 'monday' && $dayOfWeek !== 'friday') {
+        $dayOfWeek = Carbon::parse($date)->dayOfWeek;
+
+        if ($dayOfWeek === 0 || $dayOfWeek === 6) {
             return response()->json([
                 'slots' => [],
-                'message' => 'Appointments are only available on Monday and Friday.'
+                'message' => 'Appointments are only available from Monday to Friday.'
             ]);
         }
         
-        // Get counselor's schedule for this day
         $schedule = Schedule::where('counselor_id', $counselor->id)
             ->where('day_of_week', $dayOfWeek)
             ->where('is_available', true)
@@ -838,7 +724,6 @@ class AppointmentController extends Controller
             ]);
         }
         
-        // Generate time slots (30-minute intervals)
         $slots = [];
         $startTime = Carbon::parse($schedule->start_time);
         $endTime = Carbon::parse($schedule->end_time);
@@ -848,7 +733,6 @@ class AppointmentController extends Controller
             $slotTime = $currentTime->format('H:i');
             $slotEndTime = $currentTime->copy()->addMinutes(30)->format('H:i');
             
-            // Check if this slot is already booked
             $existingAppointment = Appointment::where('counselor_id', $counselor->id)
                 ->where('appointment_date', $date)
                 ->where('status', '!=', 'cancelled')
@@ -862,13 +746,13 @@ class AppointmentController extends Controller
                 })
                 ->first();
                 
-            // For urgent appointments, show all slots but mark conflicts
             if (!$existingAppointment || $isUrgent) {
                 $isConflict = $existingAppointment ? true : false;
+                $slotEndTimeFormatted = $currentTime->copy()->addMinutes(30)->format('g:i A');
                 $slots[] = [
                     'time' => $slotTime,
                     'end_time' => $slotEndTime,
-                    'formatted_time' => $currentTime->format('g:i A') . ' - ' . $currentTime->addMinutes(30)->format('g:i A'),
+                    'formatted_time' => $currentTime->format('g:i A') . ' - ' . $slotEndTimeFormatted,
                     'is_conflict' => $isConflict,
                     'conflict_message' => $isConflict ? ' (Conflicts with existing booking)' : ''
                 ];
@@ -882,4 +766,4 @@ class AppointmentController extends Controller
             'message' => count($slots) > 0 ? 'Available time slots found.' : 'No available time slots for this date.'
         ]);
     }
-} 
+}

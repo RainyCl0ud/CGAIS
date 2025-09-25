@@ -83,8 +83,22 @@ class Notification extends Model
             'appointment_reminder' => 'bg-blue-100 text-blue-800',
             'appointment_confirmed' => 'bg-green-100 text-green-800',
             'appointment_cancelled' => 'bg-red-100 text-red-800',
+            'appointment_approved' => 'bg-green-100 text-green-800',
+            'appointment_rejected' => 'bg-red-100 text-red-800',
+            'appointment_request' => 'bg-yellow-100 text-yellow-800',
             'general' => 'bg-gray-100 text-gray-800',
             default => 'bg-gray-100 text-gray-800',
         };
     }
-} 
+
+    public function getCardBackgroundClass(): string
+    {
+        return match($this->type) {
+            'appointment_confirmed', 'appointment_approved' => 'bg-green-50 border-green-200 hover:bg-green-100',
+            'appointment_cancelled', 'appointment_rejected' => 'bg-red-50 border-red-200 hover:bg-red-100',
+            'appointment_reminder' => 'bg-yellow-50 border-yellow-200 hover:bg-yellow-100',
+            'general' => 'bg-gray-50 border-gray-200 hover:bg-gray-100',
+            default => 'bg-white border-gray-200 hover:bg-gray-50',
+        };
+    }
+}

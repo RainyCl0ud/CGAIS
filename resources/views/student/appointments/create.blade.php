@@ -1,4 +1,4 @@
-<x-app-layout>
+    <x-app-layout>
     <div class="flex flex-col items-center justify-start py-4 sm:py-8 px-2 sm:px-4 overflow-auto">
             <div class="w-full max-w-2xl mx-auto">
                 <div class="bg-white/80 rounded-lg sm:rounded-2xl shadow-lg sm:shadow-2xl border border-blue-100 p-4 sm:p-8 backdrop-blur">
@@ -33,13 +33,48 @@
                             @enderror
                         </div>
 
+                         <!-- Appointment Type -->
+                        <div>
+                            <label for="type" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Type</label>
+                            <select id="type" name="type" required 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm">
+                                <option value="">Select appointment type</option>
+                                <option value="regular" {{ old('type') == 'regular' ? 'selected' : '' }}>Regular</option>
+                                <option value="urgent" {{ old('type') == 'urgent' ? 'selected' : '' }}>Urgent</option>
+                                <option value="follow_up" {{ old('type') == 'follow_up' ? 'selected' : '' }}>Follow-up</option>
+                            </select>
+                            @error('type')
+                                <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        
+                        <!-- Counseling Category (Students only) -->
+                        @if(auth()->user()->isStudent())
+                        <div>
+                            <label for="counseling_category" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Counseling Category</label>
+                            <select id="counseling_category" name="counseling_category" required 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm">
+                                <option value="">Select counseling category</option>
+                                <option value="conduct_intake_interview" {{ old('counseling_category') == 'conduct_intake_interview' ? 'selected' : '' }}>Conduct Intake Interview</option>
+                                <option value="information_services" {{ old('counseling_category') == 'information_services' ? 'selected' : '' }}>Information Services</option>
+                                <option value="internal_referral_services" {{ old('counseling_category') == 'internal_referral_services' ? 'selected' : '' }}>Internal Referral Services</option>
+                                <option value="counseling_services" {{ old('counseling_category') == 'counseling_services' ? 'selected' : '' }}>Counseling Services</option>
+                                <option value="conduct_exit_interview" {{ old('counseling_category') == 'conduct_exit_interview' ? 'selected' : '' }}>Conduct Exit Interview</option>
+                            </select>
+                            @error('counseling_category')
+                                <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        @endif
+
                         <!-- Date Selection -->
                         <div>
                             <label for="appointment_date" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Date</label>
                             <input type="date" id="appointment_date" name="appointment_date" required 
                                    min="{{ date('Y-m-d') }}" value="{{ old('appointment_date') }}"
                                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm">
-                            <p class="text-xs text-gray-500 mt-1">* Appointments available on Monday and Friday only</p>
+                            <p class="text-xs text-gray-500 mt-1">* Appointments available on weekdays (Monday through Friday)</p>
                             @error('appointment_date')
                                 <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                             @enderror
@@ -61,40 +96,6 @@
                                 <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
-
-                        <!-- Appointment Type -->
-                        <div>
-                            <label for="type" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Type</label>
-                            <select id="type" name="type" required 
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm">
-                                <option value="">Select appointment type</option>
-                                <option value="regular" {{ old('type') == 'regular' ? 'selected' : '' }}>Regular</option>
-                                <option value="urgent" {{ old('type') == 'urgent' ? 'selected' : '' }}>Urgent</option>
-                                <option value="follow_up" {{ old('type') == 'follow_up' ? 'selected' : '' }}>Follow-up</option>
-                            </select>
-                            @error('type')
-                                <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <!-- Counseling Category (Students only) -->
-                        @if(auth()->user()->isStudent())
-                        <div>
-                            <label for="counseling_category" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Counseling Category</label>
-                            <select id="counseling_category" name="counseling_category" required 
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm">
-                                <option value="">Select counseling category</option>
-                                <option value="conduct_intake_interview" {{ old('counseling_category') == 'conduct_intake_interview' ? 'selected' : '' }}>Conduct Intake Interview</option>
-                                <option value="information_services" {{ old('counseling_category') == 'information_services' ? 'selected' : '' }}>Information Services</option>
-                                <option value="internal_referral_services" {{ old('counseling_category') == 'internal_referral_services' ? 'selected' : '' }}>Internal Referral Services</option>
-                                <option value="counseling_services" {{ old('counseling_category') == 'counseling_services' ? 'selected' : '' }}>Counseling Services</option>
-                                <option value="conduct_exit_interview" {{ old('counseling_category') == 'conduct_exit_interview' ? 'selected' : '' }}>Conduct Exit Interview</option>
-                            </select>
-                            @error('counseling_category')
-                                <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
-                        @endif
 
                         <!-- Reason -->
                         <!-- Reason for Urgency (for urgent appointments) -->
@@ -124,14 +125,14 @@
 
                         <!-- Submit Button -->
                         <div class="flex flex-col sm:flex-row gap-2 sm:gap-4 pt-4">
-                            <button type="submit" 
+                            <button type="submit"   
                                     class="flex-1 px-4 py-2 sm:py-3 bg-blue-900 text-white font-semibold rounded-lg hover:bg-blue-800 transition-colors text-sm">
                                 Book Appointment
                             </button>
-                            <button type="button" onclick="history.back()"
-                                    class="flex-1 px-4 py-2 sm:py-3 bg-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-400 transition-colors text-center text-sm">
+                            <a href="{{ route('student.appointments.index') }}" 
+                               class="flex-1 px-4 py-2 sm:py-3 bg-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-400 transition-colors text-center text-sm">
                                 Cancel
-                            </button>
+                            </a>
                         </div>
                     </form>
                 </div>
@@ -139,166 +140,114 @@
         </main>
     </div>
 
-    <script>
-        // JavaScript for dynamic time slot loading
-        document.getElementById('counselor_id').addEventListener('change', function() {
-            const counselorId = this.value;
-            const dateInput = document.getElementById('appointment_date');
-            const timeSelect = document.getElementById('start_time');
-            
-            if (counselorId && dateInput.value) {
-                loadAvailableTimeSlots(counselorId, dateInput.value);
-            }
-        });
+   <script>
+    const counselorSelect = document.getElementById('counselor_id');
+    const dateInput = document.getElementById('appointment_date');
+    const timeSelect = document.getElementById('start_time');
+    const typeSelect = document.getElementById('type');
+    const urgencyDiv = document.getElementById('urgency_reason_div');
+    const reasonField = document.getElementById('reason');
+    const endTimeField = document.getElementById('end_time');
 
-        document.getElementById('appointment_date').addEventListener('change', function() {
-            const counselorId = document.getElementById('counselor_id').value;
-            const date = this.value;
-            
-            // Check if selected date is Monday or Friday
-            const selectedDate = new Date(date);
-            const dayOfWeek = selectedDate.getDay(); // 0 = Sunday, 1 = Monday, 5 = Friday
-            
-            if (dayOfWeek !== 1 && dayOfWeek !== 5) {
-                const timeSelect = document.getElementById('start_time');
-                timeSelect.innerHTML = '<option value="">Appointments available on Monday and Friday only</option>';
-                timeSelect.disabled = true;
-                return;
-            }
-            
-            // Re-enable time select if it was disabled
-            const timeSelect = document.getElementById('start_time');
-            timeSelect.disabled = false;
-            
-            if (counselorId && date) {
-                loadAvailableTimeSlots(counselorId, date);
-            }
-        });
+    // Load slots when counselor or date changes
+    counselorSelect.addEventListener('change', function() {
+        if (counselorSelect.value && dateInput.value) {
+            loadAvailableTimeSlots(counselorSelect.value, dateInput.value);
+        }
+    });
 
-        // Add event listener for appointment type to reload time slots and handle urgent form
-        document.getElementById('type').addEventListener('change', function() {
-            const counselorId = document.getElementById('counselor_id').value;
-            const date = document.getElementById('appointment_date').value;
-            const urgencyDiv = document.getElementById('urgency_reason_div');
-            const reasonField = document.getElementById('reason');
-            
-            // Show/hide urgency reason field based on type
-            if (this.value === 'urgent') {
-                urgencyDiv.classList.remove('hidden');
-                reasonField.required = true;
-            } else {
-                urgencyDiv.classList.add('hidden');
-                reasonField.required = false;
-            }
-            
-            if (counselorId && date) {
-                loadAvailableTimeSlots(counselorId, date);
-            }
-        });
+    dateInput.addEventListener('change', function() {
+        const date = this.value;
+        const dayOfWeek = new Date(date).getDay();
 
-        // Initialize form state based on URL parameters
-        document.addEventListener('DOMContentLoaded', function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const typeParam = urlParams.get('type');
-            
-            if (typeParam === 'urgent') {
-                const typeSelect = document.getElementById('type');
-                typeSelect.value = 'urgent';
-                typeSelect.dispatchEvent(new Event('change'));
-            }
-        });
-
-        function loadAvailableTimeSlots(counselorId, date) {
-            const timeSelect = document.getElementById('start_time');
-            const appointmentType = document.getElementById('type').value;
-            const isUrgent = appointmentType === 'urgent';
-            
-            timeSelect.innerHTML = '<option value="">Loading available times...</option>';
-            
-            fetch(`/api/student/counselors/${counselorId}/available-slots?date=${date}&urgent=${isUrgent}`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    timeSelect.innerHTML = '<option value="">Select a time</option>';
-                    
-                    if (data.slots && data.slots.length > 0) {
-                        data.slots.forEach(slot => {
-                            const option = document.createElement('option');
-                            option.value = slot.time;
-                            option.textContent = slot.formatted_time + slot.conflict_message;
-                            option.setAttribute('data-end-time', slot.end_time);
-                            
-                            // Add visual indication for conflicts
-                            if (slot.is_conflict) {
-                                option.style.color = '#dc2626'; // Red color for conflicts
-                                option.style.fontWeight = 'bold';
-                            }
-                            
-                            timeSelect.appendChild(option);
-                        });
-                        
-                        // Show warning for urgent appointments with conflicts
-                        if (isUrgent && data.slots.some(slot => slot.is_conflict)) {
-                            const warningDiv = document.createElement('div');
-                            warningDiv.className = 'mt-2 p-2 bg-yellow-100 border border-yellow-400 text-yellow-800 rounded text-xs';
-                            warningDiv.innerHTML = '⚠️ <strong>Urgent Booking Notice:</strong> Some time slots conflict with existing appointments. Your urgent request will be reviewed by the counselor.';
-                            
-                            const timeDiv = timeSelect.parentElement;
-                            // Remove existing warning if any
-                            const existingWarning = timeDiv.querySelector('.bg-yellow-100');
-                            if (existingWarning) {
-                                existingWarning.remove();
-                            }
-                            timeDiv.appendChild(warningDiv);
-                        }
-                    } else {
-                        timeSelect.innerHTML = '<option value="">No available times for this date</option>';
-                    }
-                })
-                .catch(error => {
-                    console.error('Error loading time slots:', error);
-                    timeSelect.innerHTML = '<option value="">Error loading times</option>';
-                });
+        if (dayOfWeek === 0 || dayOfWeek === 6) {
+            timeSelect.innerHTML = '<option value="">Appointments are only available on weekdays (Monday through Friday).</option>';
+            timeSelect.disabled = true;
+            return;
         }
 
-        // Add event listener for time selection to populate end_time
-        document.getElementById('start_time').addEventListener('change', function() {
-            const selectedOption = this.options[this.selectedIndex];
-            const endTimeField = document.getElementById('end_time');
-            
-            if (selectedOption && selectedOption.getAttribute('data-end-time')) {
-                endTimeField.value = selectedOption.getAttribute('data-end-time');
-            } else {
-                endTimeField.value = '';
-            }
-        });
+        timeSelect.disabled = false;
 
-        // Add form submission debugging
-        document.querySelector('form').addEventListener('submit', function(e) {
-            const formData = new FormData(this);
-            console.log('Form data being submitted:');
-            for (let [key, value] of formData.entries()) {
-                console.log(key + ': ' + value);
-            }
-            
-            // Check if end_time is empty
-            const endTime = document.getElementById('end_time').value;
-            if (!endTime) {
-                e.preventDefault();
-                alert('Please select a time slot first.');
-                return false;
-            }
-            
-            // Show loading state
-            const submitButton = this.querySelector('button[type="submit"]');
-            submitButton.disabled = true;
-            submitButton.textContent = 'Booking Appointment...';
-            
-            console.log('Form submitted successfully');
-        });
-    </script>
+        if (counselorSelect.value && date) {
+            loadAvailableTimeSlots(counselorSelect.value, date);
+        }
+    });
+
+    // Urgent appointment handling
+    typeSelect.addEventListener('change', function() {
+        if (this.value === 'urgent') {
+            urgencyDiv.classList.remove('hidden');
+            reasonField.required = true;
+        } else {
+            urgencyDiv.classList.add('hidden');
+            reasonField.required = false;
+        }
+
+        if (counselorSelect.value && dateInput.value) {
+            loadAvailableTimeSlots(counselorSelect.value, dateInput.value);
+        }
+    });
+
+    // Auto-load on page ready (useful for old input restore)
+    document.addEventListener('DOMContentLoaded', function() {
+        if (counselorSelect.value && dateInput.value) {
+            loadAvailableTimeSlots(counselorSelect.value, dateInput.value);
+        }
+    });
+
+    function loadAvailableTimeSlots(counselorId, date) {
+        const isUrgent = typeSelect.value === 'urgent';
+        timeSelect.innerHTML = '<option value="">Loading available times...</option>';
+
+        fetch(`/api/student/counselors/${counselorId}/available-slots?date=${date}&urgent=${isUrgent}`)
+            .then(response => response.json())
+            .then(data => {
+                timeSelect.innerHTML = '<option value="">Select a time</option>';
+
+                if (data.slots && data.slots.length > 0) {
+                    data.slots.forEach(slot => {
+                        const option = document.createElement('option');
+                        option.value = slot.time;
+                        option.textContent = slot.formatted_time + slot.conflict_message;
+                        option.setAttribute('data-end-time', slot.end_time);
+
+                        if (slot.is_conflict) {
+                            option.style.color = '#dc2626';
+                            option.style.fontWeight = 'bold';
+                        }
+
+                        timeSelect.appendChild(option);
+                    });
+
+                    if (isUrgent && data.slots.some(slot => slot.is_conflict)) {
+                        const warningDiv = document.createElement('div');
+                        warningDiv.className = 'mt-2 p-2 bg-yellow-100 border border-yellow-400 text-yellow-800 rounded text-xs';
+                        warningDiv.innerHTML = '⚠️ <strong>Urgent Booking Notice:</strong> Some slots conflict with existing appointments. Your urgent request will be reviewed by the counselor.';
+
+                        const existingWarning = timeSelect.parentElement.querySelector('.bg-yellow-100');
+                        if (existingWarning) existingWarning.remove();
+
+                        timeSelect.parentElement.appendChild(warningDiv);
+                    }
+                } else {
+                    timeSelect.innerHTML = '<option value="">No available times for this date</option>';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading time slots:', error);
+                timeSelect.innerHTML = '<option value="">Error loading times</option>';
+            });
+    }
+
+    // Set hidden end_time when time is selected
+    timeSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        if (selectedOption && selectedOption.getAttribute('data-end-time')) {
+            endTimeField.value = selectedOption.getAttribute('data-end-time');
+        } else {
+            endTimeField.value = '';
+        }
+    });
+</script>
+
 </x-app-layout> 

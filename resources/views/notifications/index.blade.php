@@ -27,12 +27,19 @@
                     @if($notifications->count() > 0)
                         <div class="space-y-3 sm:space-y-4">
                             @foreach($notifications as $notification)
-                                <div class="bg-white border border-gray-200 rounded-lg p-3 sm:p-4 {{ $notification->read_at ? 'opacity-75' : '' }}">
+                                @php
+                                    $cardClass = $notification->getCardBackgroundClass();
+                                    $isAppointmentRequest = $notification->type === 'appointment_request';
+                                    $appointmentUrl = $notification->appointment ? route('appointments.show', [$notification->appointment, 'back' => 'notifications']) : '#';
+                                @endphp
+                                <a href="{{ $isAppointmentRequest ? $appointmentUrl : route('notifications.show', $notification) }}"
+                                   class="block {{ $cardClass }} rounded-lg p-3 sm:p-4 {{ $notification->read_at ? 'opacity-75' : '' }} hover:bg-opacity-80 transition-colors cursor-pointer"
+                                   onclick="event.preventDefault(); if (!event.target.closest('form')) { window.location.href = this.href; }">
                                     <div class="flex items-start justify-between">
                                         <div class="flex-1">
                                             <div class="flex items-center space-x-2 sm:space-x-3">
                                                 @if(!$notification->read_at)
-                                                    <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                                    <div class="w-2 h-2 {{ $isAppointmentRequest ? 'bg-yellow-500' : 'bg-blue-500' }} rounded-full"></div>
                                                 @endif
                                                 <h3 class="text-sm sm:text-base font-semibold text-gray-900">
                                                     {{ $notification->title }}
@@ -50,7 +57,7 @@
                                                 </span>
                                                 <div class="flex space-x-2">
                                                     @if(!$notification->read_at)
-                                                        <form method="POST" action="{{ route('notifications.read', $notification) }}" class="inline">
+                                                        <form method="POST" action="{{ route('notifications.read', $notification) }}" class="inline" onclick="event.stopPropagation();">
                                                             @csrf
                                                             @method('PATCH')
                                                             <button type="submit" 
@@ -59,11 +66,11 @@
                                                             </button>
                                                         </form>
                                                     @endif
-                                                    <form method="POST" action="{{ route('notifications.destroy', $notification) }}" class="inline">
+                                                    <form method="POST" action="{{ route('notifications.destroy', $notification) }}" class="inline" onclick="event.stopPropagation();">
                                                         @csrf
                                                         @method('DELETE')
                                                         <button type="submit" 
-                                                                onclick="return confirm('Are you sure you want to delete this notification?')"
+                                                                onclick="event.stopPropagation(); return confirm('Are you sure you want to delete this notification?')"
                                                                 class="text-xs text-red-600 hover:text-red-800">
                                                             Delete
                                                         </button>
@@ -72,7 +79,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                </a>
                             @endforeach
                         </div>
 

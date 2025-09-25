@@ -3,8 +3,8 @@
             <div class="w-full max-w-7xl mx-auto">
                 <div class="bg-white/80 rounded-lg sm:rounded-2xl shadow-lg sm:shadow-2xl border border-blue-100 p-4 sm:p-8 backdrop-blur">
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6">
-                        <div>
-                        <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-900">My Appointments</h1>
+                        <div> 
+                        <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-900">Appointments</h1>
                         <p class="text-gray-600 text-xs sm:text-sm mt-1">View and manage your counseling appointments</p>
                         </div>
                         @if(!auth()->user()->isCounselor() && !auth()->user()->isAssistant())

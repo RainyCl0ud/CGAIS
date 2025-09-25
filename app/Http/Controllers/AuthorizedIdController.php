@@ -6,6 +6,7 @@ use App\Models\AuthorizedId;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Auth;
 
 class AuthorizedIdController extends Controller
 {
@@ -27,14 +28,7 @@ class AuthorizedIdController extends Controller
             $query->where('type', $request->type);
         }
 
-        // Filter by status
-        if ($request->filled('status')) {
-            if ($request->status === 'available') {
-                $query->available();
-            } elseif ($request->status === 'used') {
-                $query->used();
-            }
-        }
+
 
         // Search by ID number
         if ($request->filled('search')) {
@@ -43,15 +37,7 @@ class AuthorizedIdController extends Controller
 
         $authorizedIds = $query->paginate(20);
 
-        $stats = [
-            'total' => AuthorizedId::count(),
-            'available' => AuthorizedId::available()->count(),
-            'used' => AuthorizedId::used()->count(),
-            'students' => AuthorizedId::student()->count(),
-            'faculty' => AuthorizedId::faculty()->count(),
-        ];
-
-        return view('authorized-ids.index', compact('authorizedIds', 'stats'));
+        return view('authorized-ids.index', compact('authorizedIds'));
     }
 
     /**
@@ -68,55 +54,32 @@ class AuthorizedIdController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'id_numbers' => 'required|string|min:1',
+            'id_number' => 'required|string|min:3|max:50',
             'type' => ['required', Rule::in(['student', 'faculty'])],
-            'notes' => 'nullable|string|max:500',
         ]);
 
-        $idNumbers = array_filter(
-            array_map('trim', explode("\n", $request->id_numbers)),
-            function($id) { return !empty($id) && strlen($id) >= 3; }
-        );
+        $idNumber = trim($request->id_number);
 
-        // Remove duplicates within the same request
-        $idNumbers = array_unique($idNumbers);
-
-        if (empty($idNumbers)) {
-            return back()->withErrors(['id_numbers' => 'Please provide at least one valid ID number (minimum 3 characters).']);
+        if (strlen($idNumber) < 3) {
+            return back()->withErrors(['id_number' => 'ID number must be at least 3 characters long.']);
         }
 
-        // Check if any IDs already exist in the database
-        $existingIds = AuthorizedId::whereIn('id_number', $idNumbers)->pluck('id_number')->toArray();
-        if (!empty($existingIds)) {
-            return back()->withErrors(['id_numbers' => 'The following IDs already exist: ' . implode(', ', $existingIds)]);
+        // Check if ID already exists
+        $existingId = AuthorizedId::where('id_number', $idNumber)->first();
+        if ($existingId) {
+            return back()->withErrors(['id_number' => "ID '$idNumber' already exists."]);
         }
 
-        $successCount = 0;
-        $errors = [];
-
-        foreach ($idNumbers as $idNumber) {
-            try {
-                AuthorizedId::create([
-                    'id_number' => $idNumber,
-                    'type' => $request->type,
-                    'registered_by' => auth()->id(),
-                    'notes' => $request->notes,
-                ]);
-                $successCount++;
-            } catch (\Exception $e) {
-                $errors[] = "ID '$idNumber': Failed to create record.";
-            }
+        try {
+            AuthorizedId::create([
+                'id_number' => $idNumber,
+                'type' => $request->type,
+                'registered_by' => Auth::id(),
+            ]);
+            return redirect()->route('authorized-ids.index')->with('success', 'Successfully created authorized ID.');
+        } catch (\Exception $e) {
+            return back()->withErrors(['id_number' => 'Failed to create the ID. Please try again.']);
         }
-
-        if ($successCount > 0) {
-            $message = "Successfully created $successCount authorized ID(s).";
-            if (!empty($errors)) {
-                $message .= " Some IDs could not be created due to errors.";
-            }
-            return redirect()->route('authorized-ids.index')->with('success', $message);
-        }
-
-        return back()->withErrors(['id_numbers' => 'No IDs were created. Please check the input and try again.']);
     }
 
     /**
@@ -144,13 +107,11 @@ class AuthorizedIdController extends Controller
         $request->validate([
             'id_number' => ['required', 'string', 'max:50', Rule::unique('authorized_ids')->ignore($authorizedId->id)],
             'type' => ['required', Rule::in(['student', 'faculty'])],
-            'notes' => 'nullable|string|max:500',
         ]);
 
         $authorizedId->update([
             'id_number' => $request->id_number,
             'type' => $request->type,
-            'notes' => $request->notes,
         ]);
 
         return redirect()->route('authorized-ids.show', $authorizedId)

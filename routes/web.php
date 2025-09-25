@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\AppointmentController;
+use App\Http\Controllers\AppointmentController; 
 use App\Http\Controllers\StudentAppointmentController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\NotificationController;
@@ -97,7 +97,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Full appointment management (counselor only)
         Route::post('/appointments', [AppointmentController::class, 'store'])->name('appointments.store');
         Route::get('/appointments/create', [AppointmentController::class, 'create'])->name('appointments.create');
-        Route::put('/appointments/{appointment}', [AppointmentController::class, 'update'])->name('appointments.update');
+        Route::match(['PUT', 'PATCH'], '/appointments/{appointment}', [AppointmentController::class, 'update'])->name('appointments.update');
         Route::delete('/appointments/{appointment}', [AppointmentController::class, 'destroy'])->name('appointments.destroy');
         Route::get('/appointments/{appointment}/edit', [AppointmentController::class, 'edit'])->name('appointments.edit');
         
@@ -106,8 +106,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::patch('/appointments/{appointment}/reject', [AppointmentController::class, 'reject'])->name('appointments.reject');
         Route::patch('/appointments/{appointment}/reschedule', [AppointmentController::class, 'reschedule'])->name('appointments.reschedule');
     });
-    
-
     
     // User Activity Logs (All authenticated users)
     Route::get('/my-activity', [ActivityLogController::class, 'userActivity'])->name('activity-logs.user-activity');

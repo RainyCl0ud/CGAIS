@@ -31,11 +31,11 @@
                     <x-slot name="trigger">
                         <button class="flex items-center text-sm font-medium text-gray-700 hover:text-gray-900 focus:outline-none transition ease-in-out duration-150">
                             <div class="flex items-center">
-                                <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-2">
+                                {{-- <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-2">
                                     <span class="text-blue-600 font-medium text-sm">
                                         {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
                                     </span>
-                                </div>
+                                </div> --}}
                                 <span class="hidden sm:block">{{ Auth::user()->full_name }}</span>
                             </div>
 

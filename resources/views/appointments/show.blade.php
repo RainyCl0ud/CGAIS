@@ -5,19 +5,23 @@
                     <div class="flex justify-between items-center mb-6">
                         <h1 class="text-3xl font-bold text-blue-900">Appointment Details</h1>
                         @if(request()->get('back') === 'pending')
-                            <a href="{{ route('pending.appointments') }}" 
+                            <a href="{{ route('pending.appointments') }}"
                                class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
-                                Back to Pending Appointments
+                                 ← Back
                             </a>
                         @elseif(request()->get('back') === 'today')
-                            <a href="{{ route('today.appointments') }}" 
+                            <a href="{{ route('today.appointments') }}"
                                class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
-                                Back to Today's Appointments
+                                ← Back
                             </a>
-                        @else
-                            <a href="{{ route('appointments.index') }}" 
+                        @elseif(request()->get('back') === 'notifications')
+                            <a href="{{ route('notifications.index') }}"
                                class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
-                                Back to List
+                                 ← Back
+                        @else
+                            <a href="{{ route('appointments.index') }}"
+                               class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
+                                ← Back
                             </a>
                         @endif
                     </div>
@@ -181,13 +185,10 @@
                                     @if(auth()->user()->isCounselor())
                                         <!-- Counselor Status Actions (Full Privileges) -->
                                         @if($appointment->status === 'pending')
-                                            <form method="POST" action="{{ route('appointments.approve', $appointment) }}" class="space-y-3">
-                                                @csrf
-                                                <button type="submit" 
-                                                        class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-                                                    ✓ Approve Appointment
-                                                </button>
-                                            </form>
+                                            <button onclick="confirmStatusChange('{{ $appointment->id }}', 'confirmed', 'Pending', 'Confirmed')" 
+                                                    class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                                                ✓ Approve Appointment
+                                            </button>
                                             
                                             <button onclick="showRejectModal('{{ $appointment->id }}')" 
                                                     class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
@@ -423,38 +424,6 @@
                         </button>
                     </div>
                 </form>
-            </div>
-        </div>
-    </div>
-        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div class="mt-3 text-center">
-                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100">
-                    <svg class="h-6 w-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
-                    </svg>
-                </div>
-                <h3 class="text-lg font-medium text-gray-900 mt-4">Confirm Status Change</h3>
-                <div class="mt-2 px-7 py-3">
-                    <p class="text-sm text-gray-500">
-                        Are you sure you want to change the appointment status from 
-                        <span id="currentStatus" class="font-semibold text-gray-700"></span> 
-                        to 
-                        <span id="newStatus" class="font-semibold text-gray-700"></span>?
-                    </p>
-                    <div class="mt-4 text-xs text-gray-600">
-                        <p id="statusWarning" class="text-red-600 font-medium"></p>
-                    </div>
-                </div>
-                <div class="items-center px-4 py-3">
-                    <button id="confirmStatusChange" 
-                            class="px-4 py-2 bg-blue-900 text-white text-base font-medium rounded-md w-24 mr-2 hover:bg-blue-800 transition-colors">
-                        Confirm
-                    </button>
-                    <button id="cancelStatusChange" 
-                            class="px-4 py-2 bg-gray-300 text-gray-700 text-base font-medium rounded-md w-24 hover:bg-gray-400 transition-colors">
-                        Cancel
-                    </button>
-                </div>
             </div>
         </div>
     </div>

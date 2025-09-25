@@ -17,6 +17,7 @@ class DashboardController extends Controller
         $stats = [];
         $recentAppointments = collect();
         $upcomingAppointments = collect();
+        $nextAppointment = null;
 
         if ($user->isCounselor()) {
             // Counselor Dashboard (Full Privileges)
@@ -25,7 +26,7 @@ class DashboardController extends Controller
                 'pending_appointments' => Appointment::where('counselor_id', $user->id)->pending()->count(),
                 'today_appointments' => Appointment::where('counselor_id', $user->id)
                     ->where('appointment_date', Carbon::today())
-                    ->where('status', '!=', 'cancelled')
+                    ->where('status',  'confirmed')
                     ->count(),
                 'unread_notifications' => $user->getUnreadNotificationsCount(),
                 'total_users' => User::count(),
@@ -46,6 +47,19 @@ class DashboardController extends Controller
                 ->orderBy('start_time')
                 ->limit(5)
                 ->get();
+
+$nextAppointment = Appointment::with('user')
+    ->where('counselor_id', $user->id)
+    ->where(function ($query) {
+        $query->where('status', 'confirmed')
+              ->orWhere(function ($query) {
+                  $query->where('status', 'pending')
+                        ->whereRaw("STR_TO_DATE(CONCAT(appointment_date, ' ', start_time), '%Y-%m-%d %H:%i:%s') >= NOW()");
+              });
+    })
+    ->orderBy('appointment_date')
+    ->orderBy('start_time')
+    ->first();
 
         } elseif ($user->isAssistant()) {
             // Assistant Dashboard (Limited Privileges)
@@ -75,6 +89,13 @@ class DashboardController extends Controller
                 ->limit(5)
                 ->get();
 
+            $nextAppointment = Appointment::with('user')
+                ->where('counselor_id', $user->id)
+                ->upcoming()
+                ->orderBy('appointment_date')
+                ->orderBy('start_time')
+                ->first();
+
         } else {
             // Student/Faculty Dashboard
             $stats = [
@@ -101,9 +122,9 @@ class DashboardController extends Controller
         if ($user->isStudent()) {
             return view('dashboard.student', compact('stats', 'recentAppointments', 'upcomingAppointments'));
         } elseif ($user->isCounselor()) {
-            return view('dashboard.counselor', compact('stats', 'recentAppointments', 'upcomingAppointments'));
+            return view('dashboard.counselor', compact('stats', 'recentAppointments', 'upcomingAppointments', 'nextAppointment'));
         } elseif ($user->isAssistant()) {
-            return view('dashboard.assistant', compact('stats', 'recentAppointments', 'upcomingAppointments'));
+            return view('dashboard.assistant', compact('stats', 'recentAppointments', 'upcomingAppointments', 'nextAppointment'));
         } else {
             return view('dashboard.faculty', compact('stats', 'recentAppointments', 'upcomingAppointments'));
         }
@@ -120,7 +141,7 @@ class DashboardController extends Controller
         $todayAppointments = Appointment::with('user')
             ->where('counselor_id', $user->id)
             ->where('appointment_date', Carbon::today())
-            ->where('status', '!=', 'cancelled')
+            ->where('status', 'confirmed')
             ->orderByRaw("CASE WHEN type = 'urgent' THEN 0 ELSE 1 END") // Urgent first
             ->orderBy('start_time')
             ->get();

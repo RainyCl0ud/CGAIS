@@ -60,7 +60,7 @@ class User extends Authenticatable
 
     // Privilege helper methods
     public function canManageUsers() { return $this->isCounselor(); }
-    public function canApproveAppointments() { return $this->isCounselor(); }
+    public function canApproveAppointments() { return $this->isCounselor() || $this->isAssistant(); }
     public function canGenerateReports() { return $this->isCounselor(); }
     public function canCreateCounselingHistory() { return $this->isCounselor(); }
     public function canHandleUrgentAppointments() { return $this->isCounselor(); }
@@ -113,6 +113,7 @@ class User extends Authenticatable
     {
         return $this->hasMany(FeedbackForm::class, 'counselor_id');
     }
+    
 
     // Helper methods
     public function getFullNameAttribute(): string
@@ -138,8 +139,6 @@ class User extends Authenticatable
         return $this->notifications()->unread()->count();
     }
 
-
-
     public function getPendingAppointments()
     {
         return $this->appointments()->pending()->orderBy('appointment_date')->orderBy('start_time');
@@ -149,4 +148,5 @@ class User extends Authenticatable
     {
         return $this->appointments()->upcoming()->orderBy('appointment_date')->orderBy('start_time');
     }
+    
 }

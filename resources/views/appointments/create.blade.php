@@ -1,4 +1,4 @@
-<x-app-layout>
+    <x-app-layout>
     <div class="flex flex-col items-center justify-start py-4 sm:py-8 px-2 sm:px-4 overflow-auto">
             <div class="w-full max-w-2xl mx-auto">
                 <div class="bg-white/80 rounded-lg sm:rounded-2xl shadow-lg sm:shadow-2xl border border-blue-100 p-4 sm:p-8 backdrop-blur">
@@ -13,7 +13,7 @@
                         </div>
                     @endif
 
-                    <form method="POST" action="{{ route('appointments.store') }}" class="space-y-4 sm:space-y-6">
+                    <form method="POST" action="{{ route('student.appointments.store') }}" class="space-y-4 sm:space-y-6">
                         @csrf
 
                         <!-- Counselor Selection -->
@@ -39,7 +39,7 @@
                             <input type="date" id="appointment_date" name="appointment_date" required 
                                    min="{{ date('Y-m-d') }}" value="{{ old('appointment_date') }}"
                                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm">
-                            <p class="text-xs text-gray-500 mt-1">* Appointments available on Monday and Friday only</p>
+                            <p class="text-xs text-gray-500 mt-1">* Appointments available on weekdays (Monday through Friday)</p>
                             @error('appointment_date')
                                 <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                             @enderror
@@ -155,13 +155,13 @@
             const counselorId = document.getElementById('counselor_id').value;
             const date = this.value;
             
-            // Check if selected date is Monday or Friday
+            // Check if selected date is a weekday (Monday through Friday)
             const selectedDate = new Date(date);
             const dayOfWeek = selectedDate.getDay(); // 0 = Sunday, 1 = Monday, 5 = Friday
-            
-            if (dayOfWeek !== 1 && dayOfWeek !== 5) {
+
+            if (dayOfWeek === 0 || dayOfWeek === 6) { // Sunday or Saturday
                 const timeSelect = document.getElementById('start_time');
-                timeSelect.innerHTML = '<option value="">Appointments available on Monday and Friday only</option>';
+                timeSelect.innerHTML = '<option value="">Appointments are only available on weekdays (Monday through Friday).</option>';
                 timeSelect.disabled = true;
                 return;
             }
@@ -215,7 +215,7 @@
             
             timeSelect.innerHTML = '<option value="">Loading available times...</option>';
             
-            fetch(`/api/counselors/${counselorId}/available-slots?date=${date}&urgent=${isUrgent}`)
+            fetch(`/api/student/counselors/${counselorId}/available-slots?date=${date}&urgent=${isUrgent}`)
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Network response was not ok');

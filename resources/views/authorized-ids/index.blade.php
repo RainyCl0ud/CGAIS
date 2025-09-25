@@ -27,89 +27,18 @@
                 </div>
             </div>
 
-            <!-- Statistics Cards -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-                <div class="bg-white/80 rounded-lg shadow-lg border border-blue-100 p-4 backdrop-blur">
-                    <div class="flex items-center">
-                        <div class="p-2 bg-blue-100 rounded-lg">
-                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                            </svg>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-600">Total IDs</p>
-                            <p class="text-2xl font-bold text-gray-900">{{ $stats['total'] }}</p>
-                        </div>
-                    </div>
-                </div>
 
-                <div class="bg-white/80 rounded-lg shadow-lg border border-green-100 p-4 backdrop-blur">
-                    <div class="flex items-center">
-                        <div class="p-2 bg-green-100 rounded-lg">
-                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-600">Available</p>
-                            <p class="text-2xl font-bold text-gray-900">{{ $stats['available'] }}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-white/80 rounded-lg shadow-lg border border-red-100 p-4 backdrop-blur">
-                    <div class="flex items-center">
-                        <div class="p-2 bg-red-100 rounded-lg">
-                            <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                            </svg>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-600">Used</p>
-                            <p class="text-2xl font-bold text-gray-900">{{ $stats['used'] }}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-white/80 rounded-lg shadow-lg border border-purple-100 p-4 backdrop-blur">
-                    <div class="flex items-center">
-                        <div class="p-2 bg-purple-100 rounded-lg">
-                            <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 5.477 5.754 5 7.5 5s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.523 18.246 19 16.5 19c-1.746 0-3.332-.477-4.5-1.253"></path>
-                            </svg>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-600">Students</p>
-                            <p class="text-2xl font-bold text-gray-900">{{ $stats['students'] }}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-white/80 rounded-lg shadow-lg border border-orange-100 p-4 backdrop-blur">
-                    <div class="flex items-center">
-                        <div class="p-2 bg-orange-100 rounded-lg">
-                            <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                            </svg>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-600">Faculty</p>
-                            <p class="text-2xl font-bold text-gray-900">{{ $stats['faculty'] }}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             <!-- Filters and Search -->
             <div class="bg-white/80 rounded-lg shadow-lg border border-blue-100 p-4 sm:p-6 backdrop-blur mb-6">
-                <form method="GET" action="{{ route('authorized-ids.index') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <form method="GET" action="{{ route('authorized-ids.index') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div>
                         <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Search ID Number</label>
-                        <input type="text" name="search" id="search" value="{{ request('search') }}" 
+                        <input type="text" name="search" id="search" value="{{ request('search') }}"
                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                                placeholder="Enter ID number...">
                     </div>
-                    
+
                     <div>
                         <label for="type" class="block text-sm font-medium text-gray-700 mb-1">Type</label>
                         <select name="type" id="type" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
@@ -118,16 +47,7 @@
                             <option value="faculty" {{ request('type') === 'faculty' ? 'selected' : '' }}>Faculty</option>
                         </select>
                     </div>
-                    
-                    <div>
-                        <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                        <select name="status" id="status" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                            <option value="">All Status</option>
-                            <option value="available" {{ request('status') === 'available' ? 'selected' : '' }}>Available</option>
-                            <option value="used" {{ request('status') === 'used' ? 'selected' : '' }}>Used</option>
-                        </select>
-                    </div>
-                    
+
                     <div class="flex items-end">
                         <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                             <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

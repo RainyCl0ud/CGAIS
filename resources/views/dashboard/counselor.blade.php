@@ -3,8 +3,15 @@
             <div class="w-full max-w-6xl mx-auto">
                 <div class="bg-white/80 rounded-lg sm:rounded-2xl shadow-lg sm:shadow-2xl border border-blue-100 p-4 sm:p-8 backdrop-blur">
                     <div class="mb-4 sm:mb-6">
-                        <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-900 mb-1">
-                            Welcome, Dr. {{ Auth::user()->full_name }}!
+                        <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-900 mb-1 flex items-center gap-4">
+                            <span>
+                                Welcome, Dr. {{ Auth::user()->full_name }}!
+                            </span>
+                            @if(isset($nextAppointment) && $nextAppointment)
+                                <span class="text-sm font-medium text-gray-700 bg-yellow-100 border border-yellow-300 rounded-md px-3 py-1">
+                                    Next Appointment with <strong>{{ $nextAppointment->user->full_name }}</strong> on {{ $nextAppointment->appointment_date->format('M d, Y') }} at {{ \Carbon\Carbon::parse($nextAppointment->start_time)->format('h:i A') }}
+                                </span>
+                            @endif
                         </h1>
                         <div class="text-gray-600 text-xs sm:text-sm">{{ now()->format('l, F d, Y') }} | Manage your counseling sessions</div>
                     </div>
@@ -169,4 +176,4 @@
             </div>
         </main>
     </div>
-</x-app-layout> 
+</x-app-layout>

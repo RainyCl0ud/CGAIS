@@ -3,13 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Models\PersonalDataSheet;
-use App\Models\Appointment;
-use App\Services\ActivityLogService;
-use Illuminate\Http\Request;
 use Illuminate\View\View;
+use App\Models\Appointment;
+use Illuminate\Http\Request;
+use App\Models\PersonalDataSheet;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
+use App\Services\ActivityLogService;
+use Illuminate\Support\Facades\Auth;
 
 class StudentManagementController extends Controller
 {
@@ -147,13 +149,14 @@ class StudentManagementController extends Controller
         ];
 
         // Log the access
-        ActivityLogService::log(
-            auth()->user(),
-            'viewed_student_pds',
-            "Viewed PDS for student: {$student->getFullNameAttribute()}",
-            User::class,
-            $student->id
-        );
+ActivityLogService::log(
+    Auth::id(), // causer (User model or null)
+    'viewed_student_pds', // event name
+    $student, // subject (User model of the student being viewed)
+    ['student_id' => $student->id] // properties as array, not User::class
+);
+
+
 
         return view('student-management.show', compact('student', 'appointmentStats'));
     }
@@ -173,10 +176,10 @@ class StudentManagementController extends Controller
 
         // Log the access
         ActivityLogService::log(
-            auth()->user(),
+            Auth::id(),
             'viewed_student_pds',
-            "Viewed PDS for student: {$student->getFullNameAttribute()}",
-            User::class,
+            $student,
+             ['student_id' => $student->id],
             $student->id
         );
 

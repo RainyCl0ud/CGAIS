@@ -4,6 +4,9 @@
                 <div class="bg-white/90 rounded-2xl shadow-2xl border border-blue-100 p-8">
                     <div class="flex justify-between items-center mb-6">
                         <h1 class="text-3xl font-bold text-blue-900">Appointment Details</h1>
+                         <span class="px-5 py-1 text-xl font-semibold rounded-full {{ $appointment->getStatusBadgeClass() }}">
+                                            {{ ucfirst($appointment->status) }}
+                                        </span>
                         <button onclick="history.back()" 
                                 class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
                             ← Back
@@ -97,7 +100,8 @@
                                 <h2 class="text-xl font-semibold text-gray-900 mb-4">Actions</h2>
                                 <div class="space-y-3">
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        @if($appointment->status === 'pending' || $appointment->status === 'confirmed')
+                                        @if($appointment->status === 'pending')
+                                        {{-- || $appointment->status === 'confirmed' --}}
                                             <a href="{{ route('student.appointments.edit', $appointment) }}" 
                                                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-center">
                                                 🔄 Reschedule
@@ -112,6 +116,8 @@
                                                     ✗ Cancel
                                                 </button>
                                             </form>
+                                            @else()
+                                                <p>No actions available</p>
                                         @endif
                                     </div>
                                 </div>

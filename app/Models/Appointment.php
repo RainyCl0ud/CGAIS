@@ -78,6 +78,11 @@ class Appointment extends Model
         return $query->where('status', 'rescheduled');
     }
 
+    public function scopeFailed($query)
+    {
+        return $query->where('status', 'failed');
+    }
+
     public function scopeForDate($query, $date)
     {
         return $query->where('appointment_date', $date);
@@ -130,6 +135,11 @@ class Appointment extends Model
         return $this->status === 'rescheduled';
     }
 
+    public function isFailed(): bool
+    {
+        return $this->status === 'failed';
+    }
+
     public function isUrgent(): bool
     {
         return $this->type === 'urgent';
@@ -157,6 +167,7 @@ class Appointment extends Model
             'no_show' => 'bg-gray-100 text-gray-800',
             'rejected' => 'bg-red-100 text-red-800',
             'rescheduled' => 'bg-purple-100 text-purple-800',
+            'failed' => 'bg-red-100 text-red-800',
             default => 'bg-gray-100 text-gray-800',
         };
     }
@@ -212,4 +223,10 @@ class Appointment extends Model
     {
         return $this->getStatusBadgeClass();
     }
-} 
+
+    public function isOverdue(): bool
+    {
+        $appointmentDateTime = Carbon::parse($this->appointment_date->format('Y-m-d') . ' ' . $this->start_time->format('H:i:s'));
+        return $this->isPending() && $appointmentDateTime->lt(now());
+    }
+}

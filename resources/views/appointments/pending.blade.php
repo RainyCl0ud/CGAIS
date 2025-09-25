@@ -9,8 +9,8 @@
                                 <p class="text-gray-600 text-xs sm:text-sm mt-1">Appointments awaiting your confirmation</p>
                             </div>
                             <a href="{{ route('dashboard') }}" 
-                               class="px-3 sm:px-4 py-2 bg-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-400 transition-colors text-sm">
-                                ← Back to Dashboard
+                               class="px-3 sm:px-4 py-2 bg-gray-300 text-gray-700 font-bold rounded-lg hover:bg-gray-400 transition-colors text-l">
+                                ← Back
                             </a>
                         </div>
                     </div>

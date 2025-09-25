@@ -2,30 +2,44 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Appointment;
-use App\Models\Schedule;
-use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\View\View;
 use Carbon\Carbon;
+use App\Models\User;
+use App\Models\Schedule;
+use Illuminate\View\View;
+use App\Models\Appointment;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
 
 class StudentAppointmentController extends Controller
 {
     public function index(Request $request): View
     {
         $user = $request->user();
-        
+
         // Ensure only students can access this
         if (!$user->isStudent()) {
             abort(403, 'Access denied. This page is for students only.');
         }
 
-        $appointments = $user->appointments()
+        // Start with base query for user's appointments
+        $query = $user->appointments()
             ->orderByRaw("CASE WHEN type = 'urgent' THEN 0 ELSE 1 END") // Urgent first
-            ->orderBy('appointment_date')
-            ->orderBy('start_time')
-            ->paginate(10);
+            ->orderBy('appointment_date', 'desc')
+            ->orderBy('start_time', 'desc');
+
+        // Apply status filter
+        if ($request->filled('status') && $request->status !== 'all') {
+            $query->where('status', $request->status);
+        }
+
+        // Apply type filter
+        if ($request->filled('type') && $request->type !== 'all') {
+            $query->where('type', $request->type);
+        }
+
+        $appointments = $query->paginate(10)->withQueryString();
 
         return view('student.appointments.index', compact('appointments'));
     }
@@ -76,14 +90,14 @@ class StudentAppointmentController extends Controller
                 return back()->withErrors(['end_time' => 'End time must be after start time.'])->withInput();
             }
         } catch (\Illuminate\Validation\ValidationException $e) {
-            \Log::error('Student appointment validation failed', [
+            Log::error('Student appointment validation failed', [
                 'errors' => $e->errors(),
                 'input' => $request->all()
             ]);
             return back()->withErrors($e->errors())->withInput();
         }
 
-        \Log::info('Student appointment creation started', [
+        Log::info('Student appointment creation started', [
             'user_id' => $user->id,
             'counselor_id' => $request->counselor_id,
             'appointment_date' => $request->appointment_date,
@@ -93,12 +107,12 @@ class StudentAppointmentController extends Controller
             'counseling_category' => $request->counseling_category,
         ]);
 
-        // Check if appointment is on Monday or Friday
+        // Check if appointment is on a weekday (Monday through Friday)
         $appointmentDate = Carbon::parse($request->appointment_date);
-        $dayOfWeek = strtolower($appointmentDate->format('l'));
-        
-        if ($dayOfWeek !== 'monday' && $dayOfWeek !== 'friday') {
-            return back()->withErrors(['appointment_date' => 'Appointments are only available on Monday and Friday.']);
+        $dayOfWeek = $appointmentDate->dayOfWeek;
+
+        if ($dayOfWeek === 0 || $dayOfWeek === 6) { // 0 = Sunday, 6 = Saturday
+            return back()->withErrors(['appointment_date' => 'Appointments are only available on weekdays (Monday through Friday).']);
         }
 
         // Check if counselor is available on this date and time
@@ -166,10 +180,20 @@ class StudentAppointmentController extends Controller
 
         $appointment = Appointment::create($appointmentData);
 
-        \Log::info('Student appointment created successfully', [
+        Log::info('Student appointment created successfully', [
             'appointment_id' => $appointment->id,
             'user_id' => $appointment->user_id,
             'counselor_id' => $appointment->counselor_id,
+        ]);
+
+        // Notify counselor of new appointment request
+        $appointment->counselor->notifications()->create([
+            'appointment_id' => $appointment->id,
+            'title' => 'New Appointment Request',
+            'message' => "You have a new appointment request from {$appointment->user->full_name} on {$appointment->appointment_date->format('M d, Y')}.",
+            'type' => 'appointment_request',
+            'is_read' => false,
+            'read_at' => null,
         ]);
 
         $successMessage = 'Appointment requested successfully. Please wait for confirmation.';
@@ -249,11 +273,11 @@ class StudentAppointmentController extends Controller
             'notes' => 'nullable|string|max:1000',
         ]);
 
-        // Check if the new date is Monday or Friday
+        // Check if the new date is on a weekday (Monday through Friday)
         $appointmentDate = Carbon::parse($request->appointment_date);
         $dayOfWeek = $appointmentDate->dayOfWeek;
-        if ($dayOfWeek !== 1 && $dayOfWeek !== 5) { // 1 = Monday, 5 = Friday
-            return back()->withErrors(['appointment_date' => 'Appointments are only available on Monday and Friday.']);
+        if ($dayOfWeek === 0 || $dayOfWeek === 6) { // 0 = Sunday, 6 = Saturday
+            return back()->withErrors(['appointment_date' => 'Appointments are only available on weekdays (Monday through Friday).']);
         }
 
         // Check if the selected counselor is available
@@ -322,6 +346,16 @@ class StudentAppointmentController extends Controller
 
         $appointment->update(['status' => 'cancelled']);
 
+        // Notify counselor of appointment cancellation
+        $appointment->counselor->notifications()->create([
+            'appointment_id' => $appointment->id,
+            'title' => 'Appointment Cancelled',
+            'message' => "The appointment requested by {$appointment->user->full_name} on {$appointment->appointment_date->format('M d, Y')} has been cancelled.",
+            'type' => 'appointment_cancelled',
+            'is_read' => false,
+            'read_at' => null,
+        ]);
+
         return redirect()->route('student.appointments.index')
             ->with('success', 'Appointment cancelled successfully.');
     }
@@ -329,74 +363,34 @@ class StudentAppointmentController extends Controller
     public function sessionHistory(Request $request): View
     {
         $user = $request->user();
-        
+
         // Ensure only students can access this
         if (!$user->isStudent()) {
             abort(403, 'Access denied. This page is for students only.');
         }
-        
-        $query = Appointment::with(['user', 'counselor'])
+
+        // Query for table data (respects filters)
+        $tableQuery = Appointment::with(['user', 'counselor'])
             ->where('user_id', $user->id)
             ->whereIn('status', ['completed', 'cancelled', 'no_show', 'rejected', 'rescheduled']);
 
-        // Search functionality
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                // Students search by counselor name
-                $q->whereHas('counselor', function($counselorQuery) use ($search) {
-                    $counselorQuery->where('first_name', 'like', "%{$search}%")
-                                  ->orWhere('last_name', 'like', "%{$search}%");
-                });
-                $q->orWhere('reason', 'like', "%{$search}%")
-                  ->orWhere('notes', 'like', "%{$search}%")
-                  ->orWhere('counselor_notes', 'like', "%{$search}%");
-            });
-        }
-
-        // Filter by status
+        // Filter by status for table data
         if ($request->filled('status') && $request->status !== 'all') {
-            $query->where('status', $request->status);
+            $tableQuery->where('status', $request->status);
         }
 
-        // Filter by type
-        if ($request->filled('type') && $request->type !== 'all') {
-            $query->where('type', $request->type);
-        }
+        $appointments = $tableQuery->orderBy('appointment_date', 'desc')->paginate(15)->withQueryString();
 
-        // Filter by counseling category
-        if ($request->filled('category') && $request->category !== 'all') {
-            $query->where('counseling_category', $request->category);
-        }
+        // Query for statistics (always shows totals, independent of filters)
+        $statsQuery = Appointment::with(['user', 'counselor'])
+            ->where('user_id', $user->id)
+            ->whereIn('status', ['completed', 'cancelled', 'no_show']);
 
-        // Date range filter
-        if ($request->filled('date_from')) {
-            $query->where('appointment_date', '>=', $request->date_from);
-        }
-
-        if ($request->filled('date_to')) {
-            $query->where('appointment_date', '<=', $request->date_to);
-        }
-
-        // Sort options
-        $sortBy = $request->get('sort_by', 'appointment_date');
-        $sortOrder = $request->get('sort_order', 'desc');
-        
-        $allowedSortFields = ['appointment_date', 'start_time', 'created_at', 'status', 'type'];
-        if (!in_array($sortBy, $allowedSortFields)) {
-            $sortBy = 'appointment_date';
-        }
-
-        $query->orderBy($sortBy, $sortOrder);
-
-        $appointments = $query->paginate(15)->withQueryString();
-
-        // Get statistics for the filtered results
         $stats = [
-            'total_sessions' => $query->count(),
-            'completed_sessions' => $query->where('status', 'completed')->count(),
-            'cancelled_sessions' => $query->where('status', 'cancelled')->count(),
-            'no_show_sessions' => $query->where('status', 'no_show')->count(),
+            'total_sessions' => $statsQuery->count(),
+            'completed_sessions' => (clone $statsQuery)->where('status', 'completed')->count(),
+            'cancelled_sessions' => (clone $statsQuery)->where('status', 'cancelled')->count(),
+            'no_show_sessions' => (clone $statsQuery)->where('status', 'no_show')->count(),
         ];
 
         return view('student.appointments.session-history', compact('appointments', 'stats'));
@@ -405,55 +399,25 @@ class StudentAppointmentController extends Controller
     public function exportSessionHistory(Request $request)
     {
         $user = $request->user();
-        
+
         // Ensure only students can access this
         if (!$user->isStudent()) {
             abort(403, 'Access denied. This page is for students only.');
         }
-        
+
         $query = Appointment::with(['user', 'counselor'])
             ->where('user_id', $user->id)
             ->whereIn('status', ['completed', 'cancelled', 'no_show', 'rejected', 'rescheduled']);
 
-        // Apply same filters as session history
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                // Students search by counselor name
-                $q->whereHas('counselor', function($counselorQuery) use ($search) {
-                    $counselorQuery->where('first_name', 'like', "%{$search}%")
-                                  ->orWhere('last_name', 'like', "%{$search}%");
-                });
-                $q->orWhere('reason', 'like', "%{$search}%")
-                  ->orWhere('notes', 'like', "%{$search}%")
-                  ->orWhere('counselor_notes', 'like', "%{$search}%");
-            });
-        }
-
+        // Apply status filter
         if ($request->filled('status') && $request->status !== 'all') {
             $query->where('status', $request->status);
-        }
-
-        if ($request->filled('type') && $request->type !== 'all') {
-            $query->where('type', $request->type);
-        }
-
-        if ($request->filled('category') && $request->category !== 'all') {
-            $query->where('counseling_category', $request->category);
-        }
-
-        if ($request->filled('date_from')) {
-            $query->where('appointment_date', '>=', $request->date_from);
-        }
-
-        if ($request->filled('date_to')) {
-            $query->where('appointment_date', '<=', $request->date_to);
         }
 
         $appointments = $query->orderBy('appointment_date', 'desc')->get();
 
         $filename = 'student_session_history_' . now()->format('Y-m-d_H-i-s') . '.csv';
-        
+
         $headers = [
             'Content-Type' => 'text/csv',
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
@@ -461,7 +425,7 @@ class StudentAppointmentController extends Controller
 
         $callback = function() use ($appointments) {
             $file = fopen('php://output', 'w');
-            
+
             // CSV headers
             fputcsv($file, [
                 'Date',
@@ -479,7 +443,7 @@ class StudentAppointmentController extends Controller
             // CSV data
             foreach ($appointments as $appointment) {
                 fputcsv($file, [
-                    $appointment->appointment_date->format('Y-m-d'),
+                    \Carbon\Carbon::parse($appointment->appointment_date)->format('Y-m-d'),
                     $appointment->start_time->format('H:i') . ' - ' . $appointment->end_time->format('H:i'),
                     $appointment->counselor->full_name,
                     ucfirst($appointment->type),
@@ -498,109 +462,104 @@ class StudentAppointmentController extends Controller
         return response()->stream($callback, 200, $headers);
     }
 
-    public function getAvailableSlots(User $counselor, Request $request)
-    {
-        $user = $request->user();
-        
-        // Ensure only students can access this
-        if (!$user->isStudent()) {
-            abort(403, 'Access denied. This page is for students only.');
-        }
-        
-        $date = $request->get('date');
-        $isUrgent = $request->get('urgent', false);
-        $dayOfWeek = strtolower(Carbon::parse($date)->format('l'));
-        
-        // Only allow Monday and Friday
-        if ($dayOfWeek !== 'monday' && $dayOfWeek !== 'friday') {
-            return response()->json([
-                'slots' => [],
-                'message' => 'Appointments are only available on Monday and Friday.'
-            ]);
-        }
-        
-        // Get counselor's schedule for this day
-        $schedule = Schedule::where('counselor_id', $counselor->id)
-            ->where('day_of_week', $dayOfWeek)
-            ->where('is_available', true)
-            ->first();
-            
-        if (!$schedule) {
-            return response()->json([
-                'slots' => [],
-                'message' => 'Counselor is not available on this day.'
-            ]);
-        }
-        
-        // Generate time slots (30-minute intervals)
-        $slots = [];
-        $startTime = Carbon::parse($schedule->start_time);
-        $endTime = Carbon::parse($schedule->end_time);
-        $currentTime = $startTime->copy();
-        
-        while ($currentTime < $endTime) {
-            $slotTime = $currentTime->format('H:i');
-            $slotEndTime = $currentTime->copy()->addMinutes(30)->format('H:i');
-            
-            // Check if this slot is already booked
-            $existingAppointment = Appointment::where('counselor_id', $counselor->id)
-                ->where('appointment_date', $date)
-                ->where('status', '!=', 'cancelled')
-                ->where(function ($query) use ($slotTime, $slotEndTime) {
-                    $query->whereBetween('start_time', [$slotTime, $slotEndTime])
-                        ->orWhereBetween('end_time', [$slotTime, $slotEndTime])
-                        ->orWhere(function ($q) use ($slotTime, $slotEndTime) {
-                            $q->where('start_time', '<=', $slotTime)
-                                ->where('end_time', '>=', $slotEndTime);
-                        });
-                })
-                ->first();
-                
-            // For urgent appointments, show all slots but mark conflicts
-            if (!$existingAppointment || $isUrgent) {
-                $isConflict = $existingAppointment ? true : false;
-                $slots[] = [
-                    'time' => $slotTime,
-                    'end_time' => $slotEndTime,
-                    'formatted_time' => $currentTime->format('g:i A') . ' - ' . $currentTime->addMinutes(30)->format('g:i A'),
-                    'is_conflict' => $isConflict,
-                    'conflict_message' => $isConflict ? ' (Conflicts with existing booking)' : ''
-                ];
-            }
-            
-            $currentTime->addMinutes(30);
-        }
-        
+public function getAvailableSlots(User $counselor, Request $request)
+{
+
+    $user = $request->user();
+
+    if (!$user->isStudent()) {
+        abort(403, 'Access denied. This page is for students only.');
+    }
+
+    $date = $request->get('date');
+    $isUrgent = $request->boolean('urgent', false);
+    $dayOfWeek = Carbon::parse($date)->dayOfWeek;
+
+    // Only allow weekdays (Mon–Fri)
+    if ($dayOfWeek === 0 || $dayOfWeek === 6) {
         return response()->json([
-            'slots' => $slots,
-            'message' => count($slots) > 0 ? 'Available time slots found.' : 'No available time slots for this date.'
+            'slots' => [],
+            'message' => 'Appointments are only available on weekdays (Monday through Friday).'
         ]);
     }
+
+    $schedule = Schedule::where('counselor_id', $counselor->id)
+        ->where('day_of_week', $dayOfWeek)
+        ->where('is_available', true)
+        ->first();
+
+    if (!$schedule) {
+        return response()->json([
+            'slots' => [],
+            'message' => 'Counselor is not available on this day.'
+        ]);
+    }
+
+    $slots = [];
+    $startTime = Carbon::parse($schedule->start_time);
+    $endTime = Carbon::parse($schedule->end_time);
+    $currentTime = $startTime->copy();
+
+    while ($currentTime < $endTime) {
+        $slotStart = $currentTime->copy();
+        $slotEnd = $currentTime->copy()->addMinutes(30);
+
+        $existingAppointment = Appointment::where('counselor_id', $counselor->id)
+            ->where('appointment_date', $date)
+            ->where('status', '!=', 'cancelled')
+            ->where(function ($query) use ($slotStart, $slotEnd) {
+                $query->whereBetween('start_time', [$slotStart->format('H:i'), $slotEnd->format('H:i')])
+                      ->orWhereBetween('end_time', [$slotStart->format('H:i'), $slotEnd->format('H:i')])
+                      ->orWhere(function ($q) use ($slotStart, $slotEnd) {
+                          $q->where('start_time', '<=', $slotStart->format('H:i'))
+                            ->where('end_time', '>=', $slotEnd->format('H:i'));
+                      });
+            })
+            ->first();
+
+        if (!$existingAppointment || $isUrgent) {
+            $slots[] = [
+                'time' => $slotStart->format('H:i'),
+                'end_time' => $slotEnd->format('H:i'),
+                'formatted_time' => $slotStart->format('g:i A') . ' - ' . $slotEnd->format('g:i A'),
+                'is_conflict' => $existingAppointment ? true : false,
+                'conflict_message' => $existingAppointment ? ' (Conflicts with existing booking)' : ''
+            ];
+        }
+
+        $currentTime->addMinutes(30);
+    }
+
+    return response()->json([
+        'slots' => $slots,
+        'message' => count($slots) > 0 ? 'Available time slots found.' : 'No available time slots for this date.'
+    ]);
+}
 
     private function getAvailableDates(): array
     {
         $dates = [];
         $startDate = Carbon::today();
-        
+
         for ($i = 0; $i < 30; $i++) {
             $date = $startDate->copy()->addDays($i);
-            $dayOfWeek = strtolower($date->format('l'));
-            
-            // Only allow Monday and Friday
-            if ($dayOfWeek !== 'monday' && $dayOfWeek !== 'friday') {
+            $dayOfWeek = $date->dayOfWeek;
+
+            // Only allow weekdays (Monday through Friday)
+            if ($dayOfWeek === 0 || $dayOfWeek === 6) { // 0 = Sunday, 6 = Saturday
                 continue;
             }
-            
+
             // Check if any counselor is available on this day
             $availableCounselors = Schedule::where('day_of_week', $dayOfWeek)
                 ->where('is_available', true)
                 ->count();
-                
+
             if ($availableCounselors > 0) {
                 $dates[] = $date->format('Y-m-d');
             }
         }
-        
+
         return $dates;
     }
 }

@@ -1,6 +1,20 @@
 # CGS - Campus Guidance System
 
+
+1. git clone <repo-url>
+2. cd project
+3. composer install
+4. npm install
+6. php artisan key:generate
+
+7. php artisan migrate
+8. php artisan db:seed
+9. npm run build
+10. php artisan serve
+
+
 A comprehensive, industrial-level counseling appointment management system built with Laravel, featuring advanced analytics, session history, audit trails, and robust user management.
+
 
 ## 🚀 Features
 

@@ -6,6 +6,7 @@ use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\Auth;
 
 class NotificationController extends Controller
 {
@@ -74,11 +75,11 @@ class NotificationController extends Controller
     }
 
     /**
-     * Send official notification (Counselor only).
+     * Send official notification (Counselor only). 
      */
     public function sendNotification(Request $request): RedirectResponse
     {
-        if (!auth()->user()->canSendOfficialNotifications()) {
+        if (!Auth::user()->canSendOfficialNotifications()) {
             return redirect()->route('notifications.index')
                 ->with('error', 'You do not have permission to send official notifications.');
         }
