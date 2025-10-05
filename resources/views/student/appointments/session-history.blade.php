@@ -4,7 +4,7 @@
                 <div class="bg-white/80 rounded-lg sm:rounded-2xl shadow-lg sm:shadow-2xl border border-blue-100 p-4 sm:p-8 backdrop-blur">
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6">
                         <div>
-                        <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-900">Past Counseling Sessions</h1>
+                        <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-900">Sessions History</h1>
                         <p class="text-gray-600 text-xs sm:text-sm mt-1">View your completed, cancelled, and no-show sessions</p>
                         </div>
                     <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 mt-3 sm:mt-0">

@@ -12,3 +12,14 @@
         display: none;  /* Safari and Chrome */
     }
 }
+
+/* Global font family for better readability */
+body {
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Set font size 18px for normal text elements */
+p, span, label, input, textarea, select, button, div {
+    font-size: 16px;
+}
+    

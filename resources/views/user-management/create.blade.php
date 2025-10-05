@@ -73,6 +73,7 @@
                                         <option value="faculty" {{ old('role') === 'faculty' ? 'selected' : '' }}>Faculty</option>
                                         <option value="counselor" {{ old('role') === 'counselor' ? 'selected' : '' }}>Counselor</option>
                                         <option value="assistant" {{ old('role') === 'assistant' ? 'selected' : '' }}>Assistant</option>
+                                        <option value="staff" {{ old('role') === 'staff' ? 'selected' : '' }}>Staff</option>
                                     </select>
                                 </div>
 
@@ -87,6 +88,13 @@
                                     <label for="faculty_id" class="block text-sm font-medium text-gray-700 mb-1">Faculty ID</label>
                                     <input type="text" id="faculty_id" name="faculty_id" value="{{ old('faculty_id') }}"
                                            placeholder="e.g., F20240001"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+
+                                <div>
+                                    <label for="staff_id" class="block text-sm font-medium text-gray-700 mb-1">Staff ID</label>
+                                    <input type="text" id="staff_id" name="staff_id" value="{{ old('staff_id') }}"
+                                           placeholder="e.g., S20240001"
                                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 </div>
                             </div>

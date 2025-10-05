@@ -64,9 +64,23 @@
                                 </div>
                             </div>
                         </div>
+
+                        <div class="bg-purple-50 p-3 sm:p-6 rounded-lg border border-purple-200">
+                            <div class="flex items-center">
+                                <div class="p-2 sm:p-3 bg-purple-500 rounded-full">
+                                    <svg class="w-4 h-4 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM4.19 4.19A2 2 0 004 6v10a2 2 0 002 2h10a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-1.81 1.19z"></path>
+                                    </svg>
+                                </div>
+                                <div class="ml-3 sm:ml-4">
+                                    <p class="text-xs sm:text-sm font-medium text-gray-600">Notifications</p>
+                                    <p class="text-lg sm:text-2xl font-semibold text-gray-900">{{ $stats['unread_notifications'] ?? 0 }}</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- PDS Completion Alert for Students -->
+                    <!-- PDS Completion Alert for staff -->
                     @php
                         $pds = auth()->user()->personalDataSheet;
                         $completionPercentage = $pds ? $pds->getCompletionPercentage() : 0;
@@ -141,11 +155,6 @@
                                                             {{ ucfirst($appointment->status) }}
                                                         </span>
                                                     </td>
-                                                    <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-gray-400">
-                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                                                        </svg>
-                                                    </td>
                                                 </tr>
                                             @endforeach
                                         </tbody>
@@ -176,6 +185,7 @@
                                                 <th class="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
                                                 <th class="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
                                                 <th class="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                                <th class="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody class="bg-white divide-y divide-gray-200">
@@ -227,17 +237,29 @@
                     <div class="mb-6 sm:mb-8">
                         <h2 class="text-lg sm:text-2xl font-bold text-blue-900 mb-3 sm:mb-4">Quick Actions</h2>
                         <div class="flex flex-wrap gap-2 sm:gap-4">
-                            <a href="{{ route('student.appointments.create') }}" 
+                            <a href="{{ route('student.appointments.create') }}"
                                class="px-3 sm:px-6 py-2 sm:py-3 bg-blue-900 text-white font-semibold rounded-lg hover:bg-blue-800 transition-colors text-sm">
                                 Book Appointment
                             </a>
-                            <a href="{{ route('student.appointments.create') }}?type=urgent" 
+                            <a href="{{ route('student.appointments.create') }}?type=urgent"
                                class="px-3 sm:px-6 py-2 sm:py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors text-sm">
                                 Request Urgent Appointment
                             </a>
-                            <a href="{{ route('feedback.index') }}" 
+                            <a href="{{ route('student.appointments.index') }}"
+                               class="px-3 sm:px-6 py-2 sm:py-3 bg-[#FFD700] text-[#1E3A8A] font-semibold rounded-lg hover:bg-[#FFE44D] transition-colors text-sm">
+                                My Appointments
+                            </a>
+                            <a href="{{ route('pds.show') }}"
+                               class="px-3 sm:px-6 py-2 sm:py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors text-sm">
+                                Personal Data Sheet
+                            </a>
+                            <a href="{{ route('feedback.index') }}"
                                class="px-3 sm:px-6 py-2 sm:py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors text-sm">
                                 Submit Feedback
+                            </a>
+                            <a href="{{ route('notifications.index') }}"
+                               class="px-3 sm:px-6 py-2 sm:py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors text-sm">
+                                Notifications
                             </a>
                         </div>
                     </div>
@@ -279,10 +301,10 @@
                         </div>
                     @endif
 
-                    <!-- Student's Upcoming Approved Appointments -->
-                    @if($upcomingApprovedAppointments->count() > 0)
+                    <!-- Student's Upcoming Appointments -->
+                    @if($upcomingAppointments->count() > 0)
                         <div>
-                            <h2 class="text-lg sm:text-2xl font-bold text-blue-900 mb-3 sm:mb-4">My Upcoming Approved Appointments</h2>
+                            <h2 class="text-lg sm:text-2xl font-bold text-blue-900 mb-3 sm:mb-4">My Upcoming Appointments</h2>
                             <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
                                 <div class="overflow-x-auto">
                                     <table class="min-w-full divide-y divide-gray-200">
@@ -295,7 +317,7 @@
                                             </tr>
                                         </thead>
                                         <tbody class="bg-white divide-y divide-gray-200">
-                                            @foreach($upcomingApprovedAppointments as $appointment)
+                                            @foreach($upcomingAppointments as $appointment)
                                                 <tr class="hover:bg-gray-50 cursor-pointer transition-colors duration-150" onclick="window.location.href='{{ route('student.appointments.show', $appointment) }}'">
                                                     <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900">
                                                         {{ $appointment->getFormattedDateTime() }}
@@ -325,4 +347,4 @@
             </div>
         </main>
     </div>
-</x-app-layout> 
+</x-app-layout>

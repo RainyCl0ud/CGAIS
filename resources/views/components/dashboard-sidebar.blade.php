@@ -211,23 +211,48 @@
             </div>
             
         @else
-            <!-- Faculty Navigation -->
+            <!-- Faculty and Staff Navigation same as Student -->
             <div class="border-t border-gray-200 pt-4 mt-4">
                 <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 mb-2">Appointments</h3>
-                <a href="{{ route('appointments.index') }}" 
-                   class="flex items-center px-3 py-2.5 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors {{ request()->routeIs('appointments.*') ? 'bg-blue-100 text-blue-700' : '' }}">
+                <a href="{{ route('student.appointments.index') }}"
+                   class="flex items-center px-3 py-2.5 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors {{ request()->routeIs('student.appointments.index') ? 'bg-blue-100 text-blue-700' : '' }}">
                     <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                     </svg>
                     <span class="font-medium text-sm">My Appointments</span>
                 </a>
-                <a href="{{ route('notifications.index') }}" 
+                <a href="{{ route('student.appointments.session-history') }}"
+                   class="flex items-center px-3 py-2.5 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors {{ request()->routeIs('student.appointments.session-history') ? 'bg-blue-100 text-blue-700' : '' }}">
+                    <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    <span class="font-medium text-sm">Session History</span>
+                </a>
+            </div>
+
+            <div class="border-t border-gray-200 pt-4 mt-4">
+                <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 mb-2">Personal</h3>
+                <a href="{{ route('pds.show') }}"
+                   class="flex items-center px-3 py-2.5 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors {{ request()->routeIs('pds.*') ? 'bg-blue-100 text-blue-700' : '' }}">
+                    <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    <span class="font-medium text-sm">Personal Data Sheet</span>
+                </a>
+                <!-- <a href="{{ route('feedback.index') }}"
+                   class="flex items-center px-3 py-2.5 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors {{ request()->routeIs('feedback.*') ? 'bg-blue-100 text-blue-700' : '' }}">
+                    <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03 8 9-8s9 3.582 9 8z"></path>
+                    </svg>
+                    <span class="font-medium text-sm">Feedback</span>
+                </a> -->
+                <!-- <a href="{{ route('notifications.index') }}"
                    class="flex items-center px-3 py-2.5 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors {{ request()->routeIs('notifications.*') ? 'bg-blue-100 text-blue-700' : '' }}">
                     <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM4 19h6v-2H4v2zM4 15h6v-2H4v2zM4 11h6V9H4v2zM4 7h6V5H4v2z"></path>
                     </svg>
                     <span class="font-medium text-sm">Notifications</span>
-                </a>
+                </a> -->
             </div>
         @endif
         

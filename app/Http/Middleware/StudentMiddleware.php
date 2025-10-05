@@ -15,8 +15,8 @@ class StudentMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!auth()->check() || !auth()->user()->isStudent()) {
-            abort(403, 'Access denied. Student access required.');
+        if (!auth()->check() || (!auth()->user()->isStudent() && !auth()->user()->isFaculty() && !auth()->user()->isStaff())) {
+            abort(403, 'Access denied. Student, faculty, or staff access required.');
         }
 
         return $next($request);

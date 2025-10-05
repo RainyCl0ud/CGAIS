@@ -65,6 +65,19 @@ class DatabaseSeeder extends Seeder
             'password' => bcrypt('admin'),
         ]);
 
+        $staff = User::create([
+            'first_name' => 'Staff',
+            'middle_name' => 'Member',
+            'last_name' => 'One',
+            'name_extension' => null,
+            'email' => 'staff@gmail.com',
+            'role' => 'staff',
+            'student_id' => null,
+            'faculty_id' => null,
+            'staff_id' => 'STAFF001',
+            'password' => bcrypt('admin'),
+        ]);
+
         // Create valid IDs for testing - Updated to match new user data
         ValidId::create([
             'id_code' => '2022308446',
@@ -92,6 +105,13 @@ class DatabaseSeeder extends Seeder
             'type' => 'faculty',
             'is_used' => true,
             'email' => 'faculty@gmail.com',
+        ]);
+
+        ValidId::create([
+            'id_code' => 'STAFF001',
+            'type' => 'faculty',
+            'is_used' => true,
+            'email' => 'staff@gmail.com',
         ]);
 
         // Create additional valid IDs for new registrations

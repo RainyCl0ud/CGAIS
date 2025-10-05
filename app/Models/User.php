@@ -27,6 +27,7 @@ class User extends Authenticatable
         'role',
         'student_id',
         'faculty_id',
+        'staff_id',
     ];
 
     /**
@@ -57,6 +58,7 @@ class User extends Authenticatable
     public function isFaculty() { return $this->role === 'faculty'; }
     public function isCounselor() { return $this->role === 'counselor'; }
     public function isAssistant() { return $this->role === 'assistant'; }
+    public function isStaff() { return $this->role === 'staff'; }
 
     // Privilege helper methods
     public function canManageUsers() { return $this->isCounselor(); }
@@ -70,6 +72,7 @@ class User extends Authenticatable
     public function canManageAllAppointments() { return $this->isCounselor(); }
     public function canManageSchedules() { return $this->isCounselor(); }
     public function canViewStudentPDS() { return $this->isCounselor(); }
+    public function canBookAppointments() { return $this->isStudent() || $this->isFaculty() || $this->isStaff(); }
     
     // Assistant-specific methods
     public function canViewUserProfiles() { return $this->isAssistant() || $this->isCounselor(); }

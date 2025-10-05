@@ -37,11 +37,12 @@
                                 </div>
                                 <div>
                                     <span class="font-medium text-gray-700">Role:</span>
-                                    <span class="px-2 py-1 text-xs font-semibold rounded-full 
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full
                                         {{ $user->role === 'counselor' ? 'bg-purple-100 text-purple-800' : '' }}
                                         {{ $user->role === 'assistant' ? 'bg-blue-100 text-blue-800' : '' }}
                                         {{ $user->role === 'student' ? 'bg-green-100 text-green-800' : '' }}
-                                        {{ $user->role === 'faculty' ? 'bg-yellow-100 text-yellow-800' : '' }}">
+                                        {{ $user->role === 'faculty' ? 'bg-yellow-100 text-yellow-800' : '' }}
+                                        {{ $user->role === 'staff' ? 'bg-indigo-100 text-indigo-800' : '' }}">
                                         {{ ucfirst($user->role) }}
                                     </span>
                                 </div>
@@ -55,6 +56,12 @@
                                     <div>
                                         <span class="font-medium text-gray-700">Faculty ID:</span>
                                         <p class="text-gray-900">{{ $user->faculty_id }}</p>
+                                    </div>
+                                @endif
+                                @if($user->staff_id)
+                                    <div>
+                                        <span class="font-medium text-gray-700">Staff ID:</span>
+                                        <p class="text-gray-900">{{ $user->staff_id }}</p>
                                     </div>
                                 @endif
                             </div>

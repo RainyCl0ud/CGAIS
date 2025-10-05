@@ -18,9 +18,9 @@ class StudentAppointmentController extends Controller
     {
         $user = $request->user();
 
-        // Ensure only students can access this
-        if (!$user->isStudent()) {
-            abort(403, 'Access denied. This page is for students only.');
+        // Ensure only students, faculty, and staff can access this
+        if (!$user->canBookAppointments()) {
+            abort(403, 'Access denied. This page is for students, faculty, and staff only.');
         }
 
         // Start with base query for user's appointments
@@ -47,10 +47,10 @@ class StudentAppointmentController extends Controller
     public function create(Request $request): View
     {
         $user = $request->user();
-        
-        // Ensure only students can access this
-        if (!$user->isStudent()) {
-            abort(403, 'Access denied. This page is for students only.');
+
+        // Ensure only students, faculty, and staff can access this
+        if (!$user->canBookAppointments()) {
+            abort(403, 'Access denied. This page is for students, faculty, and staff only.');
         }
 
         // Get available counselors
@@ -65,10 +65,10 @@ class StudentAppointmentController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $user = $request->user();
-        
-        // Ensure only students can access this
-        if (!$user->isStudent()) {
-            abort(403, 'Access denied. This page is for students only.');
+
+        // Ensure only students, faculty, and staff can access this
+        if (!$user->canBookAppointments()) {
+            abort(403, 'Access denied. This page is for students, faculty, and staff only.');
         }
         
         $validationRules = [
@@ -210,12 +210,12 @@ class StudentAppointmentController extends Controller
     public function show(Appointment $appointment, Request $request): View
     {
         $user = $request->user();
-        
-        // Ensure only students can access this
-        if (!$user->isStudent()) {
-            abort(403, 'Access denied. This page is for students only.');
+
+        // Ensure only students, faculty, and staff can access this
+        if (!$user->canBookAppointments()) {
+            abort(403, 'Access denied. This page is for students, faculty, and staff only.');
         }
-        
+
         // Check if user can view this appointment
         if ($appointment->user_id !== $user->id) {
             abort(403, 'You can only view your own appointments.');
@@ -227,36 +227,36 @@ class StudentAppointmentController extends Controller
     public function edit(Appointment $appointment, Request $request): View
     {
         $user = $request->user();
-        
-        // Ensure only students can access this
-        if (!$user->isStudent()) {
-            abort(403, 'Access denied. This page is for students only.');
+
+        // Ensure only students, faculty, and staff can access this
+        if (!$user->canBookAppointments()) {
+            abort(403, 'Access denied. This page is for students, faculty, and staff only.');
         }
-        
+
         // Check if user can edit this appointment
         if ($appointment->user_id !== $user->id) {
             abort(403, 'You can only edit your own appointments.');
         }
 
         $counselors = User::where('role', 'counselor')->get();
-        
+
         return view('student.appointments.edit', compact('appointment', 'counselors'));
     }
 
     public function update(Request $request, Appointment $appointment): RedirectResponse
     {
         $user = $request->user();
-        
-        // Ensure only students can access this
-        if (!$user->isStudent()) {
-            abort(403, 'Access denied. This page is for students only.');
+
+        // Ensure only students, faculty, and staff can access this
+        if (!$user->canBookAppointments()) {
+            abort(403, 'Access denied. This page is for students, faculty, and staff only.');
         }
-        
+
         // Check if user can update this appointment
         if ($appointment->user_id !== $user->id) {
             abort(403, 'You can only update your own appointments.');
         }
-        
+
         // Students can only reschedule pending or confirmed appointments
         if (!in_array($appointment->status, ['pending', 'confirmed'])) {
             return back()->with('error', 'You can only reschedule pending or confirmed appointments.');
@@ -328,12 +328,12 @@ class StudentAppointmentController extends Controller
     public function cancel(Appointment $appointment, Request $request): RedirectResponse
     {
         $user = $request->user();
-        
-        // Ensure only students can access this
-        if (!$user->isStudent()) {
-            abort(403, 'Access denied. This page is for students only.');
+
+        // Ensure only students, faculty, and staff can access this
+        if (!$user->canBookAppointments()) {
+            abort(403, 'Access denied. This page is for students, faculty, and staff only.');
         }
-        
+
         // Only the appointment owner can cancel
         if ($appointment->user_id !== $user->id) {
             abort(403, 'You can only cancel your own appointments.');
@@ -364,9 +364,9 @@ class StudentAppointmentController extends Controller
     {
         $user = $request->user();
 
-        // Ensure only students can access this
-        if (!$user->isStudent()) {
-            abort(403, 'Access denied. This page is for students only.');
+        // Ensure only students, faculty, and staff can access this
+        if (!$user->canBookAppointments()) {
+            abort(403, 'Access denied. This page is for students, faculty, and staff only.');
         }
 
         // Query for table data (respects filters)
@@ -400,9 +400,9 @@ class StudentAppointmentController extends Controller
     {
         $user = $request->user();
 
-        // Ensure only students can access this
-        if (!$user->isStudent()) {
-            abort(403, 'Access denied. This page is for students only.');
+        // Ensure only students, faculty, and staff can access this
+        if (!$user->canBookAppointments()) {
+            abort(403, 'Access denied. This page is for students, faculty, and staff only.');
         }
 
         $query = Appointment::with(['user', 'counselor'])
@@ -467,8 +467,8 @@ public function getAvailableSlots(User $counselor, Request $request)
 
     $user = $request->user();
 
-    if (!$user->isStudent()) {
-        abort(403, 'Access denied. This page is for students only.');
+    if (!$user->canBookAppointments()) {
+        abort(403, 'Access denied. This page is for students, faculty, and staff only.');
     }
 
     $date = $request->get('date');

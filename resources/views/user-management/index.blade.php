@@ -37,6 +37,7 @@
                                     <option value="faculty" {{ request('role') === 'faculty' ? 'selected' : '' }}>Faculty</option>
                                     <option value="counselor" {{ request('role') === 'counselor' ? 'selected' : '' }}>Counselor</option>
                                     <option value="assistant" {{ request('role') === 'assistant' ? 'selected' : '' }}>Assistant</option>
+                                    <option value="staff" {{ request('role') === 'staff' ? 'selected' : '' }}>Staff</option>
                                 </select>
                             </div>
                             <div class="flex gap-2 sm:flex-none">
@@ -86,16 +87,17 @@
                                             <div class="text-sm text-gray-900">{{ $user->email }}</div>
                                         </td>
                                         <td class="px-3 sm:px-6 py-4 whitespace-nowrap">
-                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
                                                 {{ $user->role === 'counselor' ? 'bg-purple-100 text-purple-800' : '' }}
                                                 {{ $user->role === 'assistant' ? 'bg-blue-100 text-blue-800' : '' }}
                                                 {{ $user->role === 'student' ? 'bg-green-100 text-green-800' : '' }}
-                                                {{ $user->role === 'faculty' ? 'bg-yellow-100 text-yellow-800' : '' }}">
+                                                {{ $user->role === 'faculty' ? 'bg-yellow-100 text-yellow-800' : '' }}
+                                                {{ $user->role === 'staff' ? 'bg-indigo-100 text-indigo-800' : '' }}">
                                                 {{ ucfirst($user->role) }}
                                             </span>
                                         </td>
                                         <td class="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden md:table-cell">
-                                            {{ $user->student_id ?? $user->faculty_id ?? 'N/A' }}
+                                            {{ $user->student_id ?? $user->faculty_id ?? $user->staff_id ?? 'N/A' }}
                                         </td>
                                         <td class="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden lg:table-cell">
                                             {{ $user->created_at->format('M d, Y') }}

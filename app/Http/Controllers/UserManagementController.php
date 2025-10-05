@@ -34,7 +34,8 @@ class UserManagementController extends Controller
                   ->orWhere('last_name', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%")
                   ->orWhere('student_id', 'like', "%{$search}%")
-                  ->orWhere('faculty_id', 'like', "%{$search}%");
+                  ->orWhere('faculty_id', 'like', "%{$search}%")
+                  ->orWhere('staff_id', 'like', "%{$search}%");
             });
         }
 
@@ -62,9 +63,10 @@ class UserManagementController extends Controller
             'last_name' => 'required|string|max:255',
             'name_extension' => 'nullable|string|max:10',
             'email' => 'required|string|email|max:255|unique:users',
-            'role' => 'required|in:student,faculty,counselor,assistant',
+            'role' => 'required|in:student,faculty,counselor,assistant,staff',
             'student_id' => 'nullable|string|max:255|unique:users',
             'faculty_id' => 'nullable|string|max:255|unique:users',
+            'staff_id' => 'nullable|string|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
         ]);
 
@@ -103,9 +105,10 @@ class UserManagementController extends Controller
             'last_name' => 'required|string|max:255',
             'name_extension' => 'nullable|string|max:10',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            'role' => 'required|in:student,faculty,counselor,assistant',
+            'role' => 'required|in:student,faculty,counselor,assistant,staff',
             'student_id' => 'nullable|string|max:255|unique:users,student_id,' . $user->id,
             'faculty_id' => 'nullable|string|max:255|unique:users,faculty_id,' . $user->id,
+            'staff_id' => 'nullable|string|max:255|unique:users,staff_id,' . $user->id,
             'password' => 'nullable|string|min:8|confirmed',
         ]);
 

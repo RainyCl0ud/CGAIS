@@ -1,6 +1,6 @@
     <x-app-layout>
     <div class="flex flex-col items-center justify-start py-4 sm:py-8 px-2 sm:px-4 overflow-auto">
-            <div class="w-full max-w-2xl mx-auto">
+            <div class="w-full max-w-none mx-auto">
                 <div class="bg-white/80 rounded-lg sm:rounded-2xl shadow-lg sm:shadow-2xl border border-blue-100 p-4 sm:p-8 backdrop-blur">
                     <div class="mb-4 sm:mb-6">
                         <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-900">Book Appointment</h1>

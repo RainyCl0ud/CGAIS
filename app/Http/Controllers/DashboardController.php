@@ -97,7 +97,7 @@ $nextAppointment = Appointment::with('user')
                 ->first();
 
         } else {
-            // Student/Faculty Dashboard
+            // Student/Faculty/Staff Dashboard
             $stats = [
                 'total_appointments' => $user->appointments()->count(),
                 'pending_appointments' => $user->appointments()->pending()->count(),
@@ -112,21 +112,35 @@ $nextAppointment = Appointment::with('user')
                 ->limit(5)
                 ->get();
 
-            $upcomingAppointments = $user->getUpcomingAppointments()
+            $pendingAppointments = $user->appointments()
+                ->pending()
                 ->orderByRaw("CASE WHEN type = 'urgent' THEN 0 ELSE 1 END") // Urgent first
+                ->orderBy('appointment_date')
+                ->orderBy('start_time')
+                ->limit(5)
+                ->get();
+
+            $upcomingApprovedAppointments = $user->appointments()
+                ->where('status', 'confirmed')
+                ->where('appointment_date', '>=', now()->toDateString())
+                ->orderByRaw("CASE WHEN type = 'urgent' THEN 0 ELSE 1 END") // Urgent first
+                ->orderBy('appointment_date')
+                ->orderBy('start_time')
                 ->limit(5)
                 ->get();
         }
 
         // Route to role-specific dashboard
         if ($user->isStudent()) {
-            return view('dashboard.student', compact('stats', 'recentAppointments', 'upcomingAppointments'));
+            return view('dashboard.student', compact('stats', 'recentAppointments', 'pendingAppointments', 'upcomingApprovedAppointments'));
         } elseif ($user->isCounselor()) {
             return view('dashboard.counselor', compact('stats', 'recentAppointments', 'upcomingAppointments', 'nextAppointment'));
         } elseif ($user->isAssistant()) {
             return view('dashboard.assistant', compact('stats', 'recentAppointments', 'upcomingAppointments', 'nextAppointment'));
+        } elseif ($user->isStaff()) {
+            return view('dashboard.staff', compact('stats', 'recentAppointments', 'pendingAppointments', 'upcomingApprovedAppointments'));
         } else {
-            return view('dashboard.faculty', compact('stats', 'recentAppointments', 'upcomingAppointments'));
+            return view('dashboard.faculty', compact('stats', 'recentAppointments', 'pendingAppointments', 'upcomingApprovedAppointments'));
         }
     }
 
