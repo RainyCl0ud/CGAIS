@@ -17,7 +17,7 @@
             <div class="flex flex-col items-center">
                 <div class="text-center">
                     <span class="block text-5xl font-serif text-blue-900 mb-2 tracking-tight">USTP Balubal</span>
-                    <span class="block text-5xl sm:text-6xl md:text-7xl font-extrabold font-black bg-gradient-to-r from-[#FFD700] to-blue-700 bg-clip-text text-transparent leading-tight">CGS</span>
+                    <span class="block text-5xl sm:text-6xl md:text-7xl font-extrabold font-black bg-gradient-to-r from-[#FFD700] to-blue-700 bg-clip-text text-transparent leading-tight">CGAIS</span>
                 </div>
                 <div class="w-32 h-2 bg-[#FFD700] rounded mb-10"></div>
                 <h1 class="text-3xl font-bold text-blue-800 mb-4 text-center">Welcome!</h1>

@@ -116,6 +116,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Schedules (Counselor only - full management)
     Route::middleware('counselor_only')->group(function () {
         Route::resource('schedules', ScheduleController::class);
+        Route::post('schedules/toggle-unavailable-date', [ScheduleController::class, 'toggleUnavailableDate'])->name('schedules.toggleUnavailableDate');
     });
     
     // Notifications
