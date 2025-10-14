@@ -1,31 +1,26 @@
-# TODO: Add Staff Role and Update Related Files
+# TODO: Implement Interactive Calendar for Counselor Schedule Management
 
-## Database Changes
-- [x] Create migration to add 'staff' to users table role enum
-- [x] Create migration to add staff_id column to users table
+## Steps:
 
-## Models
-- [x] Update User model: add isStaff() method
-- [x] Update User model: add staff_id to fillable and casts
+1. **[x]** Verify and add routes in `routes/web.php` for `toggleUnavailableDate` (POST) and `getUnavailableDates` (GET) if missing.
+   - Ensure named routes: `schedules.toggleUnavailableDate` and `schedules.getUnavailableDates`.
+   - Middleware: auth, counselor-only if needed.
+   - Status: Routes for toggle exist; get not needed (server-side load).
 
-## Controllers
-- [x] Update UserManagementController: add 'staff' to validation rules
-- [x] Update UserManagementController: add staff_id validation
-- [x] Update DashboardController: add condition for isStaff() to return 'dashboard.staff' view
+2. **[x]** Edit `resources/views/schedules/index.blade.php`:
+   - Add `isWeekend` property to calendarDays objects (true for Sat/Sun).
+   - Update button `:class` to style weekends gray/disabled, unavailable weekdays red.
+   - In `selectDate()`: Add check to return early if weekend.
+   - Refine `updateTableStatus()`: Match exact date in table row's text (e.g., "Next: Oct 14, 2025") to update only matching row's status.
+   - Status: Edits applied successfully; weekends grayed/disabled, unavailable weekdays red, toggles skip weekends, table updates exact matches.
 
-## Views
-- [x] Create dashboard.staff.blade.php (copy from dashboard.faculty.blade.php)
-- [x] Update user management views to include 'staff' as role option
-- [x] Update user management views to include staff_id field
-- [x] Update role badges to include 'staff' with indigo color
-- [x] Update ID Number display to include staff_id
+3. **[x]** Verify routes: Run `php artisan route:list | grep schedules` to confirm.
+   - Status: Confirmed; POST schedules/toggle-unavailable-date named schedules.toggleUnavailableDate exists under counselor_only middleware.
 
-## Routes
-- [x] Checked routes - no role-specific references found
+4. **[ ]** Test functionality:
+   - Start server if needed (`php artisan serve`).
+   - Use browser to navigate to /schedules, toggle weekday (should go red, update DB), toggle weekend (no action), check table update for matching dates.
 
-## Middleware
-- [x] Checked middleware - staff uses same middleware as other roles
+5. **[ ]** Discuss UI/UX with user after function implementation.
 
-## Other
-- [x] Migrations run successfully
-- [x] All changes implemented and tested
+Progress will be updated here after each step.

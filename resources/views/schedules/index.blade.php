@@ -38,16 +38,16 @@
                                 <button
                                     @click="selectDate(date)"
                                     :class="{
-                                        'bg-gray-900 text-white': date.isToday || date.isSelected,
-                                        'text-gray-400': !date.isCurrentMonth,
-                                        'hover:bg-gray-200': date.isCurrentMonth && !date.isSelected,
-                                        'rounded-md': true,
-                                        'py-2': true,
-                                        'focus:outline-none': true
+                                        'bg-gray-200 text-gray-400 cursor-not-allowed opacity-50 rounded-md py-2 focus:outline-none': date.isWeekend,
+                                        'bg-red-500 text-white rounded-md py-2 focus:outline-none cursor-pointer': date.isUnavailable && !date.isWeekend,
+                                        'bg-gray-900 text-white rounded-md py-2 focus:outline-none': date.isToday || date.isSelected,
+                                        'text-gray-400 rounded-md py-2 focus:outline-none': !date.isCurrentMonth,
+                                        'hover:bg-gray-200 rounded-md py-2 focus:outline-none': date.isCurrentMonth && !date.isSelected && !date.isUnavailable && !date.isWeekend,
+                                        'py-2 focus:outline-none': true
                                     }"
                                     x-text="date.day"
                                     :aria-label="date.ariaLabel"
-                                    :disabled="!date.isCurrentMonth"
+                                    :disabled="!date.isCurrentMonth || date.isWeekend"
                                 ></button>
                             </template>
                         </div>
@@ -180,24 +180,27 @@
                     const firstDayWeekday = firstDayOfMonth.getDay();
                     const daysInMonth = lastDayOfMonth.getDate();
 
-                    // Previous month's days to fill first week
-                    for (let i = firstDayWeekday - 1; i >= 0; i--) {
-                        const date = new Date(this.currentYear, this.currentMonth, -i);
-                        days.push({
-                            date,
-                            day: date.getDate(),
-                            isCurrentMonth: false,
-                            isToday: false,
-                            isSelected: false,
-                            isUnavailable: false,
-                            ariaLabel: date.toDateString()
-                        });
-                    }
+                // Previous month's days to fill first week
+                for (let i = firstDayWeekday - 1; i >= 0; i--) {
+                    const date = new Date(this.currentYear, this.currentMonth, -i);
+                    const dayOfWeek = date.getDay();
+                    days.push({
+                        date,
+                        day: date.getDate(),
+                        isCurrentMonth: false,
+                        isToday: false,
+                        isSelected: false,
+                        isUnavailable: false,
+                        isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
+                        ariaLabel: date.toDateString()
+                    });
+                }
 
                     // Current month's days
                     for (let i = 1; i <= daysInMonth; i++) {
                         const date = new Date(this.currentYear, this.currentMonth, i);
                         const dateStr = date.toISOString().split('T')[0];
+                        const dayOfWeek = date.getDay();
                         days.push({
                             date,
                             day: i,
@@ -205,6 +208,7 @@
                             isToday: this.isSameDate(date, this.today),
                             isSelected: this.selectedDate ? this.isSameDate(date, this.selectedDate) : false,
                             isUnavailable: this.unavailableDates.includes(dateStr),
+                            isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
                             ariaLabel: date.toDateString()
                         });
                     }
@@ -213,6 +217,7 @@
                     const remaining = 42 - days.length; // 6 weeks * 7 days
                     for (let i = 1; i <= remaining; i++) {
                         const date = new Date(this.currentYear, this.currentMonth + 1, i);
+                        const dayOfWeek = date.getDay();
                         days.push({
                             date,
                             day: date.getDate(),
@@ -220,6 +225,7 @@
                             isToday: false,
                             isSelected: false,
                             isUnavailable: false,
+                            isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
                             ariaLabel: date.toDateString()
                         });
                     }
@@ -250,7 +256,7 @@
                     this.selectedDate = null;
                 },
                 selectDate(date) {
-                    if (!date.isCurrentMonth) return;
+                    if (!date.isCurrentMonth || date.isWeekend) return;
                     const dateStr = date.date.toISOString().split('T')[0];
                     // Toggle unavailable date via API
                     fetch("{{ route('schedules.toggleUnavailableDate') }}", {
@@ -269,23 +275,34 @@
                             this.unavailableDates = this.unavailableDates.filter(d => d !== dateStr);
                         }
                         this.selectedDate = date.date;
-                        this.updateTableStatus(date.date, data.status === 'available');
+                        this.updateTableStatus(dateStr, data.status === 'available');
                     })
                     .catch(error => {
                         console.error('Error toggling unavailable date:', error);
                     });
                 },
-                updateTableStatus(date, isAvailable) {
-                    const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-                    const dayName = dayNames[date.getDay()];
+                updateTableStatus(toggledDateStr, isAvailable) {
                     const rows = document.querySelectorAll('tbody tr');
                     rows.forEach(row => {
-                        const dayCell = row.querySelector('td:first-child div:first-child');
-                        if (dayCell && dayCell.textContent.toLowerCase() === dayName) {
-                            const statusSpan = row.querySelector('td:last-child span');
-                            if (statusSpan) {
-                                statusSpan.className = 'px-2 py-1 text-xs font-semibold rounded-full ' + (isAvailable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800');
-                                statusSpan.textContent = isAvailable ? 'Available' : 'Unavailable';
+                        const dateDiv = row.querySelector('td:first-child > div:last-child');
+                        if (dateDiv) {
+                            let rowDateText = dateDiv.textContent.trim();
+                            // Parse date from "Next: Oct 14, 2025" or "Today: Oct 14, 2025"
+                            let match = rowDateText.match(/(?:Next|Today):\s*(.+)/);
+                            if (match) {
+                                let datePart = match[1].trim();
+                                // Convert "Oct 14, 2025" to "2025-10-14"
+                                let parsedDate = new Date(datePart);
+                                if (!isNaN(parsedDate.getTime())) {
+                                    let rowDateStr = parsedDate.toISOString().split('T')[0];
+                                    if (rowDateStr === toggledDateStr) {
+                                        const statusSpan = row.querySelector('td:last-child span');
+                                        if (statusSpan) {
+                                            statusSpan.className = 'px-2 py-1 text-xs font-semibold rounded-full ' + (isAvailable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800');
+                                            statusSpan.textContent = isAvailable ? 'Available' : 'Unavailable';
+                                        }
+                                    }
+                                }
                             }
                         }
                     });
