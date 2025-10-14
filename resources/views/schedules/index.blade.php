@@ -44,9 +44,9 @@
                                             :class="{
                                                 'bg-gray-200 text-gray-400 cursor-not-allowed opacity-50 rounded-md py-2 focus:outline-none': date.isWeekend || date.isPast,
                                                 'bg-red-500 text-white rounded-md py-2 focus:outline-none cursor-pointer': date.isUnavailable && !date.isWeekend && !date.isPast,
-                                                'bg-gray-900 text-white rounded-md py-2 focus:outline-none': date.isToday || date.isSelected,
+                                                'bg-gray-900 text-white rounded-md py-2 focus:outline-none': date.isToday,
                                                 'text-gray-400 rounded-md py-2 focus:outline-none': !date.isCurrentMonth,
-                                                'hover:bg-gray-200 rounded-md py-2 focus:outline-none': date.isCurrentMonth && !date.isSelected && !date.isUnavailable && !date.isWeekend && !date.isPast,
+                                                'hover:bg-gray-200 rounded-md py-2 focus:outline-none': date.isCurrentMonth && !date.isUnavailable && !date.isWeekend && !date.isPast,
                                                 'py-2 focus:outline-none': true
                                             }"
                                             x-text="date.day"
@@ -153,7 +153,6 @@
         function calendarComponent() {
             return {
                 today: new Date(),
-                selectedDate: null,
                 currentMonth: new Date().getMonth(),
                 currentYear: new Date().getFullYear(),
                 daysOfWeek: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
