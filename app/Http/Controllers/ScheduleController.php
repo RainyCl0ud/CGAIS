@@ -32,24 +32,31 @@ class ScheduleController extends Controller
         
         // Define weekdays in order
         $weekdays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
-        
+
         // Create schedule data for all weekdays
         $scheduleData = [];
         $today = now();
-        
+
+        // Get the Monday of the current week
+        $monday = $today->copy()->startOfWeek(); // Monday of current week
+
+        // Day offsets from Monday
+        $dayOffsets = [
+            'monday' => 0,
+            'tuesday' => 1,
+            'wednesday' => 2,
+            'thursday' => 3,
+            'friday' => 4,
+        ];
+
         foreach ($weekdays as $day) {
-            $currentWeekDate = $today->copy()->next($day);
-            // If today is the same weekday, use today instead of next occurrence
-            if ($today->isSameDay($currentWeekDate) || $today->dayOfWeek === $currentWeekDate->dayOfWeek) {
-                $dateToUse = $today->copy();
-            } else {
-                $dateToUse = $currentWeekDate;
-            }
+            $dateToUse = $monday->copy()->addDays($dayOffsets[$day]);
             $dateStr = $dateToUse->format('Y-m-d');
+            $isPast = $dateToUse->lt($today); // Check if date is before today
             $isUnavailable = in_array($dateStr, $unavailableDates);
             $schedule = $existingSchedules->get($day);
             $isAvailable = $schedule ? $schedule->is_available : true;
-            if ($isUnavailable) {
+            if ($isUnavailable || $isPast) {
                 $isAvailable = false;
             }
             $scheduleData[$day] = [
@@ -58,7 +65,8 @@ class ScheduleController extends Controller
                 'schedule' => $schedule,
                 'has_schedule' => $existingSchedules->has($day),
                 'is_available' => $isAvailable,
-                'is_unavailable_date' => $isUnavailable,
+                'is_unavailable_date' => $isUnavailable || $isPast,
+                'is_past' => $isPast,
             ];
         }
         

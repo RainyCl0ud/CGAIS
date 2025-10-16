@@ -72,21 +72,23 @@
                                         </thead>
                                         <tbody class="bg-white divide-y divide-gray-200">
                                             @foreach($scheduleData as $day => $data)
-                                                <tr class="hover:bg-gray-50">
-                                                    <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900">
+                                                <tr class="@if($data['is_past']) bg-gray-50 @else hover:bg-gray-50 @endif">
+                                                    <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm @if($data['is_past']) text-gray-500 @else text-gray-900 @endif">
                                                         <div>
                                                             <div class="font-medium">{{ ucfirst($day) }}</div>
                                                             <div class="text-xs text-gray-500">
                                                                 @if(\Carbon\Carbon::parse($data['date'])->isToday())
                                                                     <p class="text-green-500 text-xs">Today: {{ $data['date'] }}</p>
                                                                 @else
-                                                                    Next: {{ $data['date'] }}
+                                                                    {{ $data['date'] }}
                                                                 @endif
                                                             </div>
                                                         </div>
                                                     </td>
                                                     <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap">
-                                                        @if($data['is_available'])
+                                                        @if($data['is_past'])
+                                                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-600">Past</span>
+                                                        @elseif($data['is_available'])
                                                             <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Available</span>
                                                         @elseif($data['is_unavailable_date'])
                                                             <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Unavailable</span>
