@@ -192,7 +192,7 @@
                 },
 
                 makeDayObj(date, isCurrentMonth) {
-                    const ds = date.toISOString().split('T')[0];
+                    const ds = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
                     const dayOfWeek = date.getDay();
                     const isPast = date.getFullYear() < this.today.getFullYear() ||
                                    (date.getFullYear() === this.today.getFullYear() && date.getMonth() < this.today.getMonth()) ||
@@ -231,7 +231,7 @@
 
                 handleDateClick(date) {
                     if (!date.isCurrentMonth || date.isWeekend || date.isPast) return;
-                    const dateStr = date.date.toISOString().split('T')[0];
+                    const dateStr = `${date.date.getFullYear()}-${String(date.date.getMonth() + 1).padStart(2, '0')}-${String(date.date.getDate()).padStart(2, '0')}`;
 
                     if (date.isUnavailable) {
                         this.toggleUnavailableDate(dateStr);
@@ -285,7 +285,7 @@
                             if (match) {
                                 let parsedDate = new Date(match[1].trim());
                                 if (!isNaN(parsedDate)) {
-                                    let rowDateStr = parsedDate.toISOString().split('T')[0];
+                                    let rowDateStr = `${parsedDate.getFullYear()}-${String(parsedDate.getMonth() + 1).padStart(2, '0')}-${String(parsedDate.getDate()).padStart(2, '0')}`;
                                     if (rowDateStr === toggledDateStr) {
                                         const span = row.querySelector('td:last-child span');
                                         if (span) {

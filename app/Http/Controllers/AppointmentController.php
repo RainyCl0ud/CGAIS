@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Schedule;
+use App\Models\CounselorUnavailableDate;
 use App\Models\Notification;
 use Illuminate\View\View;
 use App\Models\Appointment;
@@ -95,19 +96,36 @@ class AppointmentController extends Controller
             return back()->withErrors(['appointment_date' => 'Appointments are only available from Monday to Friday.']);
         }
 
+        // Map day of week integer to string
+        $daysOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+        $dayName = $daysOfWeek[$dayOfWeek];
+
+        // Check if counselor has marked this specific date as unavailable
+        $unavailableDate = CounselorUnavailableDate::where('counselor_id', $request->counselor_id)
+            ->where('date', $request->appointment_date)
+            ->where('is_unavailable', true)
+            ->first();
+
+        if ($unavailableDate) {
+            return back()->withErrors(['appointment_date' => 'Counselor is not available on this date.']);
+        }
+
         $schedule = Schedule::where('counselor_id', $request->counselor_id)
-            ->where('day_of_week', $dayOfWeek)
+            ->where('day_of_week', $dayName)
             ->where('is_available', true)
             ->first();
 
+        // If no custom schedule, use default working hours (9 AM - 5 PM)
         if (!$schedule) {
-            return back()->withErrors(['appointment_date' => 'Counselor is not available on this date.']);
+            $scheduleStart = Carbon::createFromTime(9, 0, 0); // 9:00 AM
+            $scheduleEnd = Carbon::createFromTime(17, 0, 0);   // 5:00 PM
+        } else {
+            $scheduleStart = Carbon::parse($schedule->start_time);
+            $scheduleEnd = Carbon::parse($schedule->end_time);
         }
 
         $startTime = Carbon::parse($request->start_time);
         $endTime = Carbon::parse($request->end_time);
-        $scheduleStart = Carbon::parse($schedule->start_time);
-        $scheduleEnd = Carbon::parse($schedule->end_time);
 
         if ($startTime < $scheduleStart || $endTime > $scheduleEnd) {
             return back()->withErrors(['start_time' => 'Appointment time must be within counselor\'s schedule.']);
@@ -245,6 +263,20 @@ class AppointmentController extends Controller
         $dayOfWeek = $appointmentDate->dayOfWeek;
         if ($dayOfWeek === 0 || $dayOfWeek === 6) {
             return back()->withErrors(['appointment_date' => 'Appointments are only available from Monday to Friday.']);
+        }
+
+        // Map day of week integer to string
+        $daysOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+        $dayName = $daysOfWeek[$dayOfWeek];
+
+        // Check if counselor has marked this specific date as unavailable
+        $unavailableDate = CounselorUnavailableDate::where('counselor_id', $request->counselor_id)
+            ->where('date', $request->appointment_date)
+            ->where('is_unavailable', true)
+            ->first();
+
+        if ($unavailableDate) {
+            return back()->withErrors(['appointment_date' => 'Counselor is not available on this date.']);
         }
 
         $counselor = User::find($request->counselor_id);
@@ -556,17 +588,43 @@ class AppointmentController extends Controller
     {
         $dates = [];
         $startDate = Carbon::today();
+        $counselors = User::where('role', 'counselor')->get();
+
         for ($i = 0; $i < 30; $i++) {
             $date = $startDate->copy()->addDays($i);
             $dayOfWeek = $date->dayOfWeek;
             if ($dayOfWeek === 0 || $dayOfWeek === 6) {
                 continue;
             }
-            $availableCounselors = Schedule::where('day_of_week', $dayOfWeek)
-                ->where('is_available', true)
-                ->count();
+
+            $dateString = $date->format('Y-m-d');
+            $availableCounselors = 0;
+
+            foreach ($counselors as $counselor) {
+                // Check if counselor is not marked unavailable on this date
+                $isUnavailable = CounselorUnavailableDate::where('counselor_id', $counselor->id)
+                    ->where('date', $dateString)
+                    ->where('is_unavailable', true)
+                    ->exists();
+
+                if (!$isUnavailable) {
+                    // Check if counselor has schedule or uses default hours
+                    $hasSchedule = Schedule::where('counselor_id', $counselor->id)
+                        ->where('day_of_week', strtolower($date->format('l')))
+                        ->where('is_available', true)
+                        ->exists();
+
+                    if ($hasSchedule) {
+                        $availableCounselors++;
+                    } else {
+                        // Counselor uses default hours (9 AM - 5 PM)
+                        $availableCounselors++;
+                    }
+                }
+            }
+
             if ($availableCounselors > 0) {
-                $dates[] = $date->format('Y-m-d');
+                $dates[] = $dateString;
             }
         }
         return $dates;
@@ -661,6 +719,26 @@ class AppointmentController extends Controller
             'reschedule_reason' => 'required|string|max:500'
         ]);
 
+        $appointmentDate = Carbon::parse($request->new_appointment_date);
+        $dayOfWeek = $appointmentDate->dayOfWeek;
+        if ($dayOfWeek === 0 || $dayOfWeek === 6) {
+            return back()->withErrors(['new_appointment_date' => 'Appointments are only available from Monday to Friday.']);
+        }
+
+        // Map day of week integer to string
+        $daysOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+        $dayName = $daysOfWeek[$dayOfWeek];
+
+        // Check if counselor has marked this specific date as unavailable
+        $unavailableDate = CounselorUnavailableDate::where('counselor_id', $appointment->counselor_id)
+            ->where('date', $request->new_appointment_date)
+            ->where('is_unavailable', true)
+            ->first();
+
+        if ($unavailableDate) {
+            return back()->withErrors(['new_appointment_date' => 'Counselor is not available on this date.']);
+        }
+
         $conflictingAppointment = Appointment::where('counselor_id', $appointment->counselor_id)
             ->where('appointment_date', $request->new_appointment_date)
             ->where('status', '!=', 'cancelled')
@@ -711,28 +789,46 @@ class AppointmentController extends Controller
                 'message' => 'Appointments are only available from Monday to Friday.'
             ]);
         }
-        
-        $schedule = Schedule::where('counselor_id', $counselor->id)
-            ->where('day_of_week', $dayOfWeek)
-            ->where('is_available', true)
+
+        // Check if counselor has marked this specific date as unavailable
+        $unavailableDate = CounselorUnavailableDate::where('counselor_id', $counselor->id)
+            ->where('date', $date)
+            ->where('is_unavailable', true)
             ->first();
-            
-        if (!$schedule) {
+
+        if ($unavailableDate) {
             return response()->json([
                 'slots' => [],
-                'message' => 'Counselor is not available on this day.'
+                'message' => 'Counselor is not available on this date.'
             ]);
         }
-        
+
+        // Map day of week integer to string
+        $daysOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+        $dayName = $daysOfWeek[$dayOfWeek];
+
+        // Check if counselor has a custom schedule for this day
+        $schedule = Schedule::where('counselor_id', $counselor->id)
+            ->where('day_of_week', $dayName)
+            ->where('is_available', true)
+            ->first();
+
+        // If no custom schedule, use default working hours (9 AM - 5 PM)
+        if (!$schedule) {
+            $startTime = Carbon::createFromTime(9, 0, 0); // 9:00 AM
+            $endTime = Carbon::createFromTime(17, 0, 0);   // 5:00 PM
+        } else {
+            $startTime = Carbon::parse($schedule->start_time);
+            $endTime = Carbon::parse($schedule->end_time);
+        }
+
         $slots = [];
-        $startTime = Carbon::parse($schedule->start_time);
-        $endTime = Carbon::parse($schedule->end_time);
         $currentTime = $startTime->copy();
-        
+
         while ($currentTime < $endTime) {
             $slotTime = $currentTime->format('H:i');
             $slotEndTime = $currentTime->copy()->addMinutes(30)->format('H:i');
-            
+
             $existingAppointment = Appointment::where('counselor_id', $counselor->id)
                 ->where('appointment_date', $date)
                 ->where('status', '!=', 'cancelled')
@@ -741,11 +837,11 @@ class AppointmentController extends Controller
                         ->orWhereBetween('end_time', [$slotTime, $slotEndTime])
                         ->orWhere(function ($q) use ($slotTime, $slotEndTime) {
                             $q->where('start_time', '<=', $slotTime)
-                                ->where('end_time', '>=', $slotEndTime);
+                            ->where('end_time', '>=', $slotEndTime);
                         });
                 })
                 ->first();
-                
+
             if (!$existingAppointment || $isUrgent) {
                 $isConflict = $existingAppointment ? true : false;
                 $slotEndTimeFormatted = $currentTime->copy()->addMinutes(30)->format('g:i A');
@@ -757,10 +853,10 @@ class AppointmentController extends Controller
                     'conflict_message' => $isConflict ? ' (Conflicts with existing booking)' : ''
                 ];
             }
-            
+
             $currentTime->addMinutes(30);
         }
-        
+
         return response()->json([
             'slots' => $slots,
             'message' => count($slots) > 0 ? 'Available time slots found.' : 'No available time slots for this date.'
