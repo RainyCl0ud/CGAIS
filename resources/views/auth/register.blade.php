@@ -30,43 +30,43 @@
             <!-- First Name -->
             <div class="relative">
                 <x-input-label for="first_name" :value="__('First Name')" :error="$errors->has('first_name')" :errorMessage="$errors->first('first_name')" />
-                <x-text-input id="first_name" class="block mt-1 w-full" type="text" name="first_name" :value="old('first_name')" required autofocus autocomplete="given-name" />
+                <x-text-input id="first_name" class="block mt-1 w-full" type="text" name="first_name" :value="old('first_name')" required autofocus autocomplete="given-name" placeholder="Juan" />
                 <x-input-error :messages="$errors->get('first_name')" class="mt-2" />
             </div>
             <!-- Middle Name -->
             <div class="relative">
                 <x-input-label for="middle_name" :value="__('Middle Name (optional)')" :error="$errors->has('middle_name')" :errorMessage="$errors->first('middle_name')" />
-                <x-text-input id="middle_name" class="block mt-1 w-full" type="text" name="middle_name" :value="old('middle_name')" autocomplete="additional-name" />
+                <x-text-input id="middle_name" class="block mt-1 w-full" type="text" name="middle_name" :value="old('middle_name')" autocomplete="additional-name" placeholder="Dela Cruz" />
                 <x-input-error :messages="$errors->get('middle_name')" class="mt-2" />
             </div>
             <!-- Last Name -->
             <div class="relative">
                 <x-input-label for="last_name" :value="__('Last Name')" :error="$errors->has('last_name')" :errorMessage="$errors->first('last_name')" />
-                <x-text-input id="last_name" class="block mt-1 w-full" type="text" name="last_name" :value="old('last_name')" required autocomplete="family-name" />
+                <x-text-input id="last_name" class="block mt-1 w-full" type="text" name="last_name" :value="old('last_name')" required autocomplete="family-name" placeholder="Dela Cruz" />
                 <x-input-error :messages="$errors->get('last_name')" class="mt-2" />
             </div>
             <!-- Name Extension -->
             <div class="relative">
                 <x-input-label for="name_extension" :value="__('Name Extension (optional)')" :error="$errors->has('name_extension')" :errorMessage="$errors->first('name_extension')" />
-                <x-text-input id="name_extension" class="block mt-1 w-full" type="text" name="name_extension" :value="old('name_extension')" autocomplete="honorific-suffix" />
+                <x-text-input id="name_extension" class="block mt-1 w-full" type="text" name="name_extension" :value="old('name_extension')" autocomplete="honorific-suffix" placeholder="Jr." />
                 <x-input-error :messages="$errors->get('name_extension')" class="mt-2" />
             </div>
             <!-- Email Address (span 2 columns) -->
             <div class="md:col-span-2 relative">
                 <x-input-label for="email" :value="__('Email')" :error="$errors->has('email')" :errorMessage="$errors->first('email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autocomplete="username" />
+            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autocomplete="username" placeholder="juan.delacruz@example.com" />
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
         <!-- Password -->
             <div class="relative">
                 <x-input-label for="password" :value="__('Password')" :error="$errors->has('password')" :errorMessage="$errors->first('password')" />
-                <x-text-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="new-password" />
+                <x-text-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="new-password" placeholder="Enter your password" />
             <x-input-error :messages="$errors->get('password')" class="mt-2" />
         </div>
         <!-- Confirm Password -->
             <div class="relative">
                 <x-input-label for="password_confirmation" :value="__('Confirm Password')" :error="$errors->has('password_confirmation')" :errorMessage="$errors->first('password_confirmation')" />
-                <x-text-input id="password_confirmation" class="block mt-1 w-full" type="password" name="password_confirmation" required autocomplete="new-password" />
+                <x-text-input id="password_confirmation" class="block mt-1 w-full" type="password" name="password_confirmation" required autocomplete="new-password" placeholder="Confirm your password" />
             <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
         </div>
         <!-- Role Selection -->
@@ -74,23 +74,31 @@
                 <x-input-label for="role" :value="__('Register as')" :error="$errors->has('role')" :errorMessage="$errors->first('role')" />
             <select id="role" name="role" class="block mt-1 w-full" required onchange="toggleIdFields()">
                 <option value="student" {{ old('role') == 'student' ? 'selected' : '' }}>Student</option>
-                <option value="faculty" {{ old('role') == 'faculty' ? 'selected' : '' }}>Faculty/Staff</option>
+                <option value="faculty" {{ old('role') == 'faculty' ? 'selected' : '' }}>Faculty</option>
+                <option value="staff" {{ old('role') == 'staff' ? 'selected' : '' }}>Staff</option>
             </select>
             <x-input-error :messages="$errors->get('role')" class="mt-2" />
         </div>
         <!-- Student ID -->
             <div class="relative" id="student_id_field">
                 <x-input-label for="student_id" :value="__('Student ID')" :error="$errors->has('student_id')" :errorMessage="$errors->first('student_id')" />
-                <x-text-input id="student_id" class="block mt-1 w-full" type="text" name="student_id" :value="old('student_id')" autocomplete="student-id" required />
+                <x-text-input id="student_id" class="block mt-1 w-full" type="text" name="student_id" :value="old('student_id')" autocomplete="student-id" required placeholder="2021000001" />
                 <div class="mt-1 text-xs text-gray-500">You must provide a valid Student ID that has been pre-authorized by a counselor.</div>
                 <x-input-error :messages="$errors->get('student_id')" class="mt-2" />
             </div>
         <!-- Faculty ID -->
             <div class="relative" id="faculty_id_field" style="display:none;">
-                <x-input-label for="faculty_id" :value="__('Faculty/Staff ID')" :error="$errors->has('faculty_id')" :errorMessage="$errors->first('faculty_id')" />
-                <x-text-input id="faculty_id" class="block mt-1 w-full" type="text" name="faculty_id" :value="old('faculty_id')" autocomplete="faculty-id" required />
+                <x-input-label for="faculty_id" :value="__('Faculty ID')" :error="$errors->has('faculty_id')" :errorMessage="$errors->first('faculty_id')" />
+                <x-text-input id="faculty_id" class="block mt-1 w-full" type="text" name="faculty_id" :value="old('faculty_id')" autocomplete="faculty-id" required placeholder="FAC001" />
                 <div class="mt-1 text-xs text-gray-500">You must provide a valid Faculty ID that has been pre-authorized by a counselor.</div>
                 <x-input-error :messages="$errors->get('faculty_id')" class="mt-2" />
+            </div>
+        <!-- Staff ID -->
+            <div class="relative" id="staff_id_field" style="display:none;">
+                <x-input-label for="staff_id" :value="__('Staff ID')" :error="$errors->has('staff_id')" :errorMessage="$errors->first('staff_id')" />
+                <x-text-input id="staff_id" class="block mt-1 w-full" type="text" name="staff_id" :value="old('staff_id')" autocomplete="staff-id" required placeholder="STAFF001" />
+                <div class="mt-1 text-xs text-gray-500">You must provide a valid Staff ID that has been pre-authorized by a counselor.</div>
+                <x-input-error :messages="$errors->get('staff_id')" class="mt-2" />
             </div>
         </div>
 
@@ -99,21 +107,38 @@
             var role = document.getElementById('role').value;
             var studentField = document.getElementById('student_id_field');
             var facultyField = document.getElementById('faculty_id_field');
+            var staffField = document.getElementById('staff_id_field');
             var studentInput = document.getElementById('student_id');
             var facultyInput = document.getElementById('faculty_id');
-            
+            var staffInput = document.getElementById('staff_id');
+
             if (role === 'student') {
                 studentField.style.display = '';
                 facultyField.style.display = 'none';
+                staffField.style.display = 'none';
                 studentInput.required = true;
                 facultyInput.required = false;
+                staffInput.required = false;
                 facultyInput.value = '';
+                staffInput.value = '';
             } else if (role === 'faculty') {
                 studentField.style.display = 'none';
                 facultyField.style.display = '';
+                staffField.style.display = 'none';
                 studentInput.required = false;
                 facultyInput.required = true;
+                staffInput.required = false;
                 studentInput.value = '';
+                staffInput.value = '';
+            } else if (role === 'staff') {
+                studentField.style.display = 'none';
+                facultyField.style.display = 'none';
+                staffField.style.display = '';
+                studentInput.required = false;
+                facultyInput.required = false;
+                staffInput.required = true;
+                studentInput.value = '';
+                facultyInput.value = '';
             }
         }
         document.addEventListener('DOMContentLoaded', toggleIdFields);
