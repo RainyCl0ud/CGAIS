@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\RedirectResponse as Redirect;
 
 class NotificationController extends Controller
 {
@@ -20,10 +21,10 @@ class NotificationController extends Controller
         return view('notifications.index', compact('notifications'));
     }
 
-    public function show(Notification $notification, Request $request): View
+    public function show(Notification $notification, Request $request)
     {
         $user = $request->user();
-        
+
         if ($notification->user_id !== $user->id) {
             abort(403);
         }
@@ -33,7 +34,16 @@ class NotificationController extends Controller
             $notification->markAsRead();
         }
 
-        return view('notifications.show', compact('notification'));
+        // If notification has an associated appointment, redirect to appropriate appointment show route
+        if ($notification->appointment) {
+            if ($user->isCounselor() || $user->isAssistant()) {
+                return redirect()->route('appointments.show', [$notification->appointment, 'back' => 'notifications']);
+            } else {
+                return redirect()->route('student.appointments.show', [$notification->appointment, 'back' => 'notifications']);
+            }
+        }
+
+        return view('appointments.show', compact('notification'));
     }
 
     public function markAsRead(Notification $notification, Request $request): RedirectResponse

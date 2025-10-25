@@ -29,17 +29,20 @@
                             @foreach($notifications as $notification)
                                 @php
                                     $cardClass = $notification->getCardBackgroundClass();
-                                    $isAppointmentRequest = $notification->type === 'appointment_request';
-                                    $appointmentUrl = $notification->appointment ? route('appointments.show', [$notification->appointment, 'back' => 'notifications']) : '#';
+                                    $appointmentUrl = $notification->appointment ?
+                                        (auth()->user()->isCounselor() || auth()->user()->isAssistant() ?
+                                            route('appointments.show', [$notification->appointment, 'back' => 'notifications']) :
+                                            route('student.appointments.show', [$notification->appointment, 'back' => 'notifications'])
+                                        ) : '#';
                                 @endphp
-                                <a href="{{ $isAppointmentRequest ? $appointmentUrl : route('notifications.show', $notification) }}"
+                                <a href="{{ $notification->appointment ? $appointmentUrl : route('notifications.show', $notification) }}"
                                    class="block {{ $cardClass }} rounded-lg p-3 sm:p-4 {{ $notification->read_at ? 'opacity-75' : '' }} hover:bg-opacity-80 transition-colors cursor-pointer"
                                    onclick="event.preventDefault(); if (!event.target.closest('form')) { window.location.href = this.href; }">
                                     <div class="flex items-start justify-between">
                                         <div class="flex-1">
                                             <div class="flex items-center space-x-2 sm:space-x-3">
                                                 @if(!$notification->read_at)
-                                                    <div class="w-2 h-2 {{ $isAppointmentRequest ? 'bg-yellow-500' : 'bg-blue-500' }} rounded-full"></div>
+                                                    <div class="w-2 h-2 {{ $notification->appointment ? 'bg-yellow-500' : 'bg-blue-500' }} rounded-full"></div>
                                                 @endif
                                                 <h3 class="text-sm sm:text-base font-semibold text-gray-900">
                                                     {{ $notification->title }}

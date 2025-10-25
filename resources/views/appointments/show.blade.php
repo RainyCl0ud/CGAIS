@@ -4,26 +4,18 @@
                 <div class="bg-white/90 rounded-2xl shadow-2xl border border-blue-100 p-8">
                     <div class="flex justify-between items-center mb-6">
                         <h1 class="text-3xl font-bold text-blue-900">Appointment Details</h1>
-                        @if(request()->get('back') === 'pending')
-                            <a href="{{ route('pending.appointments') }}"
-                               class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
-                                 ← Back
-                            </a>
-                        @elseif(request()->get('back') === 'today')
-                            <a href="{{ route('today.appointments') }}"
-                               class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
-                                ← Back
-                            </a>
-                        @elseif(request()->get('back') === 'notifications')
-                            <a href="{{ route('notifications.index') }}"
-                               class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
-                                 ← Back
-                        @else
-                            <a href="{{ route('appointments.index') }}"
-                               class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
-                                ← Back
-                            </a>
-                        @endif
+                        @php
+                            $backRoute = match(request()->get('back')) {
+                                'pending' => route('pending.appointments'),
+                                'today' => route('today.appointments'),
+                                'notifications' => route('notifications.index'),
+                                default => route('appointments.index'),
+                            };
+                        @endphp
+                        <a href="{{ $backRoute }}"
+                           class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
+                             ← Back
+                        </a>
                     </div>
 
                     @if(session('success'))
@@ -185,7 +177,7 @@
                                     @if(auth()->user()->isCounselor())
                                         <!-- Counselor Status Actions (Full Privileges) -->
                                         @if($appointment->status === 'pending')
-                                            <button onclick="confirmStatusChange('{{ $appointment->id }}', 'confirmed', 'Pending', 'Confirmed')" 
+                                            <button onclick="approveAppointment('{{ $appointment->id }}')"
                                                     class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
                                                 ✓ Approve Appointment
                                             </button>
@@ -359,6 +351,7 @@
                 <h3 class="text-lg font-medium text-gray-900 mt-4 text-center">Reject Appointment</h3>
                 <form id="rejectForm" method="POST" class="mt-4">
                     @csrf
+                    @method('PATCH')
                     <div class="mb-4">
                         <label for="rejection_reason" class="block text-sm font-medium text-gray-700 mb-2">Rejection Reason</label>
                         <textarea id="rejection_reason" name="rejection_reason" rows="3" required
@@ -392,6 +385,7 @@
                 <h3 class="text-lg font-medium text-gray-900 mt-4 text-center">Reschedule Appointment</h3>
                 <form id="rescheduleForm" method="POST" class="mt-4">
                     @csrf
+                    @method('PATCH')
                     <div class="mb-4">
                         <label for="new_appointment_date" class="block text-sm font-medium text-gray-700 mb-2">New Date</label>
                         <input type="date" id="new_appointment_date" name="new_appointment_date" required
@@ -435,11 +429,11 @@
             const currentStatusSpan = document.getElementById('currentStatus');
             const newStatusSpan = document.getElementById('newStatus');
             const statusWarning = document.getElementById('statusWarning');
-            
+
             // Update modal content
             currentStatusSpan.textContent = currentStatusText;
             newStatusSpan.textContent = newStatusText;
-            
+
             // Show warnings for certain status changes
             let warning = '';
             if (newStatus === 'cancelled') {
@@ -449,12 +443,12 @@
             } else if (newStatus === 'confirmed') {
                 warning = 'This will confirm the appointment and notify the client.';
             }
-            
+
             statusWarning.textContent = warning;
-            
+
             // Show modal
             modal.classList.remove('hidden');
-            
+
             // Handle confirm button
             const confirmButton = document.getElementById('confirmStatusChange');
             confirmButton.onclick = function() {
@@ -462,29 +456,53 @@
                 const form = document.createElement('form');
                 form.method = 'POST';
                 form.action = `/appointments/${appointmentId}`;
-                
+
                 const csrfToken = document.createElement('input');
                 csrfToken.type = 'hidden';
                 csrfToken.name = '_token';
                 csrfToken.value = '{{ csrf_token() }}';
-                
+
                 const methodField = document.createElement('input');
                 methodField.type = 'hidden';
                 methodField.name = '_method';
                 methodField.value = 'PATCH';
-                
+
                 const statusField = document.createElement('input');
                 statusField.type = 'hidden';
                 statusField.name = 'status';
                 statusField.value = newStatus;
-                
+
                 form.appendChild(csrfToken);
                 form.appendChild(methodField);
                 form.appendChild(statusField);
-                
+
                 document.body.appendChild(form);
                 form.submit();
             };
+        }
+
+        // Approve appointment function
+        function approveAppointment(appointmentId) {
+            // Create and submit form to approve route
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/appointments/${appointmentId}/approve`;
+
+            const csrfToken = document.createElement('input');
+            csrfToken.type = 'hidden';
+            csrfToken.name = '_token';
+            csrfToken.value = '{{ csrf_token() }}';
+
+            const methodField = document.createElement('input');
+            methodField.type = 'hidden';
+            methodField.name = '_method';
+            methodField.value = 'PATCH';
+
+            form.appendChild(csrfToken);
+            form.appendChild(methodField);
+
+            document.body.appendChild(form);
+            form.submit();
         }
 
         // Modal functions

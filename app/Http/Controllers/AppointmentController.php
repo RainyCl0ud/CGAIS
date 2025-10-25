@@ -239,6 +239,13 @@ class AppointmentController extends Controller
                 return back()->withErrors(['status' => 'Cannot mark as "No Show" for future appointments.']);
             }
             $appointment->update(['status' => $request->status]);
+
+            // Mark related notifications as read for the counselor
+            Notification::where('user_id', Auth::id())
+                ->where('appointment_id', $appointment->id)
+                ->unread()
+                ->update(['is_read' => true, 'read_at' => now()]);
+
             return redirect()->route('appointments.show', $appointment)->with('success', 'Appointment status updated successfully.');
         }
 
@@ -352,6 +359,12 @@ class AppointmentController extends Controller
             'is_read' => false,
             'read_at' => null,
         ]);
+
+        // Mark related notifications as read for the counselor
+        Notification::where('user_id', Auth::id())
+            ->where('appointment_id', $appointment->id)
+            ->unread()
+            ->update(['is_read' => true, 'read_at' => now()]);
 
         return redirect()->route('appointments.index')->with('success', 'Appointment cancelled successfully.');
     }
@@ -673,6 +686,12 @@ class AppointmentController extends Controller
             ]);
         }
 
+        // Mark related notifications as read for the counselor
+        Notification::where('user_id', Auth::id())
+            ->where('appointment_id', $appointment->id)
+            ->unread()
+            ->update(['is_read' => true, 'read_at' => now()]);
+
         return redirect()->route('appointments.show', $appointment)
             ->with('success', 'Appointment approved successfully. Other pending requests for this day have been cancelled.');
     }
@@ -700,6 +719,12 @@ class AppointmentController extends Controller
             'is_read' => false,
             'read_at' => null,
         ]);
+
+        // Mark related notifications as read for the counselor
+        Notification::where('user_id', Auth::id())
+            ->where('appointment_id', $appointment->id)
+            ->unread()
+            ->update(['is_read' => true, 'read_at' => now()]);
 
         return redirect()->route('appointments.show', $appointment)
             ->with('success', 'Appointment rejected successfully.');
@@ -772,6 +797,12 @@ class AppointmentController extends Controller
             'type' => 'appointment_rescheduled',
             'read_at' => null,
         ]);
+
+        // Mark related notifications as read for the counselor
+        Notification::where('user_id', Auth::id())
+            ->where('appointment_id', $appointment->id)
+            ->unread()
+            ->update(['is_read' => true, 'read_at' => now()]);
 
         return redirect()->route('appointments.show', $appointment)
             ->with('success', 'Appointment rescheduled successfully.');
