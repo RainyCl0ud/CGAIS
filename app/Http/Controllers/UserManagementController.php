@@ -99,6 +99,14 @@ class UserManagementController extends Controller
      */
     public function update(Request $request, User $user): RedirectResponse
     {
+        $currentUser = auth()->user();
+
+        // Prevent assistant from editing counselor users
+        if ($currentUser->isAssistant() && $user->isCounselor()) {
+            return redirect()->route('users.index')
+                ->with('error', 'You cannot edit counselor accounts.');
+        }
+
         $validated = $request->validate([
             'first_name' => 'required|string|max:255',
             'middle_name' => 'nullable|string|max:255',

@@ -15,9 +15,9 @@ class CounselorOnlyMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!$request->user() || !$request->user()->isCounselor()) {
+        if (!$request->user() || (!$request->user()->isCounselor() && !$request->user()->isAssistant())) {
             return redirect()->route('dashboard')
-                ->with('error', 'Access denied. This feature is only available to counselors.');
+                ->with('error', 'Access denied. This feature is only available to counselors and assistants.');
         }
 
         return $next($request);

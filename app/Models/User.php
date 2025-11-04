@@ -61,17 +61,17 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isStaff() { return $this->role === 'staff'; }
 
     // Privilege helper methods
-    public function canManageUsers() { return $this->isCounselor(); }
+    public function canManageUsers() { return $this->isCounselor() || $this->isAssistant(); }
     public function canApproveAppointments() { return $this->isCounselor() || $this->isAssistant(); }
-    public function canGenerateReports() { return $this->isCounselor(); }
-    public function canCreateCounselingHistory() { return $this->isCounselor(); }
-    public function canHandleUrgentAppointments() { return $this->isCounselor(); }
-    public function canSendOfficialNotifications() { return $this->isCounselor(); }
-    public function canViewAppointmentNotes() { return $this->isCounselor(); }
-    public function canAccessBackupData() { return $this->isCounselor(); }
-    public function canManageAllAppointments() { return $this->isCounselor(); }
-    public function canManageSchedules() { return $this->isCounselor(); }
-    public function canViewStudentPDS() { return $this->isCounselor(); }
+    public function canGenerateReports() { return $this->isCounselor() || $this->isAssistant(); }
+    public function canCreateCounselingHistory() { return $this->isCounselor() || $this->isAssistant(); }
+    public function canHandleUrgentAppointments() { return $this->isCounselor() || $this->isAssistant(); }
+    public function canSendOfficialNotifications() { return $this->isCounselor() || $this->isAssistant(); }
+    public function canViewAppointmentNotes() { return $this->isCounselor() || $this->isAssistant(); }
+    public function canAccessBackupData() { return $this->isCounselor() || $this->isAssistant(); }
+    public function canManageAllAppointments() { return $this->isCounselor() || $this->isAssistant(); }
+    public function canManageSchedules() { return $this->isCounselor() || $this->isAssistant(); }
+    public function canViewStudentPDS() { return $this->isCounselor() || $this->isAssistant(); }
     public function canBookAppointments() { return $this->isStudent() || $this->isFaculty() || $this->isStaff(); }
     
     // Assistant-specific methods

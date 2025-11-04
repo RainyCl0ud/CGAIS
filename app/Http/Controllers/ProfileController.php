@@ -26,13 +26,27 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user();
+        $targetUser = $user; // Default to self
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        // Check if assistant is trying to edit another user's profile
+        if ($user->isAssistant() && $request->has('user_id')) {
+            $targetUser = User::findOrFail($request->get('user_id'));
+
+            // Prevent assistant from editing counselor profiles
+            if ($targetUser->isCounselor()) {
+                return Redirect::route('profile.edit')
+                    ->with('error', 'You cannot edit counselor profiles.');
+            }
         }
 
-        $request->user()->save();
+        $targetUser->fill($request->validated());
+
+        if ($targetUser->isDirty('email')) {
+            $targetUser->email_verified_at = null;
+        }
+
+        $targetUser->save();
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }

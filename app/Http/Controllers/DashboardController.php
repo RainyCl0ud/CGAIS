@@ -62,26 +62,24 @@ $nextAppointment = Appointment::with('user')
     ->first();
 
         } elseif ($user->isAssistant()) {
-            // Assistant Dashboard (Limited Privileges)
+            // Assistant Dashboard (System-wide visibility like Counselor)
             $stats = [
-                'total_appointments' => Appointment::where('counselor_id', $user->id)->count(),
-                'pending_appointments' => Appointment::where('counselor_id', $user->id)->pending()->count(),
-                'today_appointments' => Appointment::where('counselor_id', $user->id)
-                    ->where('appointment_date', Carbon::today())
-                    ->where('status', '!=', 'cancelled')
+                'total_appointments' => Appointment::count(),
+                'pending_appointments' => Appointment::pending()->count(),
+                'today_appointments' => Appointment::where('appointment_date', Carbon::today())
+                    ->where('status', 'confirmed')
                     ->count(),
                 'unread_notifications' => $user->getUnreadNotificationsCount(),
             ];
 
+            // Assistants see all appointments system-wide
             $recentAppointments = Appointment::with('user')
-                ->where('counselor_id', $user->id)
                 ->orderByRaw("CASE WHEN type = 'urgent' THEN 0 ELSE 1 END") // Urgent first
                 ->orderBy('created_at', 'desc')
                 ->limit(5)
                 ->get();
 
             $upcomingAppointments = Appointment::with('user')
-                ->where('counselor_id', $user->id)
                 ->upcoming()
                 ->orderByRaw("CASE WHEN type = 'urgent' THEN 0 ELSE 1 END") // Urgent first
                 ->orderBy('appointment_date')
@@ -90,7 +88,6 @@ $nextAppointment = Appointment::with('user')
                 ->get();
 
             $nextAppointment = Appointment::with('user')
-                ->where('counselor_id', $user->id)
                 ->upcoming()
                 ->orderBy('appointment_date')
                 ->orderBy('start_time')
@@ -152,8 +149,8 @@ $nextAppointment = Appointment::with('user')
             abort(403, 'Only counselors and assistants can view today\'s appointments.');
         }
 
+        // Assistants see all today's appointments system-wide
         $todayAppointments = Appointment::with('user')
-            ->where('counselor_id', $user->id)
             ->where('appointment_date', Carbon::today())
             ->where('status', 'confirmed')
             ->orderByRaw("CASE WHEN type = 'urgent' THEN 0 ELSE 1 END") // Urgent first
@@ -171,8 +168,8 @@ $nextAppointment = Appointment::with('user')
             abort(403, 'Only counselors and assistants can view pending appointments.');
         }
 
+        // Assistants see all pending appointments system-wide
         $pendingAppointments = Appointment::with('user')
-            ->where('counselor_id', $user->id)
             ->where('status', 'pending')
             ->orderByRaw("CASE WHEN type = 'urgent' THEN 0 ELSE 1 END") // Urgent first
             ->orderBy('appointment_date')

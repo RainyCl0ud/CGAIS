@@ -7,15 +7,7 @@
                             <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-900">Notifications</h1>
                             <p class="text-gray-600 text-xs sm:text-sm mt-1">Stay updated with your appointment notifications</p>
                         </div>
-                        @if($notifications->where('read_at', null)->count() > 0)
-                            <form method="POST" action="{{ route('notifications.read-all') }}" class="mt-3 sm:mt-0">
-                                @csrf
-                                <button type="submit" 
-                                        class="px-3 sm:px-4 py-2 bg-blue-600 text-white text-xs sm:text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors">
-                                    Mark All as Read
-                                </button>
-                            </form>
-                        @endif
+
                     </div>
 
                     @if(session('success'))
@@ -63,21 +55,13 @@
                                                         <form method="POST" action="{{ route('notifications.read', $notification) }}" class="inline" onclick="event.stopPropagation();">
                                                             @csrf
                                                             @method('PATCH')
-                                                            <button type="submit" 
+                                                            <button type="submit"
                                                                     class="text-xs text-blue-600 hover:text-blue-800">
-                                                                Mark as Read
+                                                                Acknowledge
                                                             </button>
                                                         </form>
                                                     @endif
-                                                    <form method="POST" action="{{ route('notifications.destroy', $notification) }}" class="inline" onclick="event.stopPropagation();">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit" 
-                                                                onclick="event.stopPropagation(); return confirm('Are you sure you want to delete this notification?')"
-                                                                class="text-xs text-red-600 hover:text-red-800">
-                                                            Delete
-                                                        </button>
-                                                    </form>
+
                                                 </div>
                                             </div>
                                         </div>

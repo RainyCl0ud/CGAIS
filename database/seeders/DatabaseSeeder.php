@@ -200,7 +200,7 @@ class DatabaseSeeder extends Seeder
 
         // Create sample appointments
         $this->call([
-            AppointmentSeeder::class,
+            // AppointmentSeeder::class,
             PersonalDataSheetSeeder::class,
             FeedbackFormSeeder::class,
         ]);

@@ -22,8 +22,8 @@ class AppointmentController extends Controller
         $appointments = collect();
 
         if ($user->isCounselor() || $user->isAssistant()) {
+            // Assistants and Counselors see all appointments system-wide
             $appointments = Appointment::with(['user', 'counselor'])
-                ->where('counselor_id', $user->id)
                 ->orderByRaw("CASE WHEN type = 'urgent' THEN 0 ELSE 1 END")
                 ->orderBy('appointment_date')
                 ->orderBy('start_time')
@@ -189,9 +189,7 @@ class AppointmentController extends Controller
         if (!$user->isCounselor() && !$user->isAssistant() && $appointment->user_id !== $user->id) {
             abort(403);
         }
-        if (($user->isCounselor() || $user->isAssistant()) && $appointment->counselor_id !== $user->id) {
-            abort(403);
-        }
+        // Assistants and Counselors can view all appointments system-wide
         return view('appointments.show', compact('appointment'));
     }
 
@@ -201,9 +199,7 @@ class AppointmentController extends Controller
         if (!$user->isCounselor() && !$user->isAssistant() && $appointment->user_id !== $user->id) {
             abort(403);
         }
-        if (($user->isCounselor() || $user->isAssistant()) && $appointment->counselor_id !== $user->id) {
-            abort(403);
-        }
+        // Assistants and Counselors can edit all appointments system-wide
         $counselors = User::where('role', 'counselor')->get();
         return view('appointments.edit', compact('appointment', 'counselors'));
     }
@@ -211,12 +207,9 @@ class AppointmentController extends Controller
     public function update(Request $request, Appointment $appointment): RedirectResponse
     {
         $user = $request->user();
-        
-        if ($user->isCounselor() || $user->isAssistant()) {
-            if ($appointment->counselor_id !== $user->id) {
-                abort(403, 'You can only update appointments assigned to you.');
-            }
-        } else {
+
+        // Assistants and Counselors can update all appointments system-wide
+        if (!$user->isCounselor() && !$user->isAssistant()) {
             if ($appointment->user_id !== $user->id) {
                 abort(403, 'You can only update your own appointments.');
             }
@@ -345,9 +338,7 @@ class AppointmentController extends Controller
         if (!$user->isCounselor() && !$user->isAssistant() && $appointment->user_id !== $user->id) {
             abort(403);
         }
-        if (($user->isCounselor() || $user->isAssistant()) && $appointment->counselor_id !== $user->id) {
-            abort(403);
-        }
+        // Assistants and Counselors can cancel all appointments system-wide
         $appointment->update(['status' => 'cancelled']);
 
         // Notify student of appointment cancellation by counselor
@@ -380,8 +371,9 @@ class AppointmentController extends Controller
         }
         $appointment->update(['status' => 'cancelled']);
 
-        // Notify counselor of appointment cancellation by student
-        $appointment->counselor->notifications()->create([
+        // Notify counselor and assistant of appointment cancellation by student
+        $counselor = $appointment->counselor;
+        $counselor->notifications()->create([
             'appointment_id' => $appointment->id,
             'title' => 'Appointment Cancelled by Student',
             'message' => "The appointment with {$appointment->user->full_name} on {$appointment->appointment_date->format('M d, Y')} has been cancelled by the student.",
@@ -389,6 +381,19 @@ class AppointmentController extends Controller
             'is_read' => false,
             'read_at' => null,
         ]);
+
+        // Notify assistant(s) as well
+        $assistants = User::where('role', 'assistant')->get();
+        foreach ($assistants as $assistant) {
+            $assistant->notifications()->create([
+                'appointment_id' => $appointment->id,
+                'title' => 'Appointment Cancelled by Student',
+                'message' => "Appointment with {$appointment->user->full_name} on {$appointment->appointment_date->format('M d, Y')} has been cancelled by the student.",
+                'type' => 'appointment_cancelled',
+                'is_read' => false,
+                'read_at' => null,
+            ]);
+        }
 
         return redirect()->route('appointments.index')->with('success', 'Appointment cancelled successfully.');
     }
@@ -400,7 +405,7 @@ class AppointmentController extends Controller
         $query = Appointment::with(['user', 'counselor']);
 
         if ($user->isCounselor() || $user->isAssistant()) {
-            $query->where('counselor_id', $user->id);
+            // Assistants and Counselors see all completed appointments system-wide
         } else {
             $query->where('user_id', $user->id);
         }
@@ -468,11 +473,11 @@ class AppointmentController extends Controller
     public function exportSessionHistory(Request $request)
     {
         $user = $request->user();
-        
+
         $query = Appointment::with(['user', 'counselor']);
-        
+
         if ($user->isCounselor() || $user->isAssistant()) {
-            $query->where('counselor_id', $user->id);
+            // Assistants and Counselors export all completed appointments system-wide
         } else {
             $query->where('user_id', $user->id);
         }
@@ -567,7 +572,8 @@ class AppointmentController extends Controller
             abort(403);
         }
 
-        $query = Appointment::where('counselor_id', $user->id);
+        // Assistants and Counselors get system-wide statistics
+        $query = Appointment::query();
 
         $stats = [
             'total' => $query->count(),
@@ -665,6 +671,19 @@ class AppointmentController extends Controller
             'read_at' => null,
         ]);
 
+        // Notify assistant(s) of the approval
+        $assistants = User::where('role', 'assistant')->get();
+        foreach ($assistants as $assistant) {
+            $assistant->notifications()->create([
+                'appointment_id' => $appointment->id,
+                'title' => 'Appointment Approved',
+                'message' => "Appointment with {$appointment->user->full_name} on {$appointment->getFormattedDateTime()} has been approved.",
+                'type' => 'appointment_approved',
+                'is_read' => false,
+                'read_at' => null,
+            ]);
+        }
+
         // Cancel all other pending appointments for the same counselor and date
         $otherPendingAppointments = Appointment::where('counselor_id', $appointment->counselor_id)
             ->where('appointment_date', $appointment->appointment_date)
@@ -719,6 +738,19 @@ class AppointmentController extends Controller
             'is_read' => false,
             'read_at' => null,
         ]);
+
+        // Notify assistant(s) of the rejection
+        $assistants = User::where('role', 'assistant')->get();
+        foreach ($assistants as $assistant) {
+            $assistant->notifications()->create([
+                'appointment_id' => $appointment->id,
+                'title' => 'Appointment Rejected',
+                'message' => "Appointment with {$appointment->user->full_name} on {$appointment->getFormattedDateTime()} has been rejected. Reason: {$request->rejection_reason}",
+                'type' => 'appointment_rejected',
+                'is_read' => false,
+                'read_at' => null,
+            ]);
+        }
 
         // Mark related notifications as read for the counselor
         Notification::where('user_id', Auth::id())
@@ -792,11 +824,26 @@ class AppointmentController extends Controller
         ]);
 
         $appointment->user->notifications()->create([
+            'appointment_id' => $appointment->id,
             'title' => 'Appointment Rescheduled',
             'message' => "Your appointment has been rescheduled from {$oldDateTime} to {$appointment->getFormattedDateTime()}. Reason: {$request->reschedule_reason}",
             'type' => 'appointment_rescheduled',
+            'is_read' => false,
             'read_at' => null,
         ]);
+
+        // Notify assistant(s) of the reschedule
+        $assistants = User::where('role', 'assistant')->get();
+        foreach ($assistants as $assistant) {
+            $assistant->notifications()->create([
+                'appointment_id' => $appointment->id,
+                'title' => 'Appointment Rescheduled',
+                'message' => "Appointment with {$appointment->user->full_name} has been rescheduled from {$oldDateTime} to {$appointment->getFormattedDateTime()}. Reason: {$request->reschedule_reason}",
+                'type' => 'appointment_rescheduled',
+                'is_read' => false,
+                'read_at' => null,
+            ]);
+        }
 
         // Mark related notifications as read for the counselor
         Notification::where('user_id', Auth::id())

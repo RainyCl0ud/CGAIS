@@ -60,22 +60,14 @@
                                 <form method="POST" action="{{ route('notifications.read', $notification) }}" class="inline">
                                     @csrf
                                     @method('PATCH')
-                                    <button type="submit" 
+                                    <button type="submit"
                                             class="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors">
-                                        Mark as Read
+                                        Acknowledge
                                     </button>
                                 </form>
                             @endif
                             
-                            <form method="POST" action="{{ route('notifications.destroy', $notification) }}" class="inline">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" 
-                                        onclick="return confirm('Are you sure you want to delete this notification?')"
-                                        class="px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded-lg hover:bg-red-700 transition-colors">
-                                    Delete
-                                </button>
-                            </form>
+
                         </div>
                     </div>
                 </div>

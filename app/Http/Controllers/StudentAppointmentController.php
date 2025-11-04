@@ -204,8 +204,9 @@ class StudentAppointmentController extends Controller
             'counselor_id' => $appointment->counselor_id,
         ]);
 
-        // Notify counselor of new appointment request
-        $appointment->counselor->notifications()->create([
+        // Notify counselor and assistant of new appointment request
+        $counselor = $appointment->counselor;
+        $counselor->notifications()->create([
             'appointment_id' => $appointment->id,
             'title' => 'New Appointment Request',
             'message' => "You have a new appointment request from {$appointment->user->full_name} on {$appointment->appointment_date->format('M d, Y')}.",
@@ -213,6 +214,19 @@ class StudentAppointmentController extends Controller
             'is_read' => false,
             'read_at' => null,
         ]);
+
+        // Notify assistant(s) as well
+        $assistants = User::where('role', 'assistant')->get();
+        foreach ($assistants as $assistant) {
+            $assistant->notifications()->create([
+                'appointment_id' => $appointment->id,
+                'title' => 'New Appointment Request',
+                'message' => "Counselor {$counselor->full_name} has a new appointment request from {$appointment->user->full_name} on {$appointment->appointment_date->format('M d, Y')}.",
+                'type' => 'appointment_request',
+                'is_read' => false,
+                'read_at' => null,
+            ]);
+        }
 
         $successMessage = 'Appointment requested successfully. Please wait for confirmation.';
         

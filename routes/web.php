@@ -43,31 +43,31 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/activity-logs/{activityLog}', [ActivityLogController::class, 'show'])->name('activity-logs.show');
     });
     
-    // Counselor Only Features (Full privileges)
+    // Counselor and Assistant Features (Full privileges except Counselor profile editing)
     Route::middleware('counselor_only')->group(function () {
-        // Reports (Counselor only)
+        // Reports (Counselor and Assistant)
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
         Route::get('/reports/appointments', [ReportController::class, 'appointmentReport'])->name('reports.appointments');
         Route::get('/reports/clients', [ReportController::class, 'clientReport'])->name('reports.clients');
         Route::get('/reports/feedback', [ReportController::class, 'feedbackReport'])->name('reports.feedback');
         Route::get('/reports/export', [ReportController::class, 'exportReport'])->name('reports.export');
-        
-        // Export functionality (Counselor only)
+
+        // Export functionality (Counselor and Assistant)
         Route::get('/appointments/export-history', [AppointmentController::class, 'exportSessionHistory'])->name('appointments.export-history');
         Route::get('/activity-logs/export', [ActivityLogController::class, 'export'])->name('activity-logs.export');
         Route::get('/students/export', [StudentManagementController::class, 'export'])->name('students.export');
-        
-        // Student PDS access (Counselor only)
+
+        // Student PDS access (Counselor and Assistant)
         Route::get('/students/{student}/pds', [StudentManagementController::class, 'showPds'])->name('students.pds');
-        
-        // User Management (Counselor only)
+
+        // User Management (Counselor and Assistant, but with restrictions)
         Route::resource('users', UserManagementController::class);
-        
-        // System Backup (Counselor only)
+
+        // System Backup (Counselor and Assistant)
         Route::get('/system/backup', [SystemController::class, 'backup'])->name('system.backup');
         Route::get('/system/backup/download', [SystemController::class, 'downloadBackup'])->name('system.backup.download');
-        
-        // Authorized IDs Management (Counselor only)
+
+        // Authorized IDs Management (Counselor and Assistant)
         Route::resource('authorized-ids', AuthorizedIdController::class);
         Route::get('/authorized-ids/export', [AuthorizedIdController::class, 'export'])->name('authorized-ids.export');
         Route::post('/authorized-ids/bulk-destroy', [AuthorizedIdController::class, 'bulkDestroy'])->name('authorized-ids.bulk-destroy');
