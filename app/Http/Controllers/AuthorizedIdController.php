@@ -55,7 +55,7 @@ class AuthorizedIdController extends Controller
     {
         $request->validate([
             'id_number' => 'required|string|min:3|max:50',
-            'type' => ['required', Rule::in(['student', 'faculty'])],
+            'type' => ['required', Rule::in(['student', 'faculty', 'staff'])],
         ]);
 
         $idNumber = trim($request->id_number);
@@ -106,7 +106,7 @@ class AuthorizedIdController extends Controller
     {
         $request->validate([
             'id_number' => ['required', 'string', 'max:50', Rule::unique('authorized_ids')->ignore($authorizedId->id)],
-            'type' => ['required', Rule::in(['student', 'faculty'])],
+            'type' => ['required', Rule::in(['student', 'faculty', 'staff'])],
         ]);
 
         $authorizedId->update([

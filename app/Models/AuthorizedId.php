@@ -74,6 +74,14 @@ class AuthorizedId extends Model
     }
 
     /**
+     * Scope for staff IDs
+     */
+    public function scopeStaff($query)
+    {
+        return $query->where('type', 'staff');
+    }
+
+    /**
      * Mark ID as used
      */
     public function markAsUsed(int $userId): void
