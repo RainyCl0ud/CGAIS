@@ -135,7 +135,8 @@ $nextAppointment = Appointment::with('user')
         } elseif ($user->isAssistant()) {
             return view('dashboard.assistant', compact('stats', 'recentAppointments', 'upcomingAppointments', 'nextAppointment'));
         } elseif ($user->isStaff()) {
-            return view('dashboard.staff', compact('stats', 'recentAppointments', 'pendingAppointments', 'upcomingApprovedAppointments'));
+            $upcomingAppointments = collect(); // Initialize to avoid undefined variable in view
+            return view('dashboard.staff', compact('stats', 'recentAppointments', 'pendingAppointments', 'upcomingApprovedAppointments', 'upcomingAppointments'));
         } else {
             return view('dashboard.faculty', compact('stats', 'recentAppointments', 'pendingAppointments', 'upcomingApprovedAppointments'));
         }

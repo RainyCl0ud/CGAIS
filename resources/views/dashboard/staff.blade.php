@@ -81,7 +81,7 @@
                     </div>
 
                     <!-- PDS Completion Alert for staff -->
-                    @php
+                    {{-- @php
                         $pds = auth()->user()->personalDataSheet;
                         $completionPercentage = $pds ? $pds->getCompletionPercentage() : 0;
                     @endphp
@@ -113,7 +113,7 @@
                                 </div>
                             </div>
                         </div>
-                    @endif
+                    @endif --}}
 
                     <!-- Pending Appointments -->
                     @if($pendingAppointments->count() > 0)
@@ -248,10 +248,6 @@
                             <a href="{{ route('student.appointments.index') }}"
                                class="px-3 sm:px-6 py-2 sm:py-3 bg-[#FFD700] text-[#1E3A8A] font-semibold rounded-lg hover:bg-[#FFE44D] transition-colors text-sm">
                                 My Appointments
-                            </a>
-                            <a href="{{ route('pds.show') }}"
-                               class="px-3 sm:px-6 py-2 sm:py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors text-sm">
-                                Personal Data Sheet
                             </a>
                             <a href="{{ route('feedback.index') }}"
                                class="px-3 sm:px-6 py-2 sm:py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors text-sm">

@@ -66,7 +66,7 @@
                         </div>
                     </div>
 
-                    <!-- PDS Completion Alert for Faculty -->
+                    {{-- <!-- PDS Completion Alert for Faculty -->
                     @php
                         $pds = auth()->user()->personalDataSheet;
                         $completionPercentage = $pds ? $pds->getCompletionPercentage() : 0;
@@ -99,7 +99,7 @@
                                 </div>
                             </div>
                         </div>
-                    @endif
+                    @endif --}}
 
                     <!-- Pending Appointments -->
                     @if($pendingAppointments->count() > 0)

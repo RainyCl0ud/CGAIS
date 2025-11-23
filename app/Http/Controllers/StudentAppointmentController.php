@@ -72,16 +72,26 @@ class StudentAppointmentController extends Controller
             abort(403, 'Access denied. This page is for students, faculty, and staff only.');
         }
 
+        // Validation rules for appointment creation
         $validationRules = [
             'counselor_id' => 'required|exists:users,id',
             'appointment_date' => 'required|date|after_or_equal:today',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i',
             'type' => 'required|in:regular,urgent,follow_up',
-            'counseling_category' => 'required|in:conduct_intake_interview,information_services,internal_referral_services,counseling_services,conduct_exit_interview',
-            'reason' => 'required_if:type,urgent|nullable|string|max:500',
-            'notes' => 'nullable|string|max:1000',
         ];
+
+        // Counseling category requirement differs by user type:
+        // Students must select a category from specific options.
+        // Staff and faculty optionally have category; default to 'consultation' if not provided.
+        if($user->isStudent()) {
+            $validationRules['counseling_category'] = 'required|in:conduct_intake_interview,information_services,internal_referral_services,counseling_services,conduct_exit_interview';
+        } else {
+            $validationRules['counseling_category'] = 'sometimes|nullable|in:conduct_intake_interview,information_services,internal_referral_services,counseling_services,conduct_exit_interview';
+        }
+
+$validationRules['reason'] = 'required_if:type,urgent|nullable|string|max:500';
+$validationRules['notes'] = 'nullable|string|max:1000';
 
         try {
             $validatedData = $request->validate($validationRules);
@@ -91,14 +101,14 @@ class StudentAppointmentController extends Controller
                 return back()->withErrors(['end_time' => 'End time must be after start time.'])->withInput();
             }
         } catch (\Illuminate\Validation\ValidationException $e) {
-            Log::error('Student appointment validation failed', [
+            Log::error('Appointment validation failed', [
                 'errors' => $e->errors(),
                 'input' => $request->all()
             ]);
             return back()->withErrors($e->errors())->withInput();
         }
 
-        Log::info('Student appointment creation started', [
+        Log::info('Appointment creation started', [
             'user_id' => $user->id,
             'counselor_id' => $request->counselor_id,
             'appointment_date' => $request->appointment_date,
@@ -178,18 +188,20 @@ class StudentAppointmentController extends Controller
             $conflictNote = "URGENT: This appointment conflicts with existing booking (ID: {$existingAppointment->id}) for {$existingAppointment->user->full_name}. Counselor review required.";
         }
 
-        $appointmentData = [
-            'user_id' => $user->id,
-            'counselor_id' => $request->counselor_id,
-            'appointment_date' => $request->appointment_date,
-            'start_time' => $request->start_time,
-            'end_time' => $request->end_time,
-            'type' => $request->type,
-            'counseling_category' => $request->counseling_category,
-            'reason' => $request->reason,
-            'notes' => $request->notes,
-            'status' => 'pending',
-        ];
+
+$appointmentData = [
+    'user_id' => $user->id,
+    'counselor_id' => $request->counselor_id,
+    'appointment_date' => $request->appointment_date,
+    'start_time' => $request->start_time,
+    'end_time' => $request->end_time,
+    'type' => $request->type,
+    // For non-students (faculty/staff), default counseling_category to 'consultation' if not set
+    'counseling_category' => $request->counseling_category ?? ($user->isStudent() ? null : 'consultation'),
+    'reason' => $request->reason,
+    'notes' => $request->notes,
+    'status' => 'pending',
+];
 
         // Add conflict note for urgent appointments
         if ($request->type === 'urgent' && !empty($conflictNote)) {
@@ -294,16 +306,25 @@ class StudentAppointmentController extends Controller
             return back()->with('error', 'You can only reschedule pending or confirmed appointments.');
         }
 
-        $request->validate([
+        $validationRules = [
             'counselor_id' => 'required|exists:users,id',
             'appointment_date' => 'required|date|after_or_equal:today',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
             'type' => 'required|in:regular,urgent,follow_up',
-            'counseling_category' => 'required|in:conduct_intake_interview,information_services,internal_referral_services,counseling_services,conduct_exit_interview',
-            'reason' => 'required_if:type,urgent|nullable|string|max:500',
-            'notes' => 'nullable|string|max:1000',
-        ]);
+        ];
+        
+        // Only require counseling_category if user is student
+        if($user->isStudent()) {
+            $validationRules['counseling_category'] = 'required|in:conduct_intake_interview,information_services,internal_referral_services,counseling_services,conduct_exit_interview';
+        } else {
+            $validationRules['counseling_category'] = 'sometimes|nullable|in:conduct_intake_interview,information_services,internal_referral_services,counseling_services,conduct_exit_interview';
+        }
+        
+        $validationRules['reason'] = 'required_if:type,urgent|nullable|string|max:500';
+        $validationRules['notes'] = 'nullable|string|max:1000';
+        
+        $request->validate($validationRules);
 
         // Check if the new date is on a weekday (Monday through Friday)
         $appointmentDate = Carbon::parse($request->appointment_date);

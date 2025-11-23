@@ -1,3 +1,9 @@
+@php
+if (!isset($upcomingAppointments)) {
+    $upcomingAppointments = collect();
+}
+@endphp
+
 <x-app-layout>
     <div class="flex flex-col items-center justify-start py-4 sm:py-8 px-2 sm:px-4">
             <div class="w-full max-w-6xl mx-auto">
