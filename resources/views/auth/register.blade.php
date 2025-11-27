@@ -16,7 +16,7 @@
         </div>
     </div>
 
-    <form method="POST" action="{{ route('register') }}">
+    <form id="registerForm" method="POST" action="{{ route('register') }}">
         @csrf
 
         @if ($errors->any())
@@ -171,6 +171,108 @@
             }
         }
         </script>
+
+        <!-- Terms and Conditions Modal -->
+        <div id="termsModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden z-50">
+            <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden">
+                <div class="p-6">
+                    <h3 class="text-xl font-semibold text-gray-900 mb-4 text-center">Terms and Conditions</h3>
+                    <div id="termsContent" class="max-h-80 overflow-y-auto text-sm text-gray-700 mb-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                        <p><strong>1. Acceptance of Terms</strong></p>
+                        <p>By registering for an account on this Counseling Guidance Appointment System (CGAS), you agree to be bound by these Terms and Conditions. If you do not agree to these terms, please do not proceed with registration.</p>
+
+                        <p><strong>2. User Eligibility</strong></p>
+                        <p>You must be a current student, faculty member, or staff of the University of Science and Technology of Southern Philippines (USTP) to register. You must provide a valid, pre-authorized ID number issued by the counseling office.</p>
+
+                        <p><strong>3. Account Security</strong></p>
+                        <p>You are responsible for maintaining the confidentiality of your account credentials. You agree to notify the counseling office immediately of any unauthorized use of your account.</p>
+
+                        <p><strong>4. Data Privacy</strong></p>
+                        <p>Your personal information will be handled in accordance with the Data Privacy Act of 2012. Information provided during registration and counseling sessions will be kept confidential and used solely for counseling purposes.</p>
+
+                        <p><strong>5. Appointment Scheduling</strong></p>
+                        <p>Appointments are scheduled based on counselor availability. You agree to attend scheduled appointments or cancel them at least 24 hours in advance. Repeated no-shows may result in suspension of your account.</p>
+
+                        <p><strong>6. Code of Conduct</strong></p>
+                        <p>You agree to use the system respectfully and appropriately. Harassment, abuse, or misuse of the system may result in account termination.</p>
+
+                        <p><strong>7. System Availability</strong></p>
+                        <p>While we strive to maintain system availability, we do not guarantee uninterrupted access. The counseling office reserves the right to perform maintenance or updates that may temporarily affect system availability.</p>
+
+                        <p><strong>8. Amendments</strong></p>
+                        <p>These terms may be updated at any time. Continued use of the system after changes constitutes acceptance of the new terms.</p>
+
+                        <p><strong>9. Contact Information</strong></p>
+                        <p>For questions about these terms or the system, please contact the counseling office at counseling@ustp.edu.ph.</p>
+
+                        <p><strong>10. Acknowledgment</strong></p>
+                        <p>By clicking "I Agree" below, you acknowledge that you have read, understood, and agree to be bound by these Terms and Conditions.</p>
+                    </div>
+                    <div class="flex items-center mb-4">
+                        <input type="checkbox" id="agreeCheckbox" class="mr-2">
+                        <label for="agreeCheckbox" class="text-sm text-gray-700">I have read and agree to the Terms and Conditions</label>
+                    </div>
+                    <div class="flex justify-end space-x-4">
+                        <button type="button" id="disagreeBtn" class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">Disagree</button>
+                        <button type="button" id="agreeBtn" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed" disabled>Agree and Register</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('registerForm');
+            const modal = document.getElementById('termsModal');
+            const agreeCheckbox = document.getElementById('agreeCheckbox');
+            const agreeBtn = document.getElementById('agreeBtn');
+            const disagreeBtn = document.getElementById('disagreeBtn');
+            const termsContent = document.getElementById('termsContent');
+
+            // Prevent form submission and show modal
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                modal.classList.remove('hidden');
+                termsContent.scrollTop = 0; // Reset scroll position
+                agreeCheckbox.checked = false;
+                agreeBtn.disabled = true;
+            });
+
+            // Enable/disable agree button based on checkbox and scroll position
+            agreeCheckbox.addEventListener('change', function() {
+                if (this.checked && hasScrolledToBottom()) {
+                    agreeBtn.disabled = false;
+                } else {
+                    agreeBtn.disabled = true;
+                }
+            });
+
+            // Check scroll position
+            termsContent.addEventListener('scroll', function() {
+                if (agreeCheckbox.checked && hasScrolledToBottom()) {
+                    agreeBtn.disabled = false;
+                } else {
+                    agreeBtn.disabled = true;
+                }
+            });
+
+            function hasScrolledToBottom() {
+                return termsContent.scrollTop + termsContent.clientHeight >= termsContent.scrollHeight - 10; // 10px tolerance
+            }
+
+            // Agree button submits the form
+            agreeBtn.addEventListener('click', function() {
+                modal.classList.add('hidden');
+                form.submit();
+            });
+
+            // Disagree button closes modal
+            disagreeBtn.addEventListener('click', function() {
+                modal.classList.add('hidden');
+            });
+        });
+        </script>
+
         <div class="flex items-center justify-end mt-4">
             <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('login') }}">
                 {{ __('Already registered?') }}

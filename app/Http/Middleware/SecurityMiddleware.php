@@ -35,10 +35,7 @@ class SecurityMiddleware
                 'user_agent' => $request->userAgent(),
             ]);
 
-            return response()->json([
-                'error' => 'Access denied',
-                'message' => 'Your IP address has been temporarily blocked due to suspicious activity.'
-            ], 403);
+            return $this->errorResponse($request, 'Access denied', 'Your IP address has been temporarily blocked due to suspicious activity.', 403);
         }
 
         // Check for suspicious activity
@@ -66,10 +63,7 @@ class SecurityMiddleware
                 'url' => $request->fullUrl(),
             ]);
 
-            return response()->json([
-                'error' => 'Rate limit exceeded',
-                'message' => 'Too many requests. Please try again later.'
-            ], 429);
+            return $this->errorResponse($request, 'Rate limit exceeded', 'Too many requests. Please try again later.', 429);
         }
 
         // Validate request origin
@@ -81,10 +75,7 @@ class SecurityMiddleware
                 'url' => $request->fullUrl(),
             ]);
 
-            return response()->json([
-                'error' => 'Invalid request origin',
-                'message' => 'Request denied due to invalid origin.'
-            ], 403);
+            return $this->errorResponse($request, 'Invalid request origin', 'Request denied due to invalid origin.', 403);
         }
 
         // Check for malicious content
@@ -95,10 +86,7 @@ class SecurityMiddleware
                 'content_type' => $request->header('Content-Type'),
             ]);
 
-            return response()->json([
-                'error' => 'Malicious content detected',
-                'message' => 'Request contains potentially harmful content.'
-            ], 400);
+            return $this->errorResponse($request, 'Malicious content detected', 'Request contains potentially harmful content.', 400);
         }
 
         // Validate CSRF token for state-changing requests
@@ -110,10 +98,7 @@ class SecurityMiddleware
                 'method' => $request->method(),
             ]);
 
-            return response()->json([
-                'error' => 'CSRF token mismatch',
-                'message' => 'Security token validation failed.'
-            ], 419);
+            return $this->errorResponse($request, 'CSRF token mismatch', 'Security token validation failed.', 419);
         }
 
         // Log the request for audit
@@ -321,8 +306,8 @@ class SecurityMiddleware
      */
     protected function validateCsrfToken(Request $request): bool
     {
-        $token = $request->header('X-CSRF-TOKEN') ?? 
-                 $request->input('_token') ?? 
+        $token = $request->header('X-CSRF-TOKEN') ??
+                 $request->input('_token') ??
                  $request->header('X-XSRF-TOKEN');
 
         if (!$token) {
@@ -330,6 +315,32 @@ class SecurityMiddleware
         }
 
         return hash_equals(session()->token(), $token);
+    }
+
+    /**
+     * Return appropriate error response based on request type
+     */
+    protected function errorResponse(Request $request, string $error, string $message, int $statusCode): Response
+    {
+        if ($this->isApiRequest($request)) {
+            return response()->json([
+                'error' => $error,
+                'message' => $message
+            ], $statusCode);
+        }
+
+        // For web requests, redirect back with error message
+        return redirect()->back()->withErrors([$error => $message])->withInput();
+    }
+
+    /**
+     * Check if request is an API request
+     */
+    protected function isApiRequest(Request $request): bool
+    {
+        return $request->expectsJson() ||
+               $request->is('api/*') ||
+               str_starts_with($request->path(), 'api/');
     }
 
     /**

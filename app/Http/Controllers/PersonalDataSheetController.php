@@ -41,9 +41,14 @@ class PersonalDataSheetController extends Controller
 
     public function update(Request $request)
     {
-        $user = Auth::user();
-        
-        $validated = $request->validate([
+        try {
+            $user = Auth::user();
+
+            if (!$user) {
+                return redirect()->route('login')->with('error', 'Please log in to continue.');
+            }
+
+            $validated = $request->validate([
             'first_name' => 'nullable|string|max:255',
             'last_name' => 'nullable|string|max:255',
             'middle_name' => 'nullable|string|max:255',
@@ -83,18 +88,18 @@ class PersonalDataSheetController extends Controller
             'guardian_occupation' => 'nullable|string|max:255',
             'guardian_contact' => 'nullable|string|max:20',
             'guardian_relationship' => 'nullable|string|max:100',
-            'elementary_school' => 'nullable|string|max:255',
-            'elementary_year_graduated' => 'nullable|string|max:10',
-            'high_school' => 'nullable|string|max:255',
-            'high_school_year_graduated' => 'nullable|string|max:10',
-            'college' => 'nullable|string|max:255',
-            'college_year_graduated' => 'nullable|string|max:10',
             'course' => 'nullable|string|max:255',
             'major' => 'nullable|string|max:255',
             'year_level' => 'nullable|string|max:50',
             'last_school' => 'nullable|string|max:255',
             'school_location' => 'nullable|string|max:255',
             'previous_course' => 'nullable|string|max:255',
+            'elementary_school' => 'nullable|string|max:255',
+            'elementary_year_graduated' => 'nullable|string|max:10',
+            'high_school' => 'nullable|string|max:255',
+            'high_school_year_graduated' => 'nullable|string|max:10',
+            'college' => 'nullable|string|max:255',
+            'college_year_graduated' => 'nullable|string|max:10',
             'student_id_number' => 'nullable|string|max:50',
             'emergency_contact_name' => 'nullable|string|max:255',
             'emergency_contact_relationship' => 'nullable|string|max:100',
@@ -109,13 +114,6 @@ class PersonalDataSheetController extends Controller
             'living_situation' => 'nullable|string|max:255',
             'living_situation_other' => 'nullable|string|max:255',
             'living_condition' => 'nullable|string|max:255',
-            'health_condition' => 'nullable|string|max:255',
-            'health_condition_specify' => 'nullable|string|max:1000',
-            'intervention' => 'nullable|string|max:255',
-            'intervention_types' => 'nullable|array',
-            'intervention_types.*' => 'nullable|string|max:255',
-            'tutorial_subjects' => 'nullable|string|max:1000',
-            'intervention_other' => 'nullable|string|max:1000',
             'physical_conditions' => 'nullable|string|max:1000',
             'intervention_treatment' => 'nullable|boolean',
             'intervention_details' => 'nullable|string|max:2000',
@@ -127,7 +125,14 @@ class PersonalDataSheetController extends Controller
             'interests' => 'nullable|string|max:1000',
             'goals' => 'nullable|string|max:1000',
             'concerns' => 'nullable|string|max:1000',
-            'signature' => 'nullable|string|max:1000',
+            'health_condition' => 'nullable|string|max:10',
+            'health_condition_specify' => 'nullable|string|max:1000',
+            'intervention' => 'nullable|string|max:10',
+            'intervention_types' => 'nullable|array',
+            'intervention_types.*' => 'nullable|string|max:50',
+            'tutorial_subjects' => 'nullable|string|max:500',
+            'intervention_other' => 'nullable|string|max:1000',
+            'signature' => 'nullable|string|max:255',
             'signature_date' => 'nullable|date',
         ]);
 
@@ -139,10 +144,15 @@ class PersonalDataSheetController extends Controller
         }
         
         $pds->fill($validated);
-        $pds->save();
+        $saved = $pds->save();
 
         return redirect()->route('pds.show')
             ->with('success', 'Personal Data Sheet updated successfully.');
+        } catch (\Exception $e) {
+            \Log::error('PDS Update Error: ' . $e->getMessage());
+            \Log::error('PDS Update Error Trace: ' . $e->getTraceAsString());
+            return redirect()->back()->with('error', 'An error occurred while saving the Personal Data Sheet. Please try again.');
+        }
     }
 
     public function autoSave(Request $request)

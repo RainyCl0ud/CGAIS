@@ -93,8 +93,9 @@ if (!isset($upcomingAppointments)) {
                                     </div>
                                 </div>
                             </div>
-                            
-                        @elseif(auth()->user()->isAssistant())
+
+                        @endif
+                        @if(auth()->user()->isAssistant())
                             <!-- Assistant Statistics (Limited Privileges) -->
                             <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-4 lg:p-6 rounded-xl border border-blue-200">
                                 <div class="flex items-center">

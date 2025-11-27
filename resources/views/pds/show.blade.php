@@ -13,7 +13,7 @@
             UNIVERSITY OF SCIENCE AND TECHNOLOGY OF SOUTHERN PHILIPPINES
         </h1>
         <p class="text-[10px] uppercase tracking-tight">
-            Alubijid | Balubal | Cagayan de Oro | Claveria | Jasaan | Oroquieta | Panaon | Villanueva
+            Alubijid | Balubal | Cagayan de Oro | Claveria | Jasaan | Oroquieta | Villanueva
         </p>
         <p class="font-semibold text-[10.5px] uppercase mt-1 tracking-wide">
             GUIDANCE AND COUNSELING SERVICES
@@ -50,7 +50,7 @@
                     <!-- Title -->
                     <div class="mt-[50px] text-center">
                         <h2 class="font-bold text-[20px] uppercase">
-                            STUDENT’S PERSONAL DATA SHEET
+                            STUDENT'S PERSONAL DATA SHEET
                         </h2>
                     </div>
 
@@ -83,9 +83,9 @@
                         PERSONAL BACKGROUND
                     </div>
             
-                    <form method="POST" action="{{ route('pds.update', $pds->id) }}">
+                    <form method="POST" action="{{ route('pds.update') }}" id="pdsForm">
                         @csrf
-                        @method('PUT')
+                        @method('PATCH')
 
                         <div class="grid grid-cols-3 gap-x-4 mb-2">
                             <div>
@@ -105,7 +105,7 @@
                         <div class="grid grid-cols-2 gap-x-4 mb-2">
                             <div>
                                 <label>First Name:</label>
-                                <input type="text" name="first_name" value="{{ old('first_name', $pds->first_name) }}" class="border-b border-gray-700 w-full">
+                                <input type="text" name="first_name" value="{{ old('first_name', $pds->first_name ?: Auth::user()->first_name) }}" class="border-b border-gray-700 w-full">
                             </div>
                             <div>
                                 <label>Gender:</label>
@@ -124,11 +124,11 @@
                             </div>
                             <div>
                                 <label>Last Name:</label>
-                                <input type="text" name="last_name" value="{{ old('last_name', $pds->last_name) }}" class="border-b border-gray-700 w-full">
+                                <input type="text" name="last_name" value="{{ old('last_name', $pds->last_name ?: Auth::user()->last_name) }}" class="border-b border-gray-700 w-full">
                             </div>
                             <div>
                                 <label>Middle Name:</label>
-                                <input type="text" name="middle_name" value="{{ old('middle_name', $pds->middle_name) }}" class="border-b border-gray-700 w-full">
+                                <input type="text" name="middle_name" value="{{ old('middle_name', $pds->middle_name ?: Auth::user()->middle_name) }}" class="border-b border-gray-700 w-full">
                             </div>
                         </div>
 
@@ -155,7 +155,7 @@
                         <div class="grid grid-cols-2 gap-x-4 mb-2">
                             <div>
                                 <label>Email Address:</label>
-                                <input type="email" name="email" value="{{ old('email', $pds->email) }}" class="border-b border-gray-700 w-full">
+                                <input type="email" name="email" value="{{ old('email', $pds->email ?: Auth::user()->email) }}" class="border-b border-gray-700 w-full">
                             </div>
                             <div>
                                 <label>Permanent Address:</label>
@@ -217,7 +217,7 @@
                         </div>
 
                         <div class="mb-2">
-                            <label>Parents’ Permanent Address:</label>
+                            <label>Parents' Permanent Address:</label>
                             <input type="text" name="parents_address" value="{{ old('parents_address', $pds->parents_address) }}" class="border-b border-gray-700 w-full">
                         </div>
 
@@ -288,7 +288,7 @@
                                     UNIVERSITY OF SCIENCE AND TECHNOLOGY OF SOUTHERN PHILIPPINES
                                 </h1>
                                 <p class="text-[10px] uppercase tracking-tight">
-                                    Alubijid | Balubal | Cagayan de Oro | Claveria | Jasaan | Oroquieta | Panaon | Villanueva
+                                    Alubijid | Balubal | Cagayan de Oro | Claveria | Jasaan | Oroquieta | Villanueva
                                 </p>
                                 <p class="font-semibold text-[10.5px] uppercase mt-1 tracking-wide">
                                     GUIDANCE AND COUNSELING SERVICES
@@ -423,31 +423,31 @@
                             <div class="mt-6 flex justify-between px-10">
                                 <div></div>
                                 <div class="text-center">
-                                    <input type="text" name="signature" value="{{ old('signature', $pds->signature) }}" placeholder="E-signature or Name" class="border-b border-gray-800 w-[250px] text-center">
+                                    <input type="text" name="signature" value="{{ old('signature', $pds->signature ?: Auth::user()->first_name . ' ' . Auth::user()->middle_name . ' ' . Auth::user()->last_name) }}" placeholder="E-signature or Name" class="border-b border-gray-800 w-[250px] text-center">
                                     <p class="text-[12px] mt-1">SIGNATURE OVER PRINTED NAME</p>
                                 </div>
                                 <div class="text-center">
-                                    <input type="date" name="signature_date" value="{{ old('signature_date', $pds->signature_date ? $pds->signature_date->format('Y-m-d') : '') }}" class="border-b border-gray-800 w-[150px] text-center">
+                                    <input type="date" name="signature_date" value="{{ old('signature_date', $pds->signature_date ? $pds->signature_date->format('Y-m-d') : \Carbon\Carbon::now('Asia/Manila')->format('Y-m-d')) }}" class="border-b border-gray-800 w-[150px] text-center">
                                     <p class="text-[12px] mt-1">DATE</p>
                                 </div>
                             </div>
 
                             <!-- Save Button -->
                             <div class="mt-8 text-center">
-                                <button type="button" id="saveBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg text-lg">
+                                <button type="submit" id="saveBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg text-lg">
                                     Save Personal Data Sheet
                                 </button>
                             </div>
                         </div>
-                    </div>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Confirmation Modal -->
-    <div id="confirmationModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
-        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+    <div id="confirmationModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50" style="z-index: 9999;">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white" style="position: relative; z-index: 10000;">
             <div class="mt-3 text-center">
                 <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100">
                     <svg class="h-6 w-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -461,10 +461,10 @@
                     </p>
                 </div>
                 <div class="flex items-center px-4 py-3">
-                    <button id="cancelBtn" class="px-4 py-2 bg-gray-300 text-gray-900 text-base font-medium rounded-md w-full mr-2 hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                    <button type="button" id="cancelBtn" class="px-4 py-2 bg-gray-300 text-gray-900 text-base font-medium rounded-md w-full mr-2 hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300">
                         Cancel
                     </button>
-                    <button id="confirmBtn" class="px-4 py-2 bg-blue-600 text-white text-base font-medium rounded-md w-full hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button type="button" id="confirmBtn" class="px-4 py-2 bg-blue-600 text-white text-base font-medium rounded-md w-full hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         Save Anyway
                     </button>
                 </div>
@@ -480,9 +480,12 @@
             const confirmBtn = document.getElementById('confirmBtn');
             const modalTitle = document.getElementById('modalTitle');
             const modalMessage = document.getElementById('modalMessage');
-            const form = document.querySelector('form');
+            const form = document.getElementById('pdsForm');
 
-            saveBtn.addEventListener('click', function() {
+            // Handle form submission for main save button
+            form.addEventListener('submit', function(e) {
+                e.preventDefault(); // Always prevent default first
+                
                 const inputs = form.querySelectorAll('input:not([type="radio"]):not([type="checkbox"]), textarea');
                 let hasBlankFields = false;
 
@@ -497,6 +500,7 @@
                     modalMessage.textContent = 'Some fields are blank. Are you sure you want to save the Personal Data Sheet?';
                     modal.classList.remove('hidden');
                 } else {
+                    // No blank fields, submit normally
                     form.submit();
                 }
             });
@@ -507,6 +511,7 @@
 
             confirmBtn.addEventListener('click', function() {
                 modal.classList.add('hidden');
+                // Submit the form directly
                 form.submit();
             });
 
