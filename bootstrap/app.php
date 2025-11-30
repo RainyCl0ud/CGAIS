@@ -18,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'assistant' => \App\Http\Middleware\AssistantMiddleware::class,
             'counselor_or_assistant' => \App\Http\Middleware\CounselorOrAssistantMiddleware::class,
             'security' => \App\Http\Middleware\SecurityMiddleware::class,
+            'feedback_access' => \App\Http\Middleware\FeedbackAccessMiddleware::class,
         ]);
         
         // Security middleware removed for local development

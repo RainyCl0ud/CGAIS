@@ -152,6 +152,15 @@ class DatabaseSeeder extends Seeder
             ]);
         }
 
+        for ($i = 1; $i <= 10; $i++) {
+            $staffId = '20' . str_pad($i, 6, '0', STR_PAD_LEFT);
+            ValidId::create([
+                'id_code' => $staffId,
+                'type' => 'staff',
+                'is_used' => false,
+            ]);
+        }
+
         // Create counselor schedule
         Schedule::create([
             'counselor_id' => $counselor->id,

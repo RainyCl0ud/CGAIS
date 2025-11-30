@@ -21,7 +21,7 @@ Route::get('/', function () {
 });
 
 // Route::middleware(['auth', 'verified'])->group(function () {
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth'])->group(function () {
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/today-appointments', [DashboardController::class, 'todayAppointments'])->name('today.appointments');
@@ -145,8 +145,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/pds/auto-save', [PersonalDataSheetController::class, 'autoSave'])->name('pds.auto-save');
     });
     
-    // Feedback Forms (Students only)
-    Route::middleware('student')->group(function () {
+    // Feedback Forms (Students, Faculty, and Staff)
+    Route::middleware('feedback_access')->group(function () {
         Route::resource('feedback', FeedbackFormController::class);
     });
 });

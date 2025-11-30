@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
 use App\Models\AuthorizedId;
+use App\Notifications\CustomVerifyEmail;
 
 class RegisteredUserController extends Controller
 {
@@ -37,9 +38,10 @@ class RegisteredUserController extends Controller
             'name_extension' => ['nullable', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'role' => ['required', 'in:student,faculty'],
+            'role' => ['required', 'in:student,faculty,staff'],
             'student_id' => ['required_if:role,student', 'nullable', 'string', 'unique:users,student_id', 'exclude_unless:role,student'],
             'faculty_id' => ['required_if:role,faculty', 'nullable', 'string', 'unique:users,faculty_id', 'exclude_unless:role,faculty'],
+            'staff_id' => ['required_if:role,staff', 'nullable', 'string', 'unique:users,staff_id', 'exclude_unless:role,staff'],
         ]);
 
         // Pre-approved ID check using AuthorizedId system
@@ -58,6 +60,14 @@ class RegisteredUserController extends Controller
                 ->first();
             if (!$authorizedId) {
                 return back()->withErrors(['faculty_id' => 'This Faculty ID is not authorized or has already been used. Please contact the counselor.'])->withInput();
+            }
+        } elseif ($request->role === 'staff') {
+            $authorizedId = AuthorizedId::where('id_number', $request->staff_id)
+                ->where('type', 'staff')
+                ->where('is_used', false)
+                ->first();
+            if (!$authorizedId) {
+                return back()->withErrors(['staff_id' => 'This Staff ID is not authorized or has already been used. Please contact the counselor.'])->withInput();
             }
         }
 
@@ -79,6 +89,9 @@ class RegisteredUserController extends Controller
         }
 
         event(new Registered($user));
+
+        // Send custom email verification notification
+        $user->notify(new CustomVerifyEmail());
 
         Auth::login($user);
 

@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('valid_ids', function (Blueprint $table) {
             $table->id();
             $table->string('id_code')->unique();
-            $table->enum('type', ['student', 'faculty']);
+            $table->enum('type', ['student', 'faculty', 'staff']);
             $table->boolean('is_used')->default(false);
             $table->string('email')->nullable(); // Optional, for future cross-checking
             $table->timestamps();

@@ -151,5 +151,29 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->appointments()->upcoming()->orderBy('appointment_date')->orderBy('start_time');
     }
-    
+
+    /**
+     * Generate a new email verification token
+     */
+    public function generateEmailVerificationToken()
+    {
+        $this->email_verification_token = \Illuminate\Support\Str::random(64);
+        $this->save();
+        return $this->email_verification_token;
+    }
+
+    /**
+     * Verify the email using the provided token
+     */
+    public function verifyEmailWithToken($token)
+    {
+        if ($this->email_verification_token === $token && !$this->hasVerifiedEmail()) {
+            $this->markEmailAsVerified();
+            $this->email_verification_token = null;
+            $this->save();
+            return true;
+        }
+        return false;
+    }
+
 }

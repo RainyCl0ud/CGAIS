@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('authorized_ids', function (Blueprint $table) {
             $table->id();
             $table->string('id_number')->unique();
-            $table->enum('type', ['student', 'faculty']);
+            $table->enum('type', ['student', 'faculty', 'staffS']);
             $table->boolean('is_used')->default(false);
             $table->foreignId('registered_by')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('used_by')->nullable()->constrained('users')->onDelete('set null');
