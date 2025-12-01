@@ -182,6 +182,16 @@ class Appointment extends Model
         };
     }
 
+    public function getTypeLabel(): string
+    {
+        return match($this->type) {
+            'regular' => 'Consultation',
+            'urgent' => 'Referral',
+            'follow_up' => 'Consultation',
+            default => ucfirst($this->type),
+        };
+    }
+
     public function getCounselingCategoryLabel(): string
     {
         return match($this->counseling_category) {

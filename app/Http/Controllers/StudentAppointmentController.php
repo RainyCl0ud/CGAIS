@@ -78,8 +78,16 @@ class StudentAppointmentController extends Controller
             'appointment_date' => 'required|date|after_or_equal:today',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i',
-            'type' => 'required|in:regular,urgent,follow_up',
         ];
+
+        // Type validation differs by user role:
+        // Students can select regular, urgent, or follow_up
+        // Faculty and staff can only select regular or urgent
+        if ($user->isStudent()) {
+            $validationRules['type'] = 'required|in:regular,urgent,follow_up';
+        } else {
+            $validationRules['type'] = 'required|in:regular,urgent';
+        }
 
         // Counseling category requirement differs by user type:
         // Students must select a category from specific options.
@@ -311,8 +319,16 @@ $appointmentData = [
             'appointment_date' => 'required|date|after_or_equal:today',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
-            'type' => 'required|in:regular,urgent,follow_up',
         ];
+
+        // Type validation differs by user role:
+        // Students can select regular, urgent, or follow_up
+        // Faculty and staff can only select regular or urgent
+        if ($user->isStudent()) {
+            $validationRules['type'] = 'required|in:regular,urgent,follow_up';
+        } else {
+            $validationRules['type'] = 'required|in:regular,urgent';
+        }
         
         // Only require counseling_category if user is student
         if($user->isStudent()) {

@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="py-12">
+    <div class="py-12 page-1">
         <div class="max-w-5xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white border border-gray-300 shadow-md">
                 <div class="px-10 py-8 text-gray-900 text-[13px] leading-tight tracking-tight relative">
@@ -38,28 +38,42 @@
             Page No. 1 of 2
         </div>
 
-    <!-- 2x2 ID Photo Box -->
-    <div class="absolute top-[130px] right-[15px] border border-black w-[90px] h-[90px] flex flex-col justify-center items-center text-[11px] font-medium leading-tight bg-white">
-        <p>2x2</p>
-        <p>ID</p>
-        <p>Photo</p>
-    </div>
 </div>
 
 
                     <!-- Title -->
-                    <div class="mt-[50px] text-center">
-                        <h2 class="font-bold text-[20px] uppercase">
+                    <div class="mt-[50px] flex items-center">
+                        <h2 class="flex-1 text-center font-bold text-[20px] uppercase">
                             STUDENT'S PERSONAL DATA SHEET
                         </h2>
+
+                        <!-- 2x2 ID Photo Box -->
+ <div class="photo-box border border-black w-[120px] h-[120px] 
+            ml-4 sm:ml-6 md:ml-10 lg:ml-12 
+            flex flex-col justify-center items-center text-[11px] font-medium 
+            leading-tight bg-white cursor-pointer relative overflow-hidden"
+     onclick="document.getElementById('photoInput').click()">
+
+
+                            @if($pds->photo)
+                                <img src="{{ asset('storage/' . $pds->photo) }}" alt="ID Photo" class="w-full h-full object-cover">
+                            @else
+                                <div class="text-center">
+                                    <p>Click to</p>
+                                    <p>upload</p>
+                                    <p>photo</p>
+                                </div>
+                            @endif
+                            <input type="file" id="photoInput" name="photo" accept="image/*" class="hidden" onchange="previewImage(event)">
+                        </div>
                     </div>
 
                     <!-- Instruction Text -->
                     <p class="text-justify mb-3 mt-8">
-                        <strong>The Guidance and Counseling Services (GCS)</strong> observes 
-                        <strong>STRICT CONFIDENTIALITY</strong> on the personal information shared in 
-                        this form according to the ethical principles of confidentiality and in compliance 
-                        with the Data Privacy Act. However, please take note that the information will be disclosed 
+                        <strong>The Guidance and Counseling Services (GCS)</strong> observes
+                        <strong>STRICT CONFIDENTIALITY</strong> on the personal information shared in
+                        this form according to the ethical principles of confidentiality and in compliance
+                        with the Data Privacy Act. However, please take note that the information will be disclosed
                         under the following circumstances:
                     </p>
 
@@ -69,12 +83,12 @@
                     </ol>
 
                     <p class="text-justify mb-3">
-                        Moreover, information may also be given to agencies (e.g. DSWD, Police, Women and Children Protection Unit, 
+                        Moreover, information may also be given to agencies (e.g. DSWD, Police, Women and Children Protection Unit,
                         Rehabilitation Unit Hospitals and other health providers) that can facilitate or address client's need and situation.
                     </p>
 
                     <p class="text-justify mb-5">
-                        <strong>Instruction:</strong> Please provide honest response to the information needed. Rest assured that data gathered 
+                        <strong>Instruction:</strong> Please provide honest response to the information needed. Rest assured that data gathered
                         will be treated with utmost confidentiality in accordance with the Data Privacy Act.
                     </p>
 
@@ -82,8 +96,8 @@
                     <div class="font-bold bg-black text-white px-2 py-1 mb-3 uppercase text-[12px] tracking-wide">
                         PERSONAL BACKGROUND
                     </div>
-            
-                    <form method="POST" action="{{ route('pds.update') }}" id="pdsForm">
+
+                    <form method="POST" action="{{ route('pds.update') }}" id="pdsForm" enctype="multipart/form-data">
                         @csrf
                         @method('PATCH')
 
@@ -274,7 +288,7 @@
     </div>
 
     <!-- SECOND PAGE -->
-    <div class="py-12">
+    <div class="py-12 page-2">
         <div class="max-w-5xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white border border-gray-300 shadow-md">
                 <div class="px-10 py-8 text-gray-900 text-[13px] leading-tight tracking-tight relative">
@@ -529,13 +543,62 @@
             button, .bg-blue-600, .hover\:bg-blue-700 {
                 display: none !important;
             }
-            input {
-                border: none !important;
+            input, textarea {
+                background: white !important;
+                border: 1px solid black !important;
+                padding: 2px !important;
             }
             body {
                 margin: 0;
                 padding: 0;
             }
+            .page-1 {
+                page-break-after: always;
+            }
+            .py-12 {
+                padding-top: 0 !important;
+                padding-bottom: 0 !important;
+            }
+            .max-w-5xl {
+                max-width: none !important;
+                width: 100% !important;
+            }
+            .px-10 {
+                padding-left: 1rem !important;
+                padding-right: 1rem !important;
+            }
+            .py-8 {
+                padding-top: 1rem !important;
+                padding-bottom: 1rem !important;
+            }
+            .text-[13px] {
+                font-size: 13px !important;
+            }
+            .text-[11px] {
+                font-size: 11px !important;
+            }
+            .text-[12px] {
+                font-size: 12px !important;
+            }
+            .text-[20px] {
+                font-size: 20px !important;
+            }
+            .text-[14px] {
+                font-size: 14px !important;
+            }
+            .text-[10px] {
+                font-size: 10px !important;
+            }
+            .text-[10.5px] {
+                font-size: 10.5px !important;
+            }
+            .text-[9px] {
+                font-size: 9px !important;
+            }
+            .text-[7px] {
+                font-size: 7px !important;
+            }
+
         }
         .document-code-box {
 width: 150px;
@@ -562,4 +625,21 @@ box-shadow: 0 0 3px rgba(0, 0, 0, 0.15);
 }
 }
     </style>
+
+    <script>
+        function previewImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const photoBox = document.querySelector('.photo-box');
+                    // Keep the file input and just replace the content inside
+                    const fileInput = photoBox.querySelector('input[type="file"]');
+                    photoBox.innerHTML = `<img src="${e.target.result}" alt="ID Photo" class="w-full h-full object-cover">`;
+                    photoBox.appendChild(fileInput);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+    </script>
 </x-app-layout>

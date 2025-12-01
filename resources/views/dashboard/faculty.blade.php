@@ -128,7 +128,7 @@
                                                     </td>
                                                     <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap">
                                                         <span class="px-2 py-1 text-xs font-semibold rounded-full {{ $appointment->getTypeBadgeClass() }}">
-                                                            {{ ucfirst($appointment->type) }}
+                                                            {{ $appointment->getTypeLabel() }}
                                                         </span>
                                                     </td>
                                                     <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap">
@@ -184,7 +184,7 @@
                                                     </td>
                                                     <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap">
                                                         <span class="px-2 py-1 text-xs font-semibold rounded-full {{ $appointment->getTypeBadgeClass() }}">
-                                                            {{ ucfirst($appointment->type) }}
+                                                            {{ $appointment->getTypeLabel() }}
                                                         </span>
                                                     </td>
                                                     <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap">
@@ -223,7 +223,7 @@
                             </a>
                             <a href="{{ route('student.appointments.create') }}?type=urgent"
                                class="px-3 sm:px-6 py-2 sm:py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors text-sm">
-                                Urgent Appointment
+                                Request Referral Appointment
                             </a>
                             <a href="{{ route('feedback.index') }}"
                                class="px-3 sm:px-6 py-2 sm:py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors text-sm">
@@ -295,7 +295,7 @@
                                                     </td>
                                                     <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap">
                                                         <span class="px-2 py-1 text-xs font-semibold rounded-full {{ $appointment->getTypeBadgeClass() }}">
-                                                            {{ ucfirst($appointment->type) }}
+                                                            {{ $appointment->getTypeLabel() }}
                                                         </span>
                                                     </td>
                                                     <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-gray-400">

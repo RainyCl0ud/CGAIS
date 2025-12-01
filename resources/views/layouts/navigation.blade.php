@@ -14,6 +14,16 @@
 
             <!-- Right side - User Profile -->
             <div class="flex items-center space-x-4">
+                <!-- PDF Print Button (only visible on PDS show page for students) -->
+                @if(Auth::check() && Auth::user()->role === 'student' && Route::currentRouteName() === 'pds.show')
+                    <button onclick="window.print()" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                        </svg>
+                        Print PDS
+                    </button>
+                @endif
+
                 <!-- Notifications -->
                 <a href="{{ route('notifications.index') }}" class="relative p-2 text-gray-400 hover:text-gray-500 hover:bg-gray-100 rounded-lg transition duration-150 ease-in-out">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

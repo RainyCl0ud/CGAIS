@@ -68,9 +68,17 @@ class AppointmentController extends Controller
             'appointment_date' => 'required|date|after_or_equal:today',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i',
-            'type' => 'required|in:regular,urgent,follow_up',
             'reason' => 'required|string|max:1000',
         ];
+
+        // Type validation differs by user role:
+        // Students can select regular, urgent, or follow_up
+        // Faculty and staff can only select regular or urgent
+        if ($user->isStudent()) {
+            $validationRules['type'] = 'required|in:regular,urgent,follow_up';
+        } else {
+            $validationRules['type'] = 'required|in:regular,urgent';
+        }
 
         if ($user->isStudent()) {
             $validationRules['counseling_category'] = 'required|in:conduct_intake_interview,information_services,internal_referral_services,counseling_services,conduct_exit_interview';
@@ -253,8 +261,25 @@ class AppointmentController extends Controller
             'appointment_date' => 'required|date|after_or_equal:today',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
-            'type' => 'required|in:regular,urgent,follow_up',
-            'counseling_category' => 'required_if:user_role,student|in:conduct_intake_interview,information_services,internal_referral_services,counseling_services,conduct_exit_interview',
+        ]);
+
+        // Type validation differs by user role:
+        // Students can select regular, urgent, or follow_up
+        // Faculty and staff can only select regular or urgent
+        $typeValidation = 'required|in:regular,urgent,follow_up';
+        if (!$user->isStudent()) {
+            $typeValidation = 'required|in:regular,urgent';
+        }
+        $request->validate(['type' => $typeValidation]);
+
+        // Counseling category validation
+        $categoryValidation = 'required|in:conduct_intake_interview,information_services,internal_referral_services,counseling_services,conduct_exit_interview';
+        if (!$user->isStudent()) {
+            $categoryValidation = 'sometimes|nullable|in:conduct_intake_interview,information_services,internal_referral_services,counseling_services,conduct_exit_interview';
+        }
+        $request->validate(['counseling_category' => $categoryValidation]);
+
+        $request->validate([
             'reason' => 'required_if:type,urgent|nullable|string|max:500',
             'notes' => 'nullable|string|max:1000',
         ]);

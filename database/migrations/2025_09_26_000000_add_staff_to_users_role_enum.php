@@ -21,6 +21,9 @@ return new class extends Migration
      */
     public function down(): void
     {
+        // First, update any 'staff' records to 'assistant' to avoid data truncation
+        DB::statement("UPDATE users SET role = 'assistant' WHERE role = 'staff'");
+
         Schema::table('users', function (Blueprint $table) {
             $table->enum('role', ['student', 'faculty', 'counselor', 'assistant'])->change();
         });

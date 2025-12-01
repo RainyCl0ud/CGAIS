@@ -39,10 +39,17 @@
         </div>
 
     <!-- 2x2 ID Photo Box -->
-    <div class="absolute top-[130px] right-[15px] border border-black w-[90px] h-[90px] flex flex-col justify-center items-center text-[11px] font-medium leading-tight bg-white">
-        <p>2x2</p>
-        <p>ID</p>
-        <p>Photo</p>
+    <div class="absolute top-[130px] right-[15px] border border-black w-[90px] h-[90px] flex flex-col justify-center items-center text-[11px] font-medium leading-tight bg-white cursor-pointer relative overflow-hidden" onclick="document.getElementById('photoInput').click()">
+        @if($pds->photo)
+            <img src="{{ asset('storage/' . $pds->photo) }}" alt="ID Photo" class="w-full h-full object-cover">
+        @else
+            <div class="text-center">
+                <p>Click to</p>
+                <p>upload</p>
+                <p>photo</p>
+            </div>
+        @endif
+        <input type="file" id="photoInput" name="photo" accept="image/*" class="hidden" onchange="previewImage(event)">
     </div>
 </div>
 
@@ -83,7 +90,7 @@
                         PERSONAL BACKGROUND
                     </div>
             
-                    <form method="POST" action="{{ route('pds.update') }}" id="pdsForm">
+                    <form method="POST" action="{{ route('pds.update') }}" id="pdsForm" enctype="multipart/form-data">
                         @csrf
                         @method('PATCH')
 
@@ -483,4 +490,18 @@ box-shadow: 0 0 3px rgba(0, 0, 0, 0.15);
 }
 }
     </style>
+
+    <script>
+        function previewImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const photoBox = document.querySelector('.absolute.top-\\[130px\\].right-\\[15px\\]');
+                    photoBox.innerHTML = `<img src="${e.target.result}" alt="ID Photo" class="w-full h-full object-cover">`;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+    </script>
 </x-app-layout>

@@ -91,12 +91,18 @@
                     <!-- Appointment Type -->
                     <div>
                         <label for="type" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Type</label>
-                        <select id="type" name="type" required 
+                        <select id="type" name="type" required
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm">
                             <option value="">Select appointment type</option>
-                            <option value="regular" {{ old('type', $appointment->type) == 'regular' ? 'selected' : '' }}>Regular</option>
-                            <option value="urgent" {{ old('type', $appointment->type) == 'urgent' ? 'selected' : '' }}>Urgent</option>
-                            <option value="follow_up" {{ old('type', $appointment->type) == 'follow_up' ? 'selected' : '' }}>Follow-up</option>
+                            @if(auth()->user()->isStudent())
+                                <option value="regular" {{ old('type', $appointment->type) == 'regular' ? 'selected' : '' }}>Regular</option>
+                                <option value="urgent" {{ old('type', $appointment->type) == 'urgent' ? 'selected' : '' }}>Urgent</option>
+                                <option value="follow_up" {{ old('type', $appointment->type) == 'follow_up' ? 'selected' : '' }}>Follow-up</option>
+                            @else
+                                <!-- Faculty and Staff only see Consultation and Referral -->
+                                <option value="regular" {{ old('type', $appointment->type) == 'regular' ? 'selected' : '' }}>Consultation</option>
+                                <option value="urgent" {{ old('type', $appointment->type) == 'urgent' ? 'selected' : '' }}>Referral</option>
+                            @endif
                         </select>
                         @error('type')
                             <p class="mt-1 text-xs text-red-600">{{ $message }}</p>

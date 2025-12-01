@@ -179,8 +179,7 @@ ActivityLogService::log(
             Auth::id(),
             'viewed_student_pds',
             $student,
-             ['student_id' => $student->id],
-            $student->id
+            ['student_id' => $student->id]
         );
 
         return view('student-management.pds', compact('student'));

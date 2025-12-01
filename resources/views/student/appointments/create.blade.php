@@ -39,9 +39,15 @@
                             <select id="type" name="type" required 
                                     class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm">
                                 <option value="">Select appointment type</option>
-                                <option value="regular" {{ old('type') == 'regular' ? 'selected' : '' }}>Regular</option>
-                                <option value="urgent" {{ old('type') == 'urgent' ? 'selected' : '' }}>Urgent</option>
-                                <option value="follow_up" {{ old('type') == 'follow_up' ? 'selected' : '' }}>Follow-up</option>
+                                @if(auth()->user()->isStudent())
+                                    <option value="regular" {{ old('type') == 'regular' ? 'selected' : '' }}>Regular</option>
+                                    <option value="urgent" {{ old('type') == 'urgent' ? 'selected' : '' }}>Urgent</option>
+                                    <option value="follow_up" {{ old('type') == 'follow_up' ? 'selected' : '' }}>Follow-up</option>
+                                @else
+                                    <!-- Faculty and Staff only see Consultation and Referral -->
+                                    <option value="regular" {{ old('type') == 'regular' ? 'selected' : '' }}>Consultation</option>
+                                    <option value="urgent" {{ old('type') == 'urgent' ? 'selected' : '' }}>Referral</option>
+                                @endif
                             </select>
                             @error('type')
                                 <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
@@ -98,15 +104,15 @@
                         </div>
 
                         <!-- Reason -->
-                        <!-- Reason for Urgency (for urgent appointments) -->
+                        <!-- Reason for Urgency/Referral (for urgent appointments) -->
                         <div id="urgency_reason_div" class="hidden">
                             <label for="reason" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                                <span class="text-red-600">*</span> Reason for Urgency
+                                <span class="text-red-600">*</span> @if(auth()->user()->isStudent()) Reason for Urgency @else Reason for Referral @endif
                             </label>
                             <textarea id="reason" name="reason" rows="3" 
                                       class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
-                                      placeholder="Please explain why this appointment is urgent">{{ old('reason') }}</textarea>
-                            <p class="mt-1 text-xs text-gray-500">This field is required for urgent appointments.</p>
+                                      placeholder="Please explain why this appointment is {{ auth()->user()->isStudent() ? 'urgent' : 'a referral' }}">{{ old('reason') }}</textarea>
+                            <p class="mt-1 text-xs text-gray-500">This field is required for @if(auth()->user()->isStudent()) urgent @else referral @endif appointments.</p>
                             @error('reason')
                                 <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                             @enderror

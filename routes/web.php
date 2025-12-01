@@ -21,7 +21,7 @@ Route::get('/', function () {
 });
 
 // Route::middleware(['auth', 'verified'])->group(function () {
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth','verified'])->group(function () {
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/today-appointments', [DashboardController::class, 'todayAppointments'])->name('today.appointments');

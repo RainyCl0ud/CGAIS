@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\PersonalDataSheet;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class PersonalDataSheetController extends Controller
@@ -109,11 +111,6 @@ class PersonalDataSheetController extends Controller
             'allergies' => 'nullable|string|max:1000',
             'medications' => 'nullable|string|max:1000',
             'reason_for_course' => 'nullable|string|max:1000',
-            'family_description' => 'nullable|string|max:255',
-            'family_description_other' => 'nullable|string|max:255',
-            'living_situation' => 'nullable|string|max:255',
-            'living_situation_other' => 'nullable|string|max:255',
-            'living_condition' => 'nullable|string|max:255',
             'physical_conditions' => 'nullable|string|max:1000',
             'intervention_treatment' => 'nullable|boolean',
             'intervention_details' => 'nullable|string|max:2000',
@@ -134,17 +131,38 @@ class PersonalDataSheetController extends Controller
             'intervention_other' => 'nullable|string|max:1000',
             'signature' => 'nullable|string|max:255',
             'signature_date' => 'nullable|date',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         $pds = $user->personalDataSheet;
-        
+
         if (!$pds) {
             $pds = new PersonalDataSheet();
             $pds->user_id = $user->id;
         }
-        
+
+        // Handle photo upload
+        if ($request->hasFile('photo')) {
+            Log::info('Photo file detected in request');
+            // Delete old photo if exists
+            if ($pds->photo && Storage::disk('public')->exists($pds->photo)) {
+                Storage::disk('public')->delete($pds->photo);
+            }
+
+            // Store new photo
+            $photoPath = $request->file('photo')->store('pds-photos', 'public');
+            Log::info('Photo stored at path: ' . $photoPath);
+            $validated['photo'] = $photoPath;
+            Log::info('Photo path added to validated data: ' . $validated['photo']);
+        } else {
+            Log::info('No photo file in request');
+        }
+
+        Log::info('Validated data before fill: ' . json_encode($validated));
         $pds->fill($validated);
         $saved = $pds->save();
+        Log::info('Save result: ' . ($saved ? 'success' : 'failed'));
+        Log::info('PDS photo after save: ' . $pds->photo);
 
         return redirect()->route('pds.show')
             ->with('success', 'Personal Data Sheet updated successfully.');

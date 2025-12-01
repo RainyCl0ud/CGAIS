@@ -160,7 +160,7 @@
                                                     </td>
                                                     <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap">
                                                         <span class="px-2 py-1 text-xs font-semibold rounded-full {{ $appointment->getTypeBadgeClass() }}">
-                                                            {{ ucfirst($appointment->type) }}
+                                                            {{ $appointment->getTypeLabel() }}
                                                         </span>
                                                     </td>
 

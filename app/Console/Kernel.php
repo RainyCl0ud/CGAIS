@@ -14,6 +14,9 @@ class Kernel extends ConsoleKernel
     {
         // Schedule the command to mark overdue pending appointments as failed every 5 minutes
         $schedule->command('appointments:mark-overdue-failed')->everyFiveMinutes();
+        
+        // Schedule appointment reminder emails to be sent daily at 9:00 AM
+        $schedule->command('appointments:send-reminders')->dailyAt('09:00');
     }
 
     /**
