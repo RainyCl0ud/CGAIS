@@ -71,8 +71,6 @@
                                         <option value="">Select Role</option>
                                         <option value="student" {{ old('role') === 'student' ? 'selected' : '' }}>Student</option>
                                         <option value="faculty" {{ old('role') === 'faculty' ? 'selected' : '' }}>Faculty</option>
-                                        <option value="counselor" {{ old('role') === 'counselor' ? 'selected' : '' }}>Counselor</option>
-                                        <option value="assistant" {{ old('role') === 'assistant' ? 'selected' : '' }}>Assistant</option>
                                         <option value="staff" {{ old('role') === 'staff' ? 'selected' : '' }}>Staff</option>
                                     </select>
                                 </div>

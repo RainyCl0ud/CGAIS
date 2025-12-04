@@ -4,10 +4,12 @@
                 <div class="bg-white/90 rounded-2xl shadow-2xl border border-blue-100 p-8">
                     <div class="flex justify-between items-center mb-6">
                         <h1 class="text-3xl font-bold text-blue-900">User Management</h1>
-                        <a href="{{ route('users.create') }}" 
-                           class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                            Add New User
-                        </a>
+                        @if(auth()->user()->isCounselor())
+                            <a href="{{ route('users.create') }}" 
+                               class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                                Add New User
+                            </a>
+                        @endif
                     </div>
 
                     @if(session('success'))
@@ -103,18 +105,22 @@
                                             {{ $user->created_at->format('M d, Y') }}
                                         </td>
                                         <td class="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium" onclick="event.stopPropagation()">
-                                            <div class="flex flex-col sm:flex-row space-y-1 sm:space-y-0 sm:space-x-2">
-                                                <a href="{{ route('users.edit', $user) }}" 
-                                                   class="text-indigo-600 hover:text-indigo-900 text-xs sm:text-sm">Edit</a>
-                                                @if($user->id !== auth()->id())
-                                                    <form method="POST" action="{{ route('users.destroy', $user) }}" 
-                                                          class="inline" onsubmit="return confirm('Are you sure you want to delete this user?')">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit" class="text-red-600 hover:text-red-900 text-xs sm:text-sm">Delete</button>
-                                                    </form>
-                                                @endif
-                                            </div>
+                                            @if(auth()->user()->isCounselor())
+                                                <div class="flex flex-col sm:flex-row space-y-1 sm:space-y-0 sm:space-x-2">
+                                                    <a href="{{ route('users.edit', $user) }}" 
+                                                       class="text-indigo-600 hover:text-indigo-900 text-xs sm:text-sm">Edit</a>
+                                                    @if($user->id !== auth()->id())
+                                                        <form method="POST" action="{{ route('users.destroy', $user) }}" 
+                                                              class="inline" onsubmit="return confirm('Are you sure you want to delete this user?')">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" class="text-red-600 hover:text-red-900 text-xs sm:text-sm">Delete</button>
+                                                        </form>
+                                                    @endif
+                                                </div>
+                                            @else
+                                                <span class="text-gray-400 text-xs">View only</span>
+                                            @endif
                                         </td>
                                     </tr>
                                 @empty

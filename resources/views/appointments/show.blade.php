@@ -222,7 +222,7 @@
                                         @endif
                                         
                                     @elseif(auth()->user()->isAssistant())
-                                        <!-- Assistant Status Actions (Limited Privileges) -->
+                                        <!-- Assistant Status Actions (Same privileges as Counselor) -->
                                         @if($appointment->status === 'pending')
                                             <div class="p-3 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded text-center">
                                                 ⚠ Pending Counselor Approval

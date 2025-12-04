@@ -21,7 +21,7 @@ Route::get('/', function () {
 });
 
 // Route::middleware(['auth', 'verified'])->group(function () {
-Route::middleware(['auth','verified'])->group(function () {
+Route::middleware(['auth'])->group(function () {
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/today-appointments', [DashboardController::class, 'todayAppointments'])->name('today.appointments');
@@ -44,7 +44,7 @@ Route::middleware(['auth','verified'])->group(function () {
     });
     
     // Counselor and Assistant Features (Full privileges except Counselor profile editing)
-    Route::middleware('counselor_only')->group(function () {
+    Route::middleware('counselor_or_assistant')->group(function () {
         // Reports (Counselor and Assistant)
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
         Route::get('/reports/appointments', [ReportController::class, 'appointmentReport'])->name('reports.appointments');
@@ -57,20 +57,23 @@ Route::middleware(['auth','verified'])->group(function () {
         Route::get('/activity-logs/export', [ActivityLogController::class, 'export'])->name('activity-logs.export');
         Route::get('/students/export', [StudentManagementController::class, 'export'])->name('students.export');
 
-        // Student PDS access (Counselor and Assistant)
-        Route::get('/students/{student}/pds', [StudentManagementController::class, 'showPds'])->name('students.pds');
-
         // User Management (Counselor and Assistant, but with restrictions)
         Route::resource('users', UserManagementController::class);
-
-        // System Backup (Counselor and Assistant)
-        Route::get('/system/backup', [SystemController::class, 'backup'])->name('system.backup');
-        Route::get('/system/backup/download', [SystemController::class, 'downloadBackup'])->name('system.backup.download');
 
         // Authorized IDs Management (Counselor and Assistant)
         Route::resource('authorized-ids', AuthorizedIdController::class);
         Route::get('/authorized-ids/export', [AuthorizedIdController::class, 'export'])->name('authorized-ids.export');
         Route::post('/authorized-ids/bulk-destroy', [AuthorizedIdController::class, 'bulkDestroy'])->name('authorized-ids.bulk-destroy');
+    });
+    
+    // Restricted features - Counselor only (Student PDS and System Backup)
+    Route::middleware('counselor_only')->group(function () {
+        // Student PDS directory access (Counselor only)
+        Route::get('/students/{student}/pds', [StudentManagementController::class, 'showPds'])->name('students.pds');
+
+        // System Backup (Counselor only)
+        Route::get('/system/backup', [SystemController::class, 'backup'])->name('system.backup');
+        Route::get('/system/backup/download', [SystemController::class, 'downloadBackup'])->name('system.backup.download');
     });
     
     // Appointments - Different access levels
@@ -94,15 +97,15 @@ Route::middleware(['auth','verified'])->group(function () {
         Route::get('/api/student/counselors/{counselor}/available-slots', [StudentAppointmentController::class, 'getAvailableSlots'])->name('api.student.counselors.available-slots');
     });
     
-    Route::middleware('counselor_only')->group(function () {
-        // Full appointment management (counselor only)
+    Route::middleware('counselor_or_assistant')->group(function () {
+        // Full appointment management (counselor and assistant)
         Route::post('/appointments', [AppointmentController::class, 'store'])->name('appointments.store');
         Route::get('/appointments/create', [AppointmentController::class, 'create'])->name('appointments.create');
         Route::match(['PUT', 'PATCH'], '/appointments/{appointment}', [AppointmentController::class, 'update'])->name('appointments.update');
         Route::delete('/appointments/{appointment}', [AppointmentController::class, 'destroy'])->name('appointments.destroy');
         Route::get('/appointments/{appointment}/edit', [AppointmentController::class, 'edit'])->name('appointments.edit');
         
-        // Appointment approval/rejection (counselor only)
+        // Appointment approval/rejection (counselor and assistant)
         Route::patch('/appointments/{appointment}/approve', [AppointmentController::class, 'approve'])->name('appointments.approve');
         Route::patch('/appointments/{appointment}/reject', [AppointmentController::class, 'reject'])->name('appointments.reject');
         Route::patch('/appointments/{appointment}/reschedule', [AppointmentController::class, 'reschedule'])->name('appointments.reschedule');
@@ -114,8 +117,8 @@ Route::middleware(['auth','verified'])->group(function () {
     // API endpoint for available time slots
     Route::get('/api/counselors/{counselor}/available-slots', [AppointmentController::class, 'getAvailableSlots'])->name('api.counselors.available-slots');
     
-    // Schedules (Counselor only - full management)
-    Route::middleware('counselor_only')->group(function () {
+    // Schedules (Counselor and Assistant - full management)
+    Route::middleware('counselor_or_assistant')->group(function () {
         Route::resource('schedules', ScheduleController::class);
         Route::post('schedules/toggle-unavailable-date', [ScheduleController::class, 'toggleUnavailableDate'])->name('schedules.toggleUnavailableDate');
     });
@@ -126,8 +129,8 @@ Route::middleware(['auth','verified'])->group(function () {
     Route::patch('/notifications/{notification}', [NotificationController::class, 'markAsRead'])->name('notifications.read');
     Route::patch('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
     
-    Route::middleware('counselor_only')->group(function () {
-        // Send notifications (counselor only)
+    Route::middleware('counselor_or_assistant')->group(function () {
+        // Send notifications (counselor and assistant)
         Route::post('/notifications/send', [NotificationController::class, 'sendNotification'])->name('notifications.send');
         Route::delete('/notifications/{notification}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
     });

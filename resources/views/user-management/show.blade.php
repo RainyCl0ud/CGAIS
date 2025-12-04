@@ -5,10 +5,12 @@
                     <div class="flex justify-between items-center mb-6">
                         <h1 class="text-3xl font-bold text-blue-900">User Details</h1>
                         <div class="flex space-x-3">
-                            <a href="{{ route('users.edit', $user) }}" 
-                               class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                                Edit User
-                            </a>
+                            @if(auth()->user()->isCounselor())
+                                <a href="{{ route('users.edit', $user) }}" 
+                                   class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                                    Edit User
+                                </a>
+                            @endif
                             <a href="{{ route('users.index') }}" 
                                class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
                                 Back to Users
@@ -153,8 +155,8 @@
                         </div>
                     @endif
 
-                    <!-- Danger Zone -->
-                    @if($user->id !== auth()->id())
+                    <!-- Danger Zone - Only visible to counselors -->
+                    @if(auth()->user()->isCounselor() && $user->id !== auth()->id())
                         <div class="mt-8 bg-red-50 p-6 rounded-lg border border-red-200">
                             <h2 class="text-xl font-semibold text-red-900 mb-4">Danger Zone</h2>
                             <p class="text-sm text-gray-700 mb-4">Once you delete a user, there is no going back. Please be certain.</p>

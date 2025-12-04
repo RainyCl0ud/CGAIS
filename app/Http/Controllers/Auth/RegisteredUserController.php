@@ -37,11 +37,13 @@ class RegisteredUserController extends Controller
             'last_name' => ['required', 'string', 'max:255'],
             'name_extension' => ['nullable', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:'.User::class],
+            'phone_number' => ['required', 'string', 'max:20'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'role' => ['required', 'in:student,faculty,staff'],
             'student_id' => ['required_if:role,student', 'nullable', 'string', 'unique:users,student_id', 'exclude_unless:role,student'],
             'faculty_id' => ['required_if:role,faculty', 'nullable', 'string', 'unique:users,faculty_id', 'exclude_unless:role,faculty'],
             'staff_id' => ['required_if:role,staff', 'nullable', 'string', 'unique:users,staff_id', 'exclude_unless:role,staff'],
+            'course_category' => ['required_if:role,student', 'nullable', 'in:BSIT,BTLED,BAT', 'exclude_unless:role,student'],
         ]);
 
         // Pre-approved ID check using AuthorizedId system
@@ -77,10 +79,13 @@ class RegisteredUserController extends Controller
             'last_name' => $request->last_name,
             'name_extension' => $request->name_extension,
             'email' => $request->email,
+            'phone_number' => $request->phone_number,
             'password' => Hash::make($request->password),
             'role' => $request->role,
             'student_id' => $request->role === 'student' ? $request->student_id : null,
             'faculty_id' => $request->role === 'faculty' ? $request->faculty_id : null,
+            'staff_id' => $request->role === 'staff' ? $request->staff_id : null,
+            'course_category' => $request->role === 'student' ? $request->course_category : null,
         ]);
 
         // Mark authorized ID as used

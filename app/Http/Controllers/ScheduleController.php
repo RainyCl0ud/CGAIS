@@ -16,9 +16,9 @@ class ScheduleController extends Controller
     {
         $user = $request->user();
         
-        if (!$user->isCounselor()) {
+        if (!$user->canManageSchedules()) {
             return redirect()->route('dashboard')
-                ->with('error', 'Only counselors can manage schedules.');
+                ->with('error', 'You do not have permission to manage schedules.');
         }
 
         // Get existing schedules
@@ -77,9 +77,9 @@ class ScheduleController extends Controller
     {
         $user = $request->user();
         
-        if (!$user->isCounselor()) {
+        if (!$user->canManageSchedules()) {
             return redirect()->route('dashboard')
-                ->with('error', 'Only counselors can manage schedules.');
+                ->with('error', 'You do not have permission to manage schedules.');
         }
 
         return view('schedules.create');
@@ -90,7 +90,7 @@ class ScheduleController extends Controller
     {
         $user = $request->user();
 
-        if (!$user->isCounselor()) {
+        if (!$user->canManageSchedules()) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -105,9 +105,9 @@ class ScheduleController extends Controller
     {
         $user = $request->user();
         
-        if (!$user->isCounselor()) {
+        if (!$user->canManageSchedules()) {
             return redirect()->route('dashboard')
-                ->with('error', 'Only counselors can manage schedules.');
+                ->with('error', 'You do not have permission to manage schedules.');
         }
 
         $request->validate([
@@ -145,7 +145,7 @@ class ScheduleController extends Controller
     {
         $user = $request->user();
 
-        if (!$user->isCounselor()) {
+        if (!$user->canManageSchedules()) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -180,7 +180,7 @@ class ScheduleController extends Controller
     {
         $user = $request->user();
         
-        if (!$user->isCounselor() || $schedule->counselor_id !== $user->id) {
+        if (!$user->canManageSchedules() || $schedule->counselor_id !== $user->id) {
             abort(403);
         }
 
@@ -191,7 +191,7 @@ class ScheduleController extends Controller
     {
         $user = $request->user();
         
-        if (!$user->isCounselor() || $schedule->counselor_id !== $user->id) {
+        if (!$user->canManageSchedules() || $schedule->counselor_id !== $user->id) {
             abort(403);
         }
 
@@ -217,7 +217,7 @@ class ScheduleController extends Controller
     {
         $user = $request->user();
         
-        if (!$user->isCounselor() || $schedule->counselor_id !== $user->id) {
+        if (!$user->canManageSchedules() || $schedule->counselor_id !== $user->id) {
             abort(403);
         }
 

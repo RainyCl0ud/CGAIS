@@ -11,7 +11,25 @@ class UserManagementController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('counselor_only');
+        // Allow both counselors and assistants to access user management
+        // Assistants will have view-only access enforced in individual methods
+        $this->middleware('counselor_or_assistant');
+    }
+
+    /**
+     * Check if current user can modify users (counselors only)
+     */
+    private function canModifyUsers(): bool
+    {
+        return auth()->user()->isCounselor();
+    }
+
+    /**
+     * Check if current user can view users (counselors and assistants)
+     */
+    private function canViewUsers(): bool
+    {
+        return auth()->user()->isCounselor() || auth()->user()->isAssistant();
     }
 
     /**
@@ -49,6 +67,10 @@ class UserManagementController extends Controller
      */
     public function create(): View
     {
+        if (!$this->canModifyUsers()) {
+            abort(403, 'Access denied. Only counselors can create users.');
+        }
+        
         return view('user-management.create');
     }
 
@@ -57,13 +79,17 @@ class UserManagementController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        if (!$this->canModifyUsers()) {
+            abort(403, 'Access denied. Only counselors can create users.');
+        }
+        
         $validated = $request->validate([
             'first_name' => 'required|string|max:255',
             'middle_name' => 'nullable|string|max:255',
             'last_name' => 'required|string|max:255',
             'name_extension' => 'nullable|string|max:10',
             'email' => 'required|string|email|max:255|unique:users',
-            'role' => 'required|in:student,faculty,counselor,assistant,staff',
+            'role' => 'required|in:student,faculty,staff',
             'student_id' => 'nullable|string|max:255|unique:users',
             'faculty_id' => 'nullable|string|max:255|unique:users',
             'staff_id' => 'nullable|string|max:255|unique:users',
@@ -91,6 +117,10 @@ class UserManagementController extends Controller
      */
     public function edit(User $user): View
     {
+        if (!$this->canModifyUsers()) {
+            abort(403, 'Access denied. Only counselors can edit users.');
+        }
+        
         return view('user-management.edit', compact('user'));
     }
 
@@ -99,13 +129,11 @@ class UserManagementController extends Controller
      */
     public function update(Request $request, User $user): RedirectResponse
     {
-        $currentUser = auth()->user();
-
-        // Prevent assistant from editing counselor users
-        if ($currentUser->isAssistant() && $user->isCounselor()) {
-            return redirect()->route('users.index')
-                ->with('error', 'You cannot edit counselor accounts.');
+        if (!$this->canModifyUsers()) {
+            abort(403, 'Access denied. Only counselors can update users.');
         }
+
+        $currentUser = auth()->user();
 
         $validated = $request->validate([
             'first_name' => 'required|string|max:255',
@@ -113,7 +141,7 @@ class UserManagementController extends Controller
             'last_name' => 'required|string|max:255',
             'name_extension' => 'nullable|string|max:10',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            'role' => 'required|in:student,faculty,counselor,assistant,staff',
+            'role' => 'required|in:student,faculty,staff',
             'student_id' => 'nullable|string|max:255|unique:users,student_id,' . $user->id,
             'faculty_id' => 'nullable|string|max:255|unique:users,faculty_id,' . $user->id,
             'staff_id' => 'nullable|string|max:255|unique:users,staff_id,' . $user->id,
@@ -137,6 +165,10 @@ class UserManagementController extends Controller
      */
     public function destroy(User $user): RedirectResponse
     {
+        if (!$this->canModifyUsers()) {
+            abort(403, 'Access denied. Only counselors can delete users.');
+        }
+
         // Prevent deleting own account
         if ($user->id === auth()->id()) {
             return redirect()->route('users.index')

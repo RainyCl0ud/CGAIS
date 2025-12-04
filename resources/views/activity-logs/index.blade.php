@@ -220,7 +220,7 @@
                     <!-- Pagination -->
                     @if($activities->hasPages())
                         <div class="mt-6">
-                            {{ $activityLogs->links() }}
+                            {{ $activities->links() }}
                         </div>
                     @endif
                 </div>

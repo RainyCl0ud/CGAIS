@@ -4,9 +4,9 @@
                 <div class="bg-white/80 rounded-lg sm:rounded-2xl shadow-lg sm:shadow-2xl border border-blue-100 p-4 sm:p-8 backdrop-blur">
                     <div class="mb-4 sm:mb-6">
                         <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-900 mb-1">
-                            Welcome, {{ Auth::user()->full_name }}!
+                            Welcome, Dr. {{ Auth::user()->full_name }}!
                         </h1>
-                        <div class="text-gray-600 text-xs sm:text-sm">{{ now()->format('l, F d, Y') }} | Assist with counseling sessions</div>
+                        <div class="text-gray-600 text-xs sm:text-sm">{{ now()->format('l, F d, Y') }} | Manage counseling sessions</div>
                     </div>
 
                     @if(session('success'))
@@ -73,6 +73,10 @@
                             <a href="{{ route('appointments.index') }}" 
                                class="px-3 sm:px-6 py-2 sm:py-3 bg-[#FFD700] text-[#1E3A8A] font-semibold rounded-lg hover:bg-[#FFE44D] transition-colors text-sm">
                                 View Appointments
+                            </a>
+                            <a href="{{ route('schedules.index') }}" 
+                               class="px-3 sm:px-6 py-2 sm:py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors text-sm">
+                                Manage Schedule
                             </a>
                         </div>
                     </div>
