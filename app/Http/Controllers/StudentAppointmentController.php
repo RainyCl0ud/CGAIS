@@ -19,9 +19,9 @@ class StudentAppointmentController extends Controller
     {
         $user = $request->user();
 
-        // Ensure only students, faculty, and staff can access this
+        // Ensure only students, faculty, and Non-Teaching Staff can access this
         if (!$user->canBookAppointments()) {
-            abort(403, 'Access denied. This page is for students, faculty, and staff only.');
+            abort(403, 'Access denied. This page is for students, faculty, and Non-Teaching Staff only.');
         }
 
         // Start with base query for user's appointments
@@ -49,9 +49,9 @@ class StudentAppointmentController extends Controller
     {
         $user = $request->user();
 
-        // Ensure only students, faculty, and staff can access this
+        // Ensure only students, faculty, and Non-Teaching Staff can access this
         if (!$user->canBookAppointments()) {
-            abort(403, 'Access denied. This page is for students, faculty, and staff only.');
+            abort(403, 'Access denied. This page is for students, faculty, and Non-Teaching Staff only.');
         }
 
         // Get available counselors
@@ -67,9 +67,9 @@ class StudentAppointmentController extends Controller
     {
         $user = $request->user();
 
-        // Ensure only students, faculty, and staff can access this
+        // Ensure only students, faculty, and Non-Teaching Staff can access this
         if (!$user->canBookAppointments()) {
-            abort(403, 'Access denied. This page is for students, faculty, and staff only.');
+            abort(403, 'Access denied. This page is for students, faculty, and Non-Teaching Staff only.');
         }
 
         // Validation rules for appointment creation
@@ -82,7 +82,7 @@ class StudentAppointmentController extends Controller
 
         // Type validation differs by user role:
         // Students can select regular, urgent, or follow_up
-        // Faculty and staff can only select regular or urgent
+        // Faculty and Non-Teaching Staff can only select regular or urgent
         if ($user->isStudent()) {
             $validationRules['type'] = 'required|in:regular,urgent,follow_up';
         } else {
@@ -91,7 +91,7 @@ class StudentAppointmentController extends Controller
 
         // Counseling category requirement differs by user type:
         // Students must select a category from specific options.
-        // Staff and faculty optionally have category; default to 'consultation' if not provided.
+        // Non-Teaching Staff and faculty optionally have category; default to 'consultation' if not provided.
         if($user->isStudent()) {
             $validationRules['counseling_category'] = 'required|in:conduct_intake_interview,information_services,internal_referral_services,counseling_services,conduct_exit_interview';
         } else {
@@ -204,7 +204,7 @@ $appointmentData = [
     'start_time' => $request->start_time,
     'end_time' => $request->end_time,
     'type' => $request->type,
-    // For non-students (faculty/staff), default counseling_category to 'consultation' if not set
+    // For non-students (faculty/Non-Teaching Staff), default counseling_category to 'consultation' if not set
     'counseling_category' => $request->counseling_category ?? ($user->isStudent() ? null : 'consultation'),
     'reason' => $request->reason,
     'notes' => $request->notes,
@@ -263,9 +263,9 @@ $appointmentData = [
     {
         $user = $request->user();
 
-        // Ensure only students, faculty, and staff can access this
+        // Ensure only students, faculty, and Non-Teaching Staff can access this
         if (!$user->canBookAppointments()) {
-            abort(403, 'Access denied. This page is for students, faculty, and staff only.');
+            abort(403, 'Access denied. This page is for students, faculty, and Non-Teaching Staff only.');
         }
 
         // Check if user can view this appointment
@@ -280,9 +280,9 @@ $appointmentData = [
     {
         $user = $request->user();
 
-        // Ensure only students, faculty, and staff can access this
+        // Ensure only students, faculty, and Non-Teaching Staff can access this
         if (!$user->canBookAppointments()) {
-            abort(403, 'Access denied. This page is for students, faculty, and staff only.');
+            abort(403, 'Access denied. This page is for students, faculty, and Non-Teaching Staff only.');
         }
 
         // Check if user can edit this appointment
@@ -299,9 +299,9 @@ $appointmentData = [
     {
         $user = $request->user();
 
-        // Ensure only students, faculty, and staff can access this
+        // Ensure only students, faculty, and Non-Teaching Staff can access this
         if (!$user->canBookAppointments()) {
-            abort(403, 'Access denied. This page is for students, faculty, and staff only.');
+            abort(403, 'Access denied. This page is for students, faculty, and Non-Teaching Staff only.');
         }
 
         // Check if user can update this appointment
@@ -323,7 +323,7 @@ $appointmentData = [
 
         // Type validation differs by user role:
         // Students can select regular, urgent, or follow_up
-        // Faculty and staff can only select regular or urgent
+        // Faculty and Non-Teaching Staff can only select regular or urgent
         if ($user->isStudent()) {
             $validationRules['type'] = 'required|in:regular,urgent,follow_up';
         } else {
@@ -412,9 +412,9 @@ $appointmentData = [
     {
         $user = $request->user();
 
-        // Ensure only students, faculty, and staff can access this
+        // Ensure only students, faculty, and Non-Teaching Staff can access this
         if (!$user->canBookAppointments()) {
-            abort(403, 'Access denied. This page is for students, faculty, and staff only.');
+            abort(403, 'Access denied. This page is for students, faculty, and Non-Teaching Staff only.');
         }
 
         // Only the appointment owner can cancel
@@ -447,9 +447,9 @@ $appointmentData = [
     {
         $user = $request->user();
 
-        // Ensure only students, faculty, and staff can access this
+        // Ensure only students, faculty, and Non-Teaching Staff can access this
         if (!$user->canBookAppointments()) {
-            abort(403, 'Access denied. This page is for students, faculty, and staff only.');
+            abort(403, 'Access denied. This page is for students, faculty, and Non-Teaching Staff only.');
         }
 
         // Query for table data (respects filters)
@@ -483,9 +483,9 @@ $appointmentData = [
     {
         $user = $request->user();
 
-        // Ensure only students, faculty, and staff can access this
+        // Ensure only students, faculty, and Non-Teaching Staff can access this
         if (!$user->canBookAppointments()) {
-            abort(403, 'Access denied. This page is for students, faculty, and staff only.');
+            abort(403, 'Access denied. This page is for students, faculty, and Non-Teaching Staff only.');
         }
 
         $query = Appointment::with(['user', 'counselor'])
@@ -550,7 +550,7 @@ $appointmentData = [
         $user = $request->user();
 
         if (!$user->canBookAppointments()) {
-            abort(403, 'Access denied. This page is for students, faculty, and staff only.');
+            abort(403, 'Access denied. This page is for students, faculty, and Non-Teaching Staff only.');
         }
 
         $date = $request->get('date');

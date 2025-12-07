@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\RedirectResponse;
+use App\Notifications\AppointmentStatusNotification;
 
 class AppointmentController extends Controller
 {
@@ -22,14 +23,16 @@ class AppointmentController extends Controller
         $appointments = collect();
 
         if ($user->isCounselor() || $user->isAssistant()) {
-            // Assistants and Counselors see all appointments system-wide
+            // Assistants and Counselors see all active appointments system-wide (not in session history)
             $appointments = Appointment::with(['user', 'counselor'])
+                ->whereNotIn('status', ['completed', 'cancelled', 'no_show', 'failed'])
                 ->orderByRaw("CASE WHEN type = 'urgent' THEN 0 ELSE 1 END")
                 ->orderBy('appointment_date')
                 ->orderBy('start_time')
                 ->paginate(10);
         } else {
             $appointments = $user->appointments()
+                ->whereNotIn('status', ['completed', 'cancelled', 'no_show', 'failed'])
                 ->orderByRaw("CASE WHEN type = 'urgent' THEN 0 ELSE 1 END")
                 ->orderBy('appointment_date')
                 ->orderBy('start_time')
@@ -376,6 +379,9 @@ class AppointmentController extends Controller
             'read_at' => null,
         ]);
 
+        // Send email notification to student (counselor is cancelling)
+        $appointment->user->notify(new AppointmentStatusNotification($appointment, 'cancelled', 'Cancelled by counselor'));
+
         // Mark related notifications as read for the counselor
         Notification::where('user_id', Auth::id())
             ->where('appointment_id', $appointment->id)
@@ -407,6 +413,9 @@ class AppointmentController extends Controller
             'read_at' => null,
         ]);
 
+        // Send email notification to counselor (student is cancelling)
+        $counselor->notify(new AppointmentStatusNotification($appointment, 'cancelled', 'Cancelled by student'));
+
         // Notify assistant(s) as well
         $assistants = User::where('role', 'assistant')->get();
         foreach ($assistants as $assistant) {
@@ -435,7 +444,7 @@ class AppointmentController extends Controller
             $query->where('user_id', $user->id);
         }
 
-        $query->where('status', 'completed');
+        $query->whereIn('status', ['completed', 'cancelled', 'no_show', 'failed']);
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -507,7 +516,7 @@ class AppointmentController extends Controller
             $query->where('user_id', $user->id);
         }
 
-        $query->where('status', 'completed');
+        $query->whereIn('status', ['completed', 'cancelled', 'no_show', 'failed']);
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -696,6 +705,9 @@ class AppointmentController extends Controller
             'read_at' => null,
         ]);
 
+        // Send email notification to student (counselor is approving)
+        $appointment->user->notify(new AppointmentStatusNotification($appointment, 'approved'));
+
         // Notify assistant(s) of the approval
         $assistants = User::where('role', 'assistant')->get();
         foreach ($assistants as $assistant) {
@@ -763,6 +775,9 @@ class AppointmentController extends Controller
             'is_read' => false,
             'read_at' => null,
         ]);
+
+        // Send email notification to student (counselor is rejecting)
+        $appointment->user->notify(new AppointmentStatusNotification($appointment, 'cancelled', $request->rejection_reason));
 
         // Notify assistant(s) of the rejection
         $assistants = User::where('role', 'assistant')->get();
@@ -857,6 +872,10 @@ class AppointmentController extends Controller
             'read_at' => null,
         ]);
 
+        // Send email notification to student (counselor is rescheduling)
+        $appointment->refresh();
+        $appointment->user->notify(new AppointmentStatusNotification($appointment, 'rescheduled', $request->reschedule_reason));
+
         // Notify assistant(s) of the reschedule
         $assistants = User::where('role', 'assistant')->get();
         foreach ($assistants as $assistant) {
@@ -878,6 +897,50 @@ class AppointmentController extends Controller
 
         return redirect()->route('appointments.show', $appointment)
             ->with('success', 'Appointment rescheduled successfully.');
+    }
+
+    public function markAsDone(Appointment $appointment): RedirectResponse
+    {
+        $user = Auth::user();
+        
+        if (!$user->isCounselor() && !$user->isAssistant()) {
+            return redirect()->route('appointments.index')
+                ->with('error', 'You do not have permission to mark appointments as done.');
+        }
+
+        if ($appointment->status !== 'confirmed') {
+            return redirect()->route('appointments.show', $appointment)
+                ->with('error', 'Only confirmed appointments can be marked as done.');
+        }
+
+        if ($appointment->getAppointmentDateTime()->isFuture()) {
+            return redirect()->route('appointments.show', $appointment)
+                ->with('error', 'Cannot mark future appointments as done.');
+        }
+
+        $appointment->update([
+            'status' => 'completed',
+            'counselor_notes' => $appointment->counselor_notes . "\n\n[Marked as Done on " . now()->format('M d, Y g:i A') . "]"
+        ]);
+
+        // Notify the student that their appointment is completed
+        $appointment->user->notifications()->create([
+            'appointment_id' => $appointment->id,
+            'title' => 'Appointment Completed',
+            'message' => "Your appointment on {$appointment->getFormattedDateTime()} has been marked as completed.",
+            'type' => 'general',
+            'is_read' => false,
+            'read_at' => null,
+        ]);
+
+        // Mark related notifications as read for the counselor
+        Notification::where('user_id', Auth::id())
+            ->where('appointment_id', $appointment->id)
+            ->unread()
+            ->update(['is_read' => true, 'read_at' => now()]);
+
+        return redirect()->route('appointments.session-history')
+            ->with('success', 'Appointment marked as done and moved to session history.');
     }
 
     public function getAvailableSlots(User $counselor, Request $request)

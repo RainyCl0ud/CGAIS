@@ -134,7 +134,12 @@ class AuthorizedId extends Model
      */
     public function getTypeLabelAttribute(): string
     {
-        return ucfirst($this->type);
+        return match($this->type) {
+            'student' => 'Student',
+            'faculty' => 'Faculty',
+            'staff' => 'Non-Teaching Staff',
+            default => ucfirst($this->type)
+        };
     }
 
     /**

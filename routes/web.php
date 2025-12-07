@@ -14,6 +14,7 @@ use App\Http\Controllers\StudentManagementController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\SystemController;
 use App\Http\Controllers\AuthorizedIdController;
+use App\Http\Controllers\PendingEmailChangeController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -109,6 +110,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::patch('/appointments/{appointment}/approve', [AppointmentController::class, 'approve'])->name('appointments.approve');
         Route::patch('/appointments/{appointment}/reject', [AppointmentController::class, 'reject'])->name('appointments.reject');
         Route::patch('/appointments/{appointment}/reschedule', [AppointmentController::class, 'reschedule'])->name('appointments.reschedule');
+        Route::patch('/appointments/{appointment}/mark-done', [AppointmentController::class, 'markAsDone'])->name('appointments.mark-done');
     });
     
     // User Activity Logs (All authenticated users)
@@ -139,6 +141,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    
+    // Pending Email Change
+    Route::get('/pending-email/verify/{token}', [PendingEmailChangeController::class, 'verify'])->name('pending-email.verify');
+    Route::post('/pending-email/cancel', [PendingEmailChangeController::class, 'cancel'])->name('pending-email.cancel');
     
     // Personal Data Sheet (Students only)
     Route::middleware('student')->group(function () {

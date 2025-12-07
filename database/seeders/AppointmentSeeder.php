@@ -15,8 +15,8 @@ class AppointmentSeeder extends Seeder
     public function run(): void
     {
         // Get existing users
-        $student = User::where('email', 'student@gmail.com')->first();
-        $counselor = User::where('email', 'counselor@gmail.com')->first();
+        $student = User::where('email', 'algabrejohn097@gmail.com')->first();
+        $counselor = User::where('email', 'algabrejohn02@gmail.com')->first();
         $assistant = User::where('email', 'assistant@gmail.com')->first();
         $faculty = User::where('email', 'faculty@gmail.com')->first();
 
@@ -214,7 +214,23 @@ class AppointmentSeeder extends Seeder
             null
         );
 
+        // Create a confirmed appointment that has already been conducted (past date) - for testing "Mark as Done" button
+        // This appointment is from 2 days ago with morning time slot to ensure it's definitely in the past
+        $this->createAppointment(
+            $student->id,
+            $counselor->id,
+            Carbon::now()->subDays(2),
+            '09:00',
+            '10:00',
+            'confirmed',
+            'regular',
+            'Test appointment for Mark as Done feature',
+            'This appointment was conducted 2 days ago and is ready to be marked as done.',
+            'Session notes: Student discussed academic concerns. Ready to be marked as completed.'
+        );
+
         $this->command->info('Sample appointment data created successfully!');
+        $this->command->info('Look for a CONFIRMED appointment from 2 days ago to test the Mark as Done button.');
     }
 
     private function createAppointment($userId, $counselorId, $date, $startTime, $endTime, $status, $type, $reason, $notes, $counselorNotes)

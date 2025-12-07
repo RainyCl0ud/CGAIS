@@ -2,8 +2,9 @@
 
 namespace App\Console\Commands;
 
+use App\Models\User;
+use App\Notifications\PendingEmailChangeNotification;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Mail;
 
 class TestEmail extends Command
 {
@@ -12,30 +13,49 @@ class TestEmail extends Command
      *
      * @var string
      */
-    protected $signature = 'app:test-email';
+    protected $signature = 'test:email {email?}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Command description';
+    protected $description = 'Test email sending functionality';
 
     /**
      * Execute the console command.
      */
     public function handle()
     {
-        $this->info('Testing email sending...');
-
+        $email = $this->argument('email') ?: 'test@example.com';
+        
+        $this->info("Testing email configuration...");
+        $this->info("Mail driver: " . config('mail.default'));
+        $this->info("Mail host: " . config('mail.mailers.smtp.host'));
+        $this->info("Mail port: " . config('mail.mailers.smtp.port'));
+        $this->info("From address: " . config('mail.from.address'));
+        
         try {
-            Mail::raw('Test email from Laravel', function($message) {
-                $message->to('algabrejohn097@gmail.com')
-                        ->subject('Test Email');
-            });
-            $this->info('Email sent successfully!');
+            $user = User::first();
+            
+            if (!$user) {
+                $this->error('No users found in database.');
+                return 1;
+            }
+            
+            $this->info("Sending test email to: {$email}");
+            
+            $notification = new PendingEmailChangeNotification($email, 'https://example.com/verify');
+            $user->notify($notification);
+            
+            $this->info("✅ Email test completed successfully!");
+            $this->info("Check your email inbox (or logs if using 'log' mailer).");
+            
         } catch (\Exception $e) {
-            $this->error('Error sending email: ' . $e->getMessage());
+            $this->error("❌ Email test failed: " . $e->getMessage());
+            return 1;
         }
+        
+        return 0;
     }
 }

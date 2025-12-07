@@ -78,7 +78,7 @@
                                         <option value="">Select Role</option>
                                         <option value="student" {{ old('role', $user->role) === 'student' ? 'selected' : '' }}>Student</option>
                                         <option value="faculty" {{ old('role', $user->role) === 'faculty' ? 'selected' : '' }}>Faculty</option>
-                                        <option value="staff" {{ old('role', $user->role) === 'staff' ? 'selected' : '' }}>Staff</option>
+                                        <option value="staff" {{ old('role', $user->role) === 'staff' ? 'selected' : '' }}>Non-Teaching Staff</option>
                                     </select>
                                 </div>
 

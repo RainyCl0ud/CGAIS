@@ -6,6 +6,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Providers\CacheServiceProvider;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -30,6 +31,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'faculty_id',
         'staff_id',
         'course_category',
+        'pending_email',
+        'pending_email_token',
     ];
 
     /**
@@ -61,6 +64,21 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isCounselor() { return $this->role === 'counselor'; }
     public function isAssistant() { return $this->role === 'assistant'; }
     public function isStaff() { return $this->role === 'staff'; }
+
+    /**
+     * Get the role display name
+     */
+    public function getRoleDisplayName(): string
+    {
+        return match($this->role) {
+            'student' => 'Student',
+            'faculty' => 'Faculty',
+            'counselor' => 'Counselor',
+            'assistant' => 'Assistant',
+            'staff' => 'Non-Teaching Staff',
+            default => ucfirst($this->role)
+        };
+    }
 
     // Privilege helper methods
     public function canManageUsers() { return $this->isCounselor() || $this->isAssistant(); }
@@ -178,4 +196,60 @@ class User extends Authenticatable implements MustVerifyEmail
         return false;
     }
 
+    /**
+     * Generate a pending email change
+     */
+    public function generatePendingEmailChange($newEmail)
+    {
+        $this->pending_email = $newEmail;
+        $this->pending_email_token = \Illuminate\Support\Str::random(64);
+        $this->save();
+        return $this->pending_email_token;
+    }
+
+    /**
+     * Verify pending email change
+     */
+    public function verifyPendingEmailChange($token)
+    {
+        if ($this->pending_email_token === $token && $this->pending_email) {
+            // Update the email with the pending email
+            $this->email = $this->pending_email;
+            $this->pending_email = null;
+            $this->pending_email_token = null;
+            $this->markEmailAsVerified();
+            $this->save();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Clear pending email change
+     */
+    public function clearPendingEmailChange()
+    {
+        $this->pending_email = null;
+        $this->pending_email_token = null;
+        $this->save();
+    }
+
+    /**
+     * Check if user has a pending email change
+     */
+    public function hasPendingEmailChange()
+    {
+        return !empty($this->pending_email) && !empty($this->pending_email_token);
+    }
+
+    /**
+     * The "booted" method of the model.
+     */
+    protected static function booted()
+    {
+        static::updated(function ($user) {
+            // Clear cache when user is updated to ensure changes are reflected immediately
+            CacheServiceProvider::clearRelatedCaches('User', $user->id);
+        });
+    }
 }

@@ -52,7 +52,7 @@
                             <option value="">All Types</option>
                             <option value="student" {{ request('type') === 'student' ? 'selected' : '' }}>Student</option>
                             <option value="faculty" {{ request('type') === 'faculty' ? 'selected' : '' }}>Faculty</option>
-                            <option value="staff" {{ request('type') === 'staff' ? 'selected' : '' }}>Staff</option>
+                            <option value="staff" {{ request('type') === 'staff' ? 'selected' : '' }}>Non-Teaching Staff</option>
                         </select>
                     </div>
 

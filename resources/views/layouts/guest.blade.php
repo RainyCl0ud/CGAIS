@@ -28,7 +28,7 @@
                         <span class="block text-5xl sm:text-6xl md:text-7xl font-extrabold font-black bg-gradient-to-r from-[#FFD700] to-blue-700 bg-clip-text text-transparent leading-tight">CGAIS</span>
                     </div>
                     <div class="text-center text-gray-700 text-base md:text-lg">
-                        <p>Campus Guidance System (CGAIS) helps students and staff access guidance services, resources, and support efficiently. Register now to get started!</p>
+                        <p>Campus Guidance System (CGAIS) helps students and Non-Teaching Staff access guidance services, resources, and support efficiently. Register now to get started!</p>
                     </div>
                 </div>
                 <!-- Right: Registration Form -->

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Providers\CacheServiceProvider;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -40,13 +41,36 @@ class ProfileController extends Controller
             }
         }
 
-        $targetUser->fill($request->validated());
-
-        if ($targetUser->isDirty('email')) {
-            $targetUser->email_verified_at = null;
+        // Handle email changes separately
+        $emailChanged = false;
+        $newEmail = $request->get('email');
+        
+        if ($targetUser->email !== $newEmail) {
+            $emailChanged = true;
+            
+            // Generate pending email change
+            $token = $targetUser->generatePendingEmailChange($newEmail);
+            
+            // Send verification email to the new email address
+            $verificationUrl = route('pending-email.verify', $token);
+            $targetUser->notify(new \App\Notifications\PendingEmailChangeNotification($newEmail, $verificationUrl));
         }
 
+        // Update other profile information (excluding email if it was changed)
+        $profileData = $request->validated();
+        if ($emailChanged) {
+            unset($profileData['email']); // Don't update email yet, wait for verification
+        }
+        $targetUser->fill($profileData);
+
         $targetUser->save();
+
+        // Clear cache to ensure changes are visible immediately
+        CacheServiceProvider::clearRelatedCaches('User', $targetUser->id);
+
+        if ($emailChanged) {
+            return Redirect::route('profile.edit')->with('status', 'email-change-pending');
+        }
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }

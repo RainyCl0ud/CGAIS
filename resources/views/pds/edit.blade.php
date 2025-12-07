@@ -49,7 +49,7 @@
                 <p>photo</p>
             </div>
         @endif
-        <input type="file" id="photoInput" name="photo" accept="image/*" class="hidden" onchange="previewImage(event)">
+        <input type="file" id="photoInput" name="photo" accept="image/*" class="hidden" form="pdsForm" onchange="previewImage(event)">
     </div>
 </div>
 
@@ -85,14 +85,23 @@
                         will be treated with utmost confidentiality in accordance with the Data Privacy Act.
                     </p>
 
+                    <div class="bg-blue-50 border border-blue-200 rounded-md p-3 mb-4">
+                        <p class="text-sm text-blue-800">
+                            <strong>Note:</strong> Fields marked with "(Auto-filled from profile)" are read-only and can only be edited in your 
+                            <a href="{{ route('profile.edit') }}" class="underline font-medium">Profile Settings</a>. 
+                            This ensures consistency across your account information. If you need to update your name, email, or phone number, 
+                            please visit your profile settings first.
+                        </p>
+                    </div>
+
+                    <form method="POST" action="{{ route('pds.update') }}" id="pdsForm" enctype="multipart/form-data">
+                        @csrf
+                        @method('PATCH')
+
                     <!-- Personal Background -->
                     <div class="font-bold bg-black text-white px-2 py-1 mb-3 uppercase text-[12px] tracking-wide">
                         PERSONAL BACKGROUND
                     </div>
-            
-                    <form method="POST" action="{{ route('pds.update') }}" id="pdsForm" enctype="multipart/form-data">
-                        @csrf
-                        @method('PATCH')
 
                         <div class="grid grid-cols-3 gap-x-4 mb-2">
                             <div>
@@ -111,8 +120,19 @@
 
                         <div class="grid grid-cols-2 gap-x-4 mb-2">
                             <div>
-                                <label>First Name:</label>
-                                <input type="text" name="first_name" value="{{ old('first_name', $pds->first_name ?: Auth::user()->first_name) }}" class="border-b border-gray-700 w-full">
+                                <label>First Name: @if(!empty($pds->first_name) || !empty(Auth::user()->first_name))<span class="text-xs text-gray-500">(Auto-filled from profile)</span>@endif</label>
+                                @php
+                                    $firstNameValue = $pds->first_name ?: Auth::user()->first_name;
+                                    $isFirstNameReadonly = !empty($pds->first_name) || !empty(Auth::user()->first_name);
+                                @endphp
+                                @if($isFirstNameReadonly)
+                                    <div class="readonly-display">
+                                        {{ $firstNameValue }}
+                                    </div>
+                                    <input type="hidden" name="first_name" value="{{ $firstNameValue }}">
+                                @else
+                                    <input type="text" name="first_name" value="{{ old('first_name', $firstNameValue) }}" class="border-b border-gray-700 w-full">
+                                @endif
                             </div>
                             <div>
                                 <label>Gender:</label>
@@ -130,12 +150,34 @@
                                 <input type="text" name="age" value="{{ old('age', $pds->age) }}" class="border-b border-gray-700 w-full">
                             </div>
                             <div>
-                                <label>Last Name:</label>
-                                <input type="text" name="last_name" value="{{ old('last_name', $pds->last_name ?: Auth::user()->last_name) }}" class="border-b border-gray-700 w-full">
+                                <label>Last Name: @if(!empty($pds->last_name) || !empty(Auth::user()->last_name))<span class="text-xs text-gray-500">(Auto-filled from profile)</span>@endif</label>
+                                @php
+                                    $lastNameValue = $pds->last_name ?: Auth::user()->last_name;
+                                    $isLastNameReadonly = !empty($pds->last_name) || !empty(Auth::user()->last_name);
+                                @endphp
+                                @if($isLastNameReadonly)
+                                    <div class="readonly-display">
+                                        {{ $lastNameValue }}
+                                    </div>
+                                    <input type="hidden" name="last_name" value="{{ $lastNameValue }}">
+                                @else
+                                    <input type="text" name="last_name" value="{{ old('last_name', $lastNameValue) }}" class="border-b border-gray-700 w-full">
+                                @endif
                             </div>
                             <div>
-                                <label>Middle Name:</label>
-                                <input type="text" name="middle_name" value="{{ old('middle_name', $pds->middle_name ?: Auth::user()->middle_name) }}" class="border-b border-gray-700 w-full">
+                                <label>Middle Name: @if(!empty($pds->middle_name) || !empty(Auth::user()->middle_name))<span class="text-xs text-gray-500">(Auto-filled from profile)</span>@endif</label>
+                                @php
+                                    $middleNameValue = $pds->middle_name ?: Auth::user()->middle_name;
+                                    $isMiddleNameReadonly = !empty($pds->middle_name) || !empty(Auth::user()->middle_name);
+                                @endphp
+                                @if($isMiddleNameReadonly)
+                                    <div class="readonly-display">
+                                        {{ $middleNameValue }}
+                                    </div>
+                                    <input type="hidden" name="middle_name" value="{{ $middleNameValue }}">
+                                @else
+                                    <input type="text" name="middle_name" value="{{ old('middle_name', $middleNameValue) }}" class="border-b border-gray-700 w-full">
+                                @endif
                             </div>
                         </div>
 
@@ -154,15 +196,37 @@
                                 <input type="text" name="religion" value="{{ old('religion', $pds->religion) }}" class="border-b border-gray-700 w-full">
                             </div>
                             <div>
-                                <label>Contact Number:</label>
-                                <input type="text" name="contact_number" value="{{ old('contact_number', $pds->contact_number) }}" class="border-b border-gray-700 w-full">
+                                <label>Contact Number: @if(!empty($pds->contact_number) || !empty(Auth::user()->phone_number))<span class="text-xs text-gray-500">(Auto-filled from profile)</span>@endif</label>
+                                @php
+                                    $contactNumberValue = $pds->contact_number ?: (Auth::user()->phone_number ?? '');
+                                    $isContactNumberReadonly = !empty($pds->contact_number) || !empty(Auth::user()->phone_number);
+                                @endphp
+                                @if($isContactNumberReadonly)
+                                    <div class="readonly-display">
+                                        {{ $contactNumberValue }}
+                                    </div>
+                                    <input type="hidden" name="contact_number" value="{{ $contactNumberValue }}">
+                                @else
+                                    <input type="text" name="contact_number" value="{{ old('contact_number', $contactNumberValue) }}" class="border-b border-gray-700 w-full">
+                                @endif
                             </div>
                         </div>
 
                         <div class="grid grid-cols-2 gap-x-4 mb-2">
                             <div>
-                                <label>Email Address:</label>
-                                <input type="email" name="email" value="{{ old('email', $pds->email ?: Auth::user()->email) }}" class="border-b border-gray-700 w-full">
+                                <label>Email Address: @if(!empty($pds->email) || !empty(Auth::user()->email))<span class="text-xs text-gray-500">(Auto-filled from profile)</span>@endif</label>
+                                @php
+                                    $emailValue = $pds->email ?: (Auth::user()->email ?? '');
+                                    $isEmailReadonly = !empty($pds->email) || !empty(Auth::user()->email);
+                                @endphp
+                                @if($isEmailReadonly)
+                                    <div class="readonly-display">
+                                        {{ $emailValue }}
+                                    </div>
+                                    <input type="hidden" name="email" value="{{ $emailValue }}">
+                                @else
+                                    <input type="email" name="email" value="{{ old('email', $emailValue) }}" class="border-b border-gray-700 w-full">
+                                @endif
                             </div>
                             <div>
                                 <label>Permanent Address:</label>
@@ -430,7 +494,19 @@
                             <div class="mt-6 flex justify-between px-10">
                                 <div></div>
                                 <div class="text-center">
-                                    <input type="text" name="signature" value="{{ old('signature', $pds->signature ?: Auth::user()->first_name . ' ' . Auth::user()->middle_name . ' ' . Auth::user()->last_name) }}" placeholder="E-signature or Name" class="border-b border-gray-800 w-[250px] text-center">
+                                    @php
+                                        $signatureValue = $pds->signature ?: (Auth::user()->first_name . ' ' . (Auth::user()->middle_name ?? '') . ' ' . Auth::user()->last_name);
+                                        $isSignatureReadonly = !empty($pds->signature) || !empty(Auth::user()->first_name);
+                                        $signatureValue = trim(preg_replace('/\s+/', ' ', $signatureValue)); // Remove extra spaces
+                                    @endphp
+                                    @if($isSignatureReadonly)
+                                        <div class="readonly-display" style="width: 250px; text-align: center;">
+                                            {{ $signatureValue }}
+                                        </div>
+                                        <input type="hidden" name="signature" value="{{ $signatureValue }}">
+                                    @else
+                                        <input type="text" name="signature" value="{{ old('signature', $signatureValue) }}" placeholder="E-signature or Name" class="border-b border-gray-800 w-[250px] text-center">
+                                    @endif
                                     <p class="text-[12px] mt-1">SIGNATURE OVER PRINTED NAME</p>
                                 </div>
                                 <div class="text-center">
@@ -446,6 +522,7 @@
                                 </button>
                             </div>
                         </div>
+                    </form>
                     </div>
                 </div>
             </div>
@@ -489,19 +566,98 @@ box-shadow: 0 0 3px rgba(0, 0, 0, 0.15);
     width: 220px;
 }
 }
+
+/* Style for read-only display fields */
+.readonly-display {
+    border-bottom: 1px solid #9CA3AF;
+    background-color: #F3F4F6;
+    color: #6B7280;
+    cursor: not-allowed;
+    user-select: none;
+    padding: 4px 4px;
+    width: 100%;
+}
     </style>
 
     <script>
         function previewImage(event) {
             const file = event.target.files[0];
             if (file) {
+                // Check file size (max 2MB for 2x2 pictures)
+                if (file.size > 2 * 1024 * 1024) {
+                    alert('File size must be less than 2MB. Please choose a smaller image.');
+                    event.target.value = '';
+                    return;
+                }
+
+                // Check file type
+                if (!file.type.match('image/jpeg') && !file.type.match('image/png') && !file.type.match('image/jpg') && !file.type.match('image/gif')) {
+                    alert('Please select a valid image file (JPEG, PNG, or GIF).');
+                    event.target.value = '';
+                    return;
+                }
+
                 const reader = new FileReader();
                 reader.onload = function(e) {
+                    // Proceed with preview - the frame will handle display with object-cover
                     const photoBox = document.querySelector('.absolute.top-\\[130px\\].right-\\[15px\\]');
-                    photoBox.innerHTML = `<img src="${e.target.result}" alt="ID Photo" class="w-full h-full object-cover">`;
+                    const fileInput = photoBox.querySelector('input[type="file"]');
+                    
+                    // Clear the photo box but preserve the file input
+                    photoBox.innerHTML = '';
+                    
+                    // Create and append the image
+                    const previewImg = document.createElement('img');
+                    previewImg.src = e.target.result;
+                    previewImg.alt = 'ID Photo';
+                    previewImg.className = 'w-full h-full object-cover';
+                    photoBox.appendChild(previewImg);
+                    
+                    // Re-append the file input
+                    photoBox.appendChild(fileInput);
+                    
+                    // Add click handler back to the photo box
+                    photoBox.onclick = function() {
+                        document.getElementById('photoInput').click();
+                    };
                 };
                 reader.readAsDataURL(file);
             }
         }
+
+        // Prevent any interaction with readonly fields
+        document.addEventListener('DOMContentLoaded', function() {
+            // Disable all pointer events for readonly fields
+            const readonlyFields = document.querySelectorAll('input[readonly][disabled]');
+            readonlyFields.forEach(function(field) {
+                // Double-click protection
+                field.addEventListener('dblclick', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                });
+                
+                // Right-click protection
+                field.addEventListener('contextmenu', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                });
+                
+                // Select protection
+                field.addEventListener('selectstart', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                });
+                
+                // Drag protection
+                field.addEventListener('dragstart', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                });
+            });
+        });
     </script>
 </x-app-layout>

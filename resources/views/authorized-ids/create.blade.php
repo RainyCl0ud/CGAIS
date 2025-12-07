@@ -14,7 +14,7 @@
                                 <option value="">Select Type</option>
                                 <option value="student" {{ old('type') === 'student' ? 'selected' : '' }}>Student</option>
                                 <option value="faculty" {{ old('type') === 'faculty' ? 'selected' : '' }}>Faculty</option>
-                                <option value="staff" {{ old('type') === 'staff' ? 'selected' : '' }}>Staff</option>
+                                <option value="staff" {{ old('type') === 'staff' ? 'selected' : '' }}>Non-Teaching Staff</option>
                             </select>
                             @error('type')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>

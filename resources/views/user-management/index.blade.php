@@ -39,7 +39,7 @@
                                     <option value="faculty" {{ request('role') === 'faculty' ? 'selected' : '' }}>Faculty</option>
                                     <option value="counselor" {{ request('role') === 'counselor' ? 'selected' : '' }}>Counselor</option>
                                     <option value="assistant" {{ request('role') === 'assistant' ? 'selected' : '' }}>Assistant</option>
-                                    <option value="staff" {{ request('role') === 'staff' ? 'selected' : '' }}>Staff</option>
+                                    <option value="staff" {{ request('role') === 'staff' ? 'selected' : '' }}>Non-Teaching Staff</option>
                                 </select>
                             </div>
                             <div class="flex gap-2 sm:flex-none">
@@ -95,7 +95,7 @@
                                                 {{ $user->role === 'student' ? 'bg-green-100 text-green-800' : '' }}
                                                 {{ $user->role === 'faculty' ? 'bg-yellow-100 text-yellow-800' : '' }}
                                                 {{ $user->role === 'staff' ? 'bg-indigo-100 text-indigo-800' : '' }}">
-                                                {{ ucfirst($user->role) }}
+                                                {{ $user->getRoleDisplayName() }}
                                             </span>
                                         </td>
                                         <td class="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden md:table-cell">

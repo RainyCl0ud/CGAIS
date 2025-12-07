@@ -38,6 +38,10 @@
                                     <p class="text-gray-900">{{ $user->email }}</p>
                                 </div>
                                 <div>
+                                    <span class="font-medium text-gray-700">Phone:</span>
+                                    <p class="text-gray-900">{{ $user->phone_number ?? 'Not provided' }}</p>
+                                </div>
+                                <div>
                                     <span class="font-medium text-gray-700">Role:</span>
                                     <span class="px-2 py-1 text-xs font-semibold rounded-full
                                         {{ $user->role === 'counselor' ? 'bg-purple-100 text-purple-800' : '' }}
@@ -45,7 +49,7 @@
                                         {{ $user->role === 'student' ? 'bg-green-100 text-green-800' : '' }}
                                         {{ $user->role === 'faculty' ? 'bg-yellow-100 text-yellow-800' : '' }}
                                         {{ $user->role === 'staff' ? 'bg-indigo-100 text-indigo-800' : '' }}">
-                                        {{ ucfirst($user->role) }}
+                                        {{ $user->getRoleDisplayName() }}
                                     </span>
                                 </div>
                                 @if($user->student_id)
@@ -81,7 +85,7 @@
                                     <span class="font-medium text-gray-700">Last Updated:</span>
                                     <p class="text-gray-900">{{ $user->updated_at->format('M d, Y g:i A') }}</p>
                                 </div>
-                                <div>
+                                <!-- <div>
                                     <span class="font-medium text-gray-700">Email Verified:</span>
                                     <p class="text-gray-900">
                                         @if($user->email_verified_at)
@@ -89,7 +93,7 @@
                                         @else
                                             <span class="text-red-600">✗ Not verified</span>
                                         @endif
-                                    </p>
+                                    </p> -->
                                 </div>
                             </div>
                         </div>

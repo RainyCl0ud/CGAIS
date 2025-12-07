@@ -6,7 +6,9 @@ use Livewire\Component;
 use App\Models\Appointment;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Carbon\Carbon;
+use App\Notifications\AppointmentStatusNotification;
 
 class AppointmentManager extends Component
 {
@@ -370,6 +372,9 @@ class AppointmentManager extends Component
             'read_at' => null,
         ]);
 
+        // Send email notification to student (counselor is approving, so student receives email)
+        $this->selectedAppointment->user->notify(new AppointmentStatusNotification($this->selectedAppointment, 'approved'));
+
         session()->flash('success', 'Appointment approved successfully.');
         $this->closeModals();
         $this->loadAppointments();
@@ -398,6 +403,12 @@ class AppointmentManager extends Component
             'is_read' => false,
             'read_at' => null,
         ]);
+
+        // Send email notification to student
+        $this->selectedAppointment->user->notify(new AppointmentStatusNotification($this->selectedAppointment, 'cancelled', $this->rejection_reason));
+        
+        // Send email notification to counselor
+        $this->selectedAppointment->counselor->notify(new AppointmentStatusNotification($this->selectedAppointment, 'cancelled', $this->rejection_reason));
 
         session()->flash('success', 'Appointment rejected successfully.');
         $this->closeModals();
@@ -437,6 +448,12 @@ class AppointmentManager extends Component
             'read_at' => null,
         ]);
 
+        // Refresh the appointment to get updated dates
+        $this->selectedAppointment->refresh();
+        
+        // Send email notification to student (counselor is rescheduling, so student receives email)
+        $this->selectedAppointment->user->notify(new AppointmentStatusNotification($this->selectedAppointment, 'rescheduled', $this->reschedule_reason));
+
         session()->flash('success', 'Appointment rescheduled successfully.');
         $this->closeModals();
         $this->loadAppointments();
@@ -469,6 +486,9 @@ class AppointmentManager extends Component
                 'is_read' => false,
                 'read_at' => null,
             ]);
+            
+            // Send email notification to student (counselor is cancelling, so student receives email)
+            $appointment->user->notify(new AppointmentStatusNotification($appointment, 'cancelled', 'Cancelled by counselor'));
         } else {
             $appointment->counselor->notifications()->create([
                 'appointment_id' => $appointment->id,
@@ -478,6 +498,9 @@ class AppointmentManager extends Component
                 'is_read' => false,
                 'read_at' => null,
             ]);
+            
+            // Send email notification to counselor (student is cancelling, so counselor receives email)
+            $appointment->counselor->notify(new AppointmentStatusNotification($appointment, 'cancelled', 'Cancelled by student'));
         }
 
         session()->flash('success', 'Appointment cancelled successfully.');
@@ -576,6 +599,62 @@ class AppointmentManager extends Component
     {
         $this->loadAppointments();
         $this->loadSessionHistory();
+    }
+
+    public function clearFilters()
+    {
+        $this->search = '';
+        $this->status_filter = 'all';
+        $this->type_filter = 'all';
+        $this->category_filter = 'all';
+        $this->date_from = null;
+        $this->date_to = null;
+        $this->sort_by = 'appointment_date';
+        $this->sort_order = 'desc';
+        
+        $this->loadAppointments();
+        $this->loadSessionHistory();
+    }
+
+    public function markAsCompleted($appointmentId)
+    {
+        $appointment = Appointment::find($appointmentId);
+        $user = Auth::user();
+        
+        if (!$user->isCounselor() && !$user->isAssistant()) {
+            session()->flash('error', 'You do not have permission to mark appointments as completed.');
+            return;
+        }
+
+        if ($appointment->status !== 'confirmed') {
+            session()->flash('error', 'Only confirmed appointments can be marked as completed.');
+            return;
+        }
+
+        if ($appointment->getAppointmentDateTime()->isFuture()) {
+            session()->flash('error', 'Cannot mark future appointments as completed.');
+            return;
+        }
+
+        $appointment->update([
+            'status' => 'completed',
+            'counselor_notes' => $appointment->counselor_notes . "\n\n[Marked as Completed on " . now()->format('M d, Y g:i A') . "]"
+        ]);
+
+        // Notify the student that their appointment is completed
+        $appointment->user->notifications()->create([
+            'appointment_id' => $appointment->id,
+            'title' => 'Appointment Completed',
+            'message' => "Your appointment on {$appointment->getFormattedDateTime()} has been marked as completed.",
+            'type' => 'general',
+            'is_read' => false,
+            'read_at' => null,
+        ]);
+
+        session()->flash('success', 'Appointment marked as completed and moved to session history.');
+        $this->loadAppointments();
+        $this->loadSessionHistory();
+        $this->loadStats();
     }
 
     public function render()

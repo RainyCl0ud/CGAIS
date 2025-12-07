@@ -37,8 +37,8 @@
                         </svg>
                     </div>
                     <div class="ml-4 text-left">
-                        <h3 class="text-lg font-semibold text-gray-900">Staff</h3>
-                        <p class="text-sm text-gray-500">Register as a staff member</p>
+                        <h3 class="text-lg font-semibold text-gray-900">Non-Teaching Staff</h3>
+                        <p class="text-sm text-gray-500">Register as a Non-Teaching Staff member</p>
                     </div>
                 </button>
             </div>
@@ -272,7 +272,7 @@
                             <p>By registering for an account on this Counseling Guidance Appointment System (CGAS), you agree to be bound by these Terms and Conditions. If you do not agree to these terms, please do not proceed with registration.</p>
 
                             <p><strong>2. User Eligibility</strong></p>
-                            <p>You must be a current student, faculty member, or staff of the University of Science and Technology of Southern Philippines (USTP) to register. You must provide a valid, pre-authorized ID number issued by the counseling office.</p>
+                            <p>You must be a current student, faculty member, or Non-Teaching Staff of the University of Science and Technology of Southern Philippines (USTP) to register. You must provide a valid, pre-authorized ID number issued by the counseling office.</p>
 
                             <p><strong>3. Account Security</strong></p>
                             <p>You are responsible for maintaining the confidentiality of your account credentials. You agree to notify the counseling office immediately of any unauthorized use of your account.</p>
@@ -344,7 +344,7 @@
             roleBadge.className = 'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800';
             showFacultyStaffFields('faculty');
         } else if (role === 'staff') {
-            roleText.textContent = 'Staff';
+            roleText.textContent = 'Non-Teaching Staff';
             roleBadge.className = 'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800';
             showFacultyStaffFields('staff');
         }
@@ -360,14 +360,19 @@
         document.getElementById('facultyStaffFields').classList.add('hidden');
         
         // Enable student fields
-        document.getElementById('student_first_name').required = true;
-        document.getElementById('student_last_name').required = true;
-        document.getElementById('student_email').required = true;
-        document.getElementById('student_phone').required = true;
-        document.getElementById('student_id').required = true;
-        document.getElementById('course_category').required = true;
-        document.getElementById('student_password').required = true;
-        document.getElementById('student_password_confirmation').required = true;
+        const studentFields = [
+            'student_first_name', 'student_last_name', 'student_email', 
+            'student_phone', 'student_id', 'course_category', 
+            'student_password', 'student_password_confirmation'
+        ];
+        
+        studentFields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.required = true;
+                field.disabled = false;
+            }
+        });
         
         // Disable faculty/staff fields
         disableFacultyStaffFields();
@@ -378,19 +383,25 @@
         document.getElementById('facultyStaffFields').classList.remove('hidden');
         
         // Disable student fields
-        document.getElementById('student_first_name').required = false;
-        document.getElementById('student_last_name').required = false;
-        document.getElementById('student_email').required = false;
-        document.getElementById('student_phone').required = false;
-        document.getElementById('student_id').required = false;
-        document.getElementById('course_category').required = false;
-        document.getElementById('student_password').required = false;
-        document.getElementById('student_password_confirmation').required = false;
+        const studentFields = [
+            'student_first_name', 'student_last_name', 'student_email', 
+            'student_phone', 'student_id', 'course_category', 
+            'student_password', 'student_password_confirmation'
+        ];
+        
+        studentFields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.required = false;
+                field.disabled = true;
+            }
+        });
         
         // Enable faculty/staff fields
         document.querySelectorAll('.fs-input').forEach(input => {
-            if (input.name !== 'middle_name' && input.name !== 'name_extension' && input.name !== 'faculty_id' && input.name !== 'staff_id') {
+            if (input.name !== 'middle_name' && input.name !== 'name_extension') {
                 input.required = true;
+                input.disabled = false;
             }
         });
         
@@ -398,20 +409,49 @@
         if (type === 'faculty') {
             document.getElementById('facultyIdField').classList.remove('hidden');
             document.getElementById('staffIdField').classList.add('hidden');
-            document.getElementById('faculty_id').required = true;
-            document.getElementById('staff_id').required = false;
+            const facultyIdField = document.getElementById('faculty_id');
+            const staffIdField = document.getElementById('staff_id');
+            if (facultyIdField) {
+                facultyIdField.required = true;
+                facultyIdField.disabled = false;
+            }
+            if (staffIdField) {
+                staffIdField.required = false;
+                staffIdField.disabled = true;
+            }
         } else {
             document.getElementById('facultyIdField').classList.add('hidden');
             document.getElementById('staffIdField').classList.remove('hidden');
-            document.getElementById('faculty_id').required = false;
-            document.getElementById('staff_id').required = true;
+            const facultyIdField = document.getElementById('faculty_id');
+            const staffIdField = document.getElementById('staff_id');
+            if (facultyIdField) {
+                facultyIdField.required = false;
+                facultyIdField.disabled = true;
+            }
+            if (staffIdField) {
+                staffIdField.required = true;
+                staffIdField.disabled = false;
+            }
         }
     }
 
     function disableFacultyStaffFields() {
         document.querySelectorAll('.fs-input').forEach(input => {
             input.required = false;
+            input.disabled = true;
         });
+        
+        // Also disable ID fields
+        const facultyIdField = document.getElementById('faculty_id');
+        const staffIdField = document.getElementById('staff_id');
+        if (facultyIdField) {
+            facultyIdField.required = false;
+            facultyIdField.disabled = true;
+        }
+        if (staffIdField) {
+            staffIdField.required = false;
+            staffIdField.disabled = true;
+        }
     }
 
     function togglePasswordVisibility(inputId, button) {
@@ -437,11 +477,28 @@
         @if ($errors->any())
             const oldRole = '{{ old('role', 'student') }}';
             selectRole(oldRole);
+            console.log('Validation errors detected, restoring role:', oldRole);
         @endif
 
         // Prevent form submission and show modal
         form.addEventListener('submit', function(e) {
             e.preventDefault();
+            
+            // Log form data for debugging
+            const formData = new FormData(form);
+            console.log('Form data being submitted:');
+            for (let [key, value] of formData.entries()) {
+                console.log(key + ': ' + value);
+            }
+            
+            // Validate form before showing modal
+            if (!form.checkValidity()) {
+                console.log('Form validation failed');
+                form.reportValidity();
+                return;
+            }
+            
+            console.log('Form validation passed, showing terms modal');
             modal.classList.remove('hidden');
             termsContent.scrollTop = 0;
             agreeCheckbox.checked = false;
@@ -473,7 +530,18 @@
         // Agree button submits the form
         agreeBtn.addEventListener('click', function() {
             modal.classList.add('hidden');
-            form.submit();
+            
+            // Ensure all required fields are properly set before submission
+            const role = selectedRole;
+            const formData = new FormData(form);
+            
+            // Force validation and submit
+            if (form.checkValidity()) {
+                form.submit();
+            } else {
+                // If validation fails, show the issues
+                form.reportValidity();
+            }
         });
 
         // Disagree button closes modal

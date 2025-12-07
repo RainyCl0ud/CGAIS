@@ -206,6 +206,10 @@
                                                         class="w-full px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors">
                                                     ⚠ Mark as No Show
                                                 </button>
+                                                <button onclick="markAsDone('{{ $appointment->id }}')" 
+                                                        class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                                                    ✓ Mark as Done
+                                                </button>
                                             @endif
                                         @elseif($appointment->status === 'completed')
                                             <div class="p-3 bg-green-100 border border-green-400 text-green-700 rounded text-center">
@@ -503,6 +507,31 @@
 
             document.body.appendChild(form);
             form.submit();
+        }
+
+        // Mark as Done function
+        function markAsDone(appointmentId) {
+            if (confirm('Are you sure you want to mark this appointment as done? It will be moved to session history.')) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/appointments/${appointmentId}/mark-done`;
+
+                const csrfToken = document.createElement('input');
+                csrfToken.type = 'hidden';
+                csrfToken.name = '_token';
+                csrfToken.value = '{{ csrf_token() }}';
+
+                const methodField = document.createElement('input');
+                methodField.type = 'hidden';
+                methodField.name = '_method';
+                methodField.value = 'PATCH';
+
+                form.appendChild(csrfToken);
+                form.appendChild(methodField);
+
+                document.body.appendChild(form);
+                form.submit();
+            }
         }
 
         // Modal functions
