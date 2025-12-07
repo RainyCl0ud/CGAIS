@@ -43,7 +43,8 @@ class RegisteredUserController extends Controller
             'student_id' => ['required_if:role,student', 'nullable', 'string', 'unique:users,student_id', 'exclude_unless:role,student'],
             'faculty_id' => ['required_if:role,faculty', 'nullable', 'string', 'unique:users,faculty_id', 'exclude_unless:role,faculty'],
             'staff_id' => ['required_if:role,staff', 'nullable', 'string', 'unique:users,staff_id', 'exclude_unless:role,staff'],
-            'course_category' => ['required_if:role,student', 'nullable', 'in:BSIT,BTLED,BAT', 'exclude_unless:role,student'],
+            'course_category' => ['required_if:role,student', 'nullable', 'in:BSIT,BTLED,BAT,BSA', 'exclude_unless:role,student'],
+            'year_level' => ['required_if:role,student', 'nullable', 'in:1st Year,2nd Year,3rd Year,4th Year,5th Year', 'exclude_unless:role,student'],
         ]);
 
         // Pre-approved ID check using AuthorizedId system
@@ -86,6 +87,7 @@ class RegisteredUserController extends Controller
             'faculty_id' => $request->role === 'faculty' ? $request->faculty_id : null,
             'staff_id' => $request->role === 'staff' ? $request->staff_id : null,
             'course_category' => $request->role === 'student' ? $request->course_category : null,
+            'year_level' => $request->role === 'student' ? $request->year_level : null,
         ]);
 
         // Mark authorized ID as used

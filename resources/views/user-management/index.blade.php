@@ -106,18 +106,8 @@
                                         </td>
                                         <td class="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium" onclick="event.stopPropagation()">
                                             @if(auth()->user()->isCounselor())
-                                                <div class="flex flex-col sm:flex-row space-y-1 sm:space-y-0 sm:space-x-2">
-                                                    <a href="{{ route('users.edit', $user) }}" 
-                                                       class="text-indigo-600 hover:text-indigo-900 text-xs sm:text-sm">Edit</a>
-                                                    @if($user->id !== auth()->id())
-                                                        <form method="POST" action="{{ route('users.destroy', $user) }}" 
-                                                              class="inline" onsubmit="return confirm('Are you sure you want to delete this user?')">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button type="submit" class="text-red-600 hover:text-red-900 text-xs sm:text-sm">Delete</button>
-                                                        </form>
-                                                    @endif
-                                                </div>
+                                                <a href="{{ route('users.edit', $user) }}" 
+                                                   class="text-indigo-600 hover:text-indigo-900 text-xs sm:text-sm">Edit</a>
                                             @else
                                                 <span class="text-gray-400 text-xs">View only</span>
                                             @endif

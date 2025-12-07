@@ -11,7 +11,7 @@ if (!isset($upcomingAppointments)) {
                     <div class="mb-6">
                         <h1 class="text-xl lg:text-2xl xl:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-4">
                             <span>
-                                Welcome, {{ auth()->user()->isCounselor() || auth()->user()->isAssistant() ? 'Dr. ' : '' }}{{ Auth::user()->full_name }}!
+                                Welcome, {{ auth()->user()->isCounselor() ? 'Dr. ' : '' }}{{ auth()->user()->isAssistant() ? 'Assistant ' : '' }}{{ Auth::user()->full_name }}!
                             </span>
                             @if(isset($nextAppointment) && $nextAppointment)
                                 <span class="text-sm font-medium text-gray-700 bg-yellow-100 border border-yellow-300 rounded-md px-3 py-1">
@@ -262,6 +262,10 @@ if (!isset($upcomingAppointments)) {
                                 <a href="{{ route('appointments.index') }}" 
                                    class="px-3 sm:px-6 py-2 sm:py-3 bg-[#FFD700] text-[#1E3A8A] font-semibold rounded-lg hover:bg-[#FFE44D] transition-colors text-sm">
                                     View Appointments
+                                </a>
+                                <a href="{{ route('students.index') }}" 
+                                   class="px-3 sm:px-6 py-2 sm:py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors text-sm">
+                                    Student Directory
                                 </a>
                                 @if(auth()->user()->isCounselor())
                                     <a href="{{ route('schedules.index') }}" 

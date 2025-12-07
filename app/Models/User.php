@@ -31,6 +31,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'faculty_id',
         'staff_id',
         'course_category',
+        'year_level',
         'pending_email',
         'pending_email_token',
     ];

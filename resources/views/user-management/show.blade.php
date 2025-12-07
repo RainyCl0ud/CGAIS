@@ -159,22 +159,7 @@
                         </div>
                     @endif
 
-                    <!-- Danger Zone - Only visible to counselors -->
-                    @if(auth()->user()->isCounselor() && $user->id !== auth()->id())
-                        <div class="mt-8 bg-red-50 p-6 rounded-lg border border-red-200">
-                            <h2 class="text-xl font-semibold text-red-900 mb-4">Danger Zone</h2>
-                            <p class="text-sm text-gray-700 mb-4">Once you delete a user, there is no going back. Please be certain.</p>
-                            <form method="POST" action="{{ route('users.destroy', $user) }}" 
-                                  onsubmit="return confirm('Are you absolutely sure you want to delete this user? This action cannot be undone.')">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" 
-                                        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
-                                    Delete User
-                                </button>
-                            </form>
-                        </div>
-                    @endif
+
                 </div>
             </div>
         </main>

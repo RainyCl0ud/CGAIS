@@ -254,10 +254,12 @@
                                                        class="text-indigo-600 hover:text-indigo-900">
                                                         View Profile
                                                     </a>
-                                                    <a href="{{ route('students.pds', $student) }}" 
-                                                       class="text-green-600 hover:text-green-900">
-                                                        View PDS
-                                                    </a>
+                                                    @if(auth()->user()->isCounselor())
+                                                        <a href="{{ route('students.pds', $student) }}" 
+                                                           class="text-green-600 hover:text-green-900">
+                                                            View PDS
+                                                        </a>
+                                                    @endif
                                                 </div>
                                             </td>
                                         </tr>

@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 use App\Notifications\AppointmentStatusNotification;
+use App\Notifications\AssistantAppointmentNotification;
 
 class AppointmentManager extends Component
 {
@@ -314,7 +315,13 @@ class AppointmentManager extends Component
             'status' => 'pending',
         ];
 
-        Appointment::create($appointmentData);
+        $appointment = Appointment::create($appointmentData);
+
+        // Send email notifications to all assistants about the new appointment
+        $assistants = User::where('role', 'assistant')->get();
+        foreach ($assistants as $assistant) {
+            $assistant->notify(new AssistantAppointmentNotification($appointment, 'booked'));
+        }
 
         session()->flash('success', 'Appointment created successfully.');
         $this->closeModals();
@@ -344,6 +351,12 @@ class AppointmentManager extends Component
             'notes' => $this->notes,
             'status' => 'pending',
         ]);
+
+        // Send email notifications to assistants about the rescheduled appointment
+        $assistants = User::where('role', 'assistant')->get();
+        foreach ($assistants as $assistant) {
+            $assistant->notify(new AssistantAppointmentNotification($this->selectedAppointment, 'rescheduled', 'Rescheduled by user'));
+        }
 
         session()->flash('success', 'Appointment updated successfully.');
         $this->closeModals();
@@ -501,6 +514,23 @@ class AppointmentManager extends Component
             
             // Send email notification to counselor (student is cancelling, so counselor receives email)
             $appointment->counselor->notify(new AppointmentStatusNotification($appointment, 'cancelled', 'Cancelled by student'));
+
+            // Send email notifications to assistants
+            $assistants = User::where('role', 'assistant')->get();
+            foreach ($assistants as $assistant) {
+                // Send system notification
+                $assistant->notifications()->create([
+                    'appointment_id' => $appointment->id,
+                    'title' => 'Appointment Cancelled by Student',
+                    'message' => "The appointment with {$appointment->user->full_name} on {$appointment->appointment_date->format('M d, Y')} has been cancelled by the student.",
+                    'type' => 'appointment_cancelled',
+                    'is_read' => false,
+                    'read_at' => null,
+                ]);
+                
+                // Send email notification
+                $assistant->notify(new AssistantAppointmentNotification($appointment, 'cancelled', 'Cancelled by student'));
+            }
         }
 
         session()->flash('success', 'Appointment cancelled successfully.');

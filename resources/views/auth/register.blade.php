@@ -95,11 +95,26 @@
                         <x-text-input id="student_first_name" class="block mt-1 w-full" type="text" name="first_name" :value="old('first_name')" required autofocus placeholder="Juan" />
                         <x-input-error :messages="$errors->get('first_name')" class="mt-2" />
                     </div>
+                    <!-- Middle Name -->
+                    <div class="relative">
+                        <x-input-label for="student_middle_name" :value="__('Middle Name (optional)')" />
+                        <x-text-input id="student_middle_name" class="block mt-1 w-full" type="text" name="middle_name" :value="old('middle_name')" placeholder="Santos" />
+                        <x-input-error :messages="$errors->get('middle_name')" class="mt-2" />
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <!-- Last Name -->
                     <div class="relative">
                         <x-input-label for="student_last_name" :value="__('Last Name')" />
                         <x-text-input id="student_last_name" class="block mt-1 w-full" type="text" name="last_name" :value="old('last_name')" required placeholder="Dela Cruz" />
                         <x-input-error :messages="$errors->get('last_name')" class="mt-2" />
+                    </div>
+                    <!-- Name Extension -->
+                    <div class="relative">
+                        <x-input-label for="student_name_extension" :value="__('Name Extension (optional)')" />
+                        <x-text-input id="student_name_extension" class="block mt-1 w-full" type="text" name="name_extension" :value="old('name_extension')" placeholder="Jr., Sr., III" />
+                        <x-input-error :messages="$errors->get('name_extension')" class="mt-2" />
                     </div>
                 </div>
 
@@ -133,8 +148,23 @@
                         <option value="BSIT" {{ old('course_category') == 'BSIT' ? 'selected' : '' }}>BSIT - Bachelor of Science in Information Technology</option>
                         <option value="BTLED" {{ old('course_category') == 'BTLED' ? 'selected' : '' }}>BTLED - Bachelor of Technology and Livelihood Education</option>
                         <option value="BAT" {{ old('course_category') == 'BAT' ? 'selected' : '' }}>BAT - Bachelor of Agricultural Technology</option>
+                        <option value="BSA" {{ old('course_category') == 'BSA' ? 'selected' : '' }}>BSA - Bachelor of Science in Agriculture Major in Precision Agriculture</option>
                     </select>
                     <x-input-error :messages="$errors->get('course_category')" class="mt-2" />
+                </div>
+
+                <!-- Year Level -->
+                <div class="relative">
+                    <x-input-label for="year_level" :value="__('Year Level')" />
+                    <select id="year_level" name="year_level" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
+                        <option value="">Select Year Level</option>
+                        <option value="1st Year" {{ old('year_level') == '1st Year' ? 'selected' : '' }}>1st Year</option>
+                        <option value="2nd Year" {{ old('year_level') == '2nd Year' ? 'selected' : '' }}>2nd Year</option>
+                        <option value="3rd Year" {{ old('year_level') == '3rd Year' ? 'selected' : '' }}>3rd Year</option>
+                        <option value="4th Year" {{ old('year_level') == '4th Year' ? 'selected' : '' }}>4th Year</option>
+                        <option value="5th Year" {{ old('year_level') == '5th Year' ? 'selected' : '' }}>5th Year</option>
+                    </select>
+                    <x-input-error :messages="$errors->get('year_level')" class="mt-2" />
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -361,8 +391,8 @@
         
         // Enable student fields
         const studentFields = [
-            'student_first_name', 'student_last_name', 'student_email', 
-            'student_phone', 'student_id', 'course_category', 
+            'student_first_name', 'student_middle_name', 'student_last_name', 'student_name_extension',
+            'student_email', 'student_phone', 'student_id', 'course_category', 'year_level',
             'student_password', 'student_password_confirmation'
         ];
         
@@ -384,8 +414,8 @@
         
         // Disable student fields
         const studentFields = [
-            'student_first_name', 'student_last_name', 'student_email', 
-            'student_phone', 'student_id', 'course_category', 
+            'student_first_name', 'student_middle_name', 'student_last_name', 'student_name_extension',
+            'student_email', 'student_phone', 'student_id', 'course_category', 'year_level',
             'student_password', 'student_password_confirmation'
         ];
         

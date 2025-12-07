@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\RedirectResponse;
 use App\Notifications\AppointmentStatusNotification;
+use App\Notifications\AssistantAppointmentNotification;
 
 class AppointmentController extends Controller
 {
@@ -187,6 +188,12 @@ class AppointmentController extends Controller
 
         $appointment = Appointment::create($appointmentData);
 
+        // Send email notifications to all assistants about the new appointment
+        $assistants = User::where('role', 'assistant')->get();
+        foreach ($assistants as $assistant) {
+            $assistant->notify(new AssistantAppointmentNotification($appointment, 'booked'));
+        }
+
         $successMessage = $request->type === 'urgent'
             ? 'URGENT appointment requested successfully. The counselor will review your request and may contact you for immediate assistance.'
             : 'Appointment requested successfully. Please wait for confirmation.';
@@ -345,6 +352,12 @@ class AppointmentController extends Controller
             'status' => 'pending',
         ]);
 
+        // Send email notifications to assistants about the rescheduled appointment
+        $assistants = User::where('role', 'assistant')->get();
+        foreach ($assistants as $assistant) {
+            $assistant->notify(new AssistantAppointmentNotification($appointment, 'rescheduled', 'Rescheduled by user'));
+        }
+
         return redirect()->route('appointments.index')->with('success', 'Appointment rescheduled successfully. Please wait for counselor confirmation.');
     }
 
@@ -416,9 +429,10 @@ class AppointmentController extends Controller
         // Send email notification to counselor (student is cancelling)
         $counselor->notify(new AppointmentStatusNotification($appointment, 'cancelled', 'Cancelled by student'));
 
-        // Notify assistant(s) as well
+        // Send email notifications to assistants
         $assistants = User::where('role', 'assistant')->get();
         foreach ($assistants as $assistant) {
+            // Send system notification
             $assistant->notifications()->create([
                 'appointment_id' => $appointment->id,
                 'title' => 'Appointment Cancelled by Student',
@@ -427,6 +441,9 @@ class AppointmentController extends Controller
                 'is_read' => false,
                 'read_at' => null,
             ]);
+            
+            // Send email notification
+            $assistant->notify(new AssistantAppointmentNotification($appointment, 'cancelled', 'Cancelled by student'));
         }
 
         return redirect()->route('appointments.index')->with('success', 'Appointment cancelled successfully.');

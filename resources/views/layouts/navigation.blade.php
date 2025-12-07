@@ -46,7 +46,10 @@
                                         {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
                                     </span>
                                 </div> --}}
-                                <span class="hidden sm:block">{{ Auth::user()->full_name }}</span>
+                                <div class="flex flex-col">
+                                    <span class="hidden sm:block">{{ Auth::user()->full_name }}</span>
+                                    <span class="hidden sm:block text-xs text-gray-500">{{ Auth::user()->getRoleDisplayName() }}</span>
+                                </div>
                             </div>
 
                             <div class="ml-2">
