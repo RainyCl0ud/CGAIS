@@ -64,7 +64,7 @@ class AssistantAppointmentNotification extends Notification
                     ->line("🕐 **Time:** {$appointmentTime}")
                     ->line("👤 **Client:** " . $this->appointment->user->full_name)
                     ->line("📧 **Client Email:** " . $this->appointment->user->email)
-                    ->line("👨‍⚕️ **Counselor:** " . ($this->appointment->counselor->full_name ?? 'To be assigned'))
+                    ->line("👨‍⚕️ **Counselor:** " . ($this->appointment->counselor?->full_name ?? 'To be assigned'))
                     ->line("🏥 **Type:** " . $this->appointment->getTypeLabel())
                     ->line("📝 **Reason:** " . ($this->appointment->reason ?? 'Not specified'))
                     ->line('')
@@ -79,7 +79,7 @@ class AssistantAppointmentNotification extends Notification
                     ->line("🕐 **Time:** {$appointmentTime}")
                     ->line("👤 **Client:** " . $this->appointment->user->full_name)
                     ->line("📧 **Client Email:** " . $this->appointment->user->email)
-                    ->line("👨‍⚕️ **Counselor:** " . ($this->appointment->counselor->full_name ?? 'To be assigned'))
+                    ->line("👨‍⚕️ **Counselor:** " . ($this->appointment->counselor?->full_name ?? 'To be assigned'))
                     ->line("🏥 **Type:** " . $this->appointment->getTypeLabel());
                 
                 if ($this->reason) {
@@ -99,7 +99,7 @@ class AssistantAppointmentNotification extends Notification
                     ->line("🕐 **Time:** {$appointmentTime}")
                     ->line("👤 **Client:** " . $this->appointment->user->full_name)
                     ->line("📧 **Client Email:** " . $this->appointment->user->email)
-                    ->line("👨‍⚕️ **Counselor:** " . ($this->appointment->counselor->full_name ?? 'To be assigned'));
+                    ->line("👨‍⚕️ **Counselor:** " . ($this->appointment->counselor?->full_name ?? 'To be assigned'));
                 
                 if ($this->reason) {
                     $message->line('')
@@ -152,7 +152,7 @@ class AssistantAppointmentNotification extends Notification
             'client_email' => $this->appointment->user->email,
             'appointment_date' => $this->appointment->appointment_date->toDateString(),
             'appointment_time' => $this->appointment->start_time->format('H:i'),
-            'counselor_name' => $this->appointment->counselor->full_name ?? null,
+            'counselor_name' => $this->appointment->counselor?->full_name ?? null,
             'type' => $this->appointment->type,
             'reason' => $this->reason,
         ];
