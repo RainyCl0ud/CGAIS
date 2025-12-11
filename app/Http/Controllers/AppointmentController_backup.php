@@ -708,7 +708,8 @@ class AppointmentController extends Controller
         }
 
         $appointment->update([
-            'status' => 'confirmed'
+            'status' => 'confirmed',
+            'counselor_notes' => $appointment->counselor_notes . "\n\n[Approved on " . now()->format('M d, Y g:i A') . "]"
         ]);
 
         // Notify the approved student
@@ -779,7 +780,8 @@ class AppointmentController extends Controller
         $request->validate(['rejection_reason' => 'required|string|max:500']);
 
         $appointment->update([
-            'status' => 'cancelled'
+            'status' => 'cancelled',
+            'counselor_notes' => $appointment->counselor_notes . "\n\n[Rejected on " . now()->format('M d, Y g:i A') . " - Reason: {$request->rejection_reason}]"
         ]);
 
         $appointment->user->notifications()->create([
@@ -874,7 +876,8 @@ class AppointmentController extends Controller
         $appointment->update([
             'appointment_date' => $request->new_appointment_date,
             'start_time' => $request->new_start_time,
-            'end_time' => $request->new_end_time
+            'end_time' => $request->new_end_time,
+            'counselor_notes' => $appointment->counselor_notes . "\n\n[Rescheduled on " . now()->format('M d, Y g:i A') . " from {$oldDateTime} to " . $appointment->getFormattedDateTime() . " - Reason: {$request->reschedule_reason}]"
         ]);
 
         $appointment->user->notifications()->create([
@@ -933,7 +936,8 @@ class AppointmentController extends Controller
         }
 
         $appointment->update([
-            'status' => 'completed'
+            'status' => 'completed',
+            'counselor_notes' => $appointment->counselor_notes . "\n\n[Marked as Done on " . now()->format('M d, Y g:i A') . "]"
         ]);
 
         // Notify the student that their appointment is completed

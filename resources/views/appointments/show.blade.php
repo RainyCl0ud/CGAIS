@@ -228,9 +228,20 @@
                                     @elseif(auth()->user()->isAssistant())
                                         <!-- Assistant Status Actions (Same privileges as Counselor) -->
                                         @if($appointment->status === 'pending')
-                                            <div class="p-3 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded text-center">
-                                                ⚠ Pending Counselor Approval
-                                            </div>
+                                            <button onclick="approveAppointment('{{ $appointment->id }}')"
+                                                    class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                                                ✓ Approve Appointment
+                                            </button>
+                                            
+                                            <button onclick="showRejectModal('{{ $appointment->id }}')"
+                                                    class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                                                ✗ Reject Appointment
+                                            </button>
+                                            
+                                            <button onclick="showRescheduleModal('{{ $appointment->id }}')"
+                                                    class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                                                🔄 Reschedule Appointment
+                                            </button>
                                         @elseif($appointment->status === 'confirmed')
                                             <button onclick="confirmStatusChange('{{ $appointment->id }}', 'cancelled', 'Confirmed', 'Cancelled')" 
                                                     class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
