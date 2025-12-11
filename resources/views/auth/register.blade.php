@@ -391,7 +391,7 @@
         
         // Enable student fields
         const studentFields = [
-            'student_first_name', 'student_middle_name', 'student_last_name', 'student_name_extension',
+            'student_first_name', 'student_middle_name', 'student_last_name',
             'student_email', 'student_phone', 'student_id', 'course_category', 'year_level',
             'student_password', 'student_password_confirmation'
         ];
@@ -399,7 +399,10 @@
         studentFields.forEach(fieldId => {
             const field = document.getElementById(fieldId);
             if (field) {
-                field.required = true;
+                // Middle name and name extension should not be required for students
+                if (fieldId !== 'student_middle_name' && fieldId !== 'student_name_extension') {
+                    field.required = true;
+                }
                 field.disabled = false;
             }
         });
