@@ -81,7 +81,7 @@
             <input type="hidden" name="role" id="roleInput" value="student">
 
             @if ($errors->any())
-                <div class="mb-4 p-3 rounded bg-red-100 border border-red-300 text-red-700 text-sm">
+                <div class="mb-4 p-3 rounded bg-red-100 border-red-400 text-red-700">
                     {{ $errors->first() }}
                 </div>
             @endif
@@ -121,7 +121,7 @@
                 <!-- Email Address -->
                 <div class="relative">
                     <x-input-label for="student_email" :value="__('Email Address')" />
-                    <x-text-input id="student_email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required placeholder="juan.delacruz@example.com" />
+                    <x-text-input id="student_email" class="block mt-1 w-full" type="email" name="email" autocomplete="off" required placeholder="juan.delacruz@example.com" />
                     <x-input-error :messages="$errors->get('email')" class="mt-2" />
                 </div>
 
@@ -172,7 +172,7 @@
                     <div class="relative">
                         <x-input-label for="student_password" :value="__('Password')" />
                         <div class="relative">
-                            <x-text-input id="student_password" class="block mt-1 w-full pr-10" type="password" name="password" required placeholder="Enter your password" />
+                            <x-text-input id="student_password" class="block mt-1 w-full pr-10" type="password" name="password" autocomplete="new-password" required placeholder="Enter your password" />
                             <button type="button" class="absolute inset-y-0 end-0 px-3 flex items-center text-gray-600" onclick="togglePasswordVisibility('student_password', this)" tabindex="-1">
                                 <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -186,7 +186,7 @@
                     <div class="relative">
                         <x-input-label for="student_password_confirmation" :value="__('Confirm Password')" />
                         <div class="relative">
-                            <x-text-input id="student_password_confirmation" class="block mt-1 w-full pr-10" type="password" name="password_confirmation" required placeholder="Confirm your password" />
+                            <x-text-input id="student_password_confirmation" class="block mt-1 w-full pr-10" type="password" name="password_confirmation" autocomplete="new-password" required placeholder="Confirm your password" />
                             <button type="button" class="absolute inset-y-0 end-0 px-3 flex items-center text-gray-600" onclick="togglePasswordVisibility('student_password_confirmation', this)" tabindex="-1">
                                 <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -234,7 +234,7 @@
                 <!-- Email Address -->
                 <div class="relative">
                     <x-input-label for="fs_email" :value="__('Email Address')" />
-                    <x-text-input id="fs_email" class="block mt-1 w-full fs-input" type="email" name="email" :value="old('email')" placeholder="juan.delacruz@ustp.edu.ph" />
+                    <x-text-input id="fs_email" class="block mt-1 w-full fs-input" type="email" name="email" autocomplete="off" placeholder="juan.delacruz@ustp.edu.ph" />
                     <x-input-error :messages="$errors->get('email')" class="mt-2" />
                 </div>
 
@@ -265,7 +265,7 @@
                     <div class="relative">
                         <x-input-label for="fs_password" :value="__('Password')" />
                         <div class="relative">
-                            <x-text-input id="fs_password" class="block mt-1 w-full pr-10 fs-input" type="password" name="password" placeholder="Enter your password" />
+                            <x-text-input id="fs_password" class="block mt-1 w-full pr-10 fs-input" type="password" name="password" autocomplete="new-password" placeholder="Enter your password" />
                             <button type="button" class="absolute inset-y-0 end-0 px-3 flex items-center text-gray-600" onclick="togglePasswordVisibility('fs_password', this)" tabindex="-1">
                                 <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -279,7 +279,7 @@
                     <div class="relative">
                         <x-input-label for="fs_password_confirmation" :value="__('Confirm Password')" />
                         <div class="relative">
-                            <x-text-input id="fs_password_confirmation" class="block mt-1 w-full pr-10 fs-input" type="password" name="password_confirmation" placeholder="Confirm your password" />
+                            <x-text-input id="fs_password_confirmation" class="block mt-1 w-full pr-10 fs-input" type="password" name="password_confirmation" autocomplete="new-password" placeholder="Confirm your password" />
                             <button type="button" class="absolute inset-y-0 end-0 px-3 flex items-center text-gray-600" onclick="togglePasswordVisibility('fs_password_confirmation', this)" tabindex="-1">
                                 <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />

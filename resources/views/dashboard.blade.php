@@ -23,7 +23,7 @@ if (!isset($upcomingAppointments)) {
                     </div>
 
                     @if(session('success'))
-                        <div class="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">
+                        <div class="mb-6 p-4 bg-green-100 border-green-400 text-green-700 rounded-lg text-sm">
                             {{ session('success') }}
                         </div>
                     @endif

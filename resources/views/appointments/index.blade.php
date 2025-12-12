@@ -22,7 +22,7 @@
                     </div>
 
                     @if(session('success'))
-                        <div class="mb-4 p-3 sm:p-4 bg-green-100 border border-green-400 text-green-700 rounded text-sm">
+                        <div class="mb-4 p-3 sm:p-4 bg-green-100 border-green-400 text-green-700 rounded text-sm">
                             {{ session('success') }}
                         </div>
                     @endif
