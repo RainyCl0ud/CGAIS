@@ -9,7 +9,7 @@
             <div class="flex justify-between items-center mb-6">
                 <div>
                     <h2 class="text-2xl font-bold text-gray-900">{{ $student->getFullNameAttribute() }}</h2>
-                    <p class="text-gray-600">{{ $student->email }}</p>
+                    <p class="text-gray-600">{{ $student->role }}</p>
                 </div>
                 <div class="flex space-x-2">
                     <a href="{{ route('students.index') }}" 
@@ -57,11 +57,11 @@
                             <div class="mt-2 space-y-1">
                                 <p class="text-sm text-gray-900">
                                     <span class="font-medium">Course:</span> 
-                                    {{ $student->personalDataSheet->course ?? 'Not specified' }}
+                                    {{ $student->personalDataSheet->course ?? $student->course_category ?? 'Not specified' }}
                                 </p>
                                 <p class="text-sm text-gray-900">
                                     <span class="font-medium">Year Level:</span> 
-                                    {{ $student->personalDataSheet->year_level ?? 'Not specified' }}
+                                    {{ $student->personalDataSheet->year_level ?? $student->year_level ?? 'Not specified' }}
                                 </p>
                             </div>
                         </div>
@@ -71,11 +71,11 @@
                             <div class="mt-2 space-y-1">
                                 <p class="text-sm text-gray-900">
                                     <span class="font-medium">Mobile:</span> 
-                                    {{ $student->personalDataSheet->mobile_number ?? 'Not provided' }}
+                                    {{ $student->personalDataSheet->mobile_number ?? $student->phone_number ?? 'Not provided' }}
                                 </p>
                                 <p class="text-sm text-gray-900">
-                                    <span class="font-medium">Telephone:</span> 
-                                    {{ $student->personalDataSheet->telephone_number ?? 'Not provided' }}
+                                    <span class="font-medium">Email Address:</span> 
+                                    {{ $student->email ?? 'Not provided' }}
                                 </p>
                             </div>
                         </div>
@@ -98,7 +98,7 @@
                                     </p>
                                 @else
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                        No PDS Found
+                                        Not Completed
                                     </span>
                                 @endif
                             </div>

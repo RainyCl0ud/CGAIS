@@ -81,7 +81,9 @@
                             <p class="text-lg font-semibold">{{ $student->getFullNameAttribute() }}</p>
                             <p class="text-sm text-gray-600">Student ID: {{ $student->student_id ?? 'N/A' }}</p>
                             @if($student->personalDataSheet && $student->personalDataSheet->course)
-                                <p class="text-sm text-gray-600">{{ $student->personalDataSheet->course }} - {{ $student->personalDataSheet->year_level ?? '' }}</p>
+                                <p class="text-sm text-gray-600">{{ $student->personalDataSheet->course }} - {{ $student->personalDataSheet->year_level ?? $student->year_level ?? '' }}</p>
+                            @elseif($student->course_category)
+                                <p class="text-sm text-gray-600">{{ $student->course_category }} - {{ $student->year_level ?? '' }}</p>
                             @endif
                         </div>
                     </div>
@@ -120,7 +122,7 @@
                         <div class="grid grid-cols-3 gap-x-4 mb-2">
                             <div>
                                 <label class="font-semibold">Course/Track:</label>
-                                <div class="border-b border-gray-400 pb-1">{{ $student->personalDataSheet->course ?: 'Not provided' }}</div>
+                                <div class="border-b border-gray-400 pb-1">{{ $student->personalDataSheet->course ?: $student->course_category ?: 'Not provided' }}</div>
                             </div>
                             <div>
                                 <label class="font-semibold">Major/Strand:</label>
@@ -128,7 +130,7 @@
                             </div>
                             <div>
                                 <label class="font-semibold">Grade/Year Level:</label>
-                                <div class="border-b border-gray-400 pb-1">{{ $student->personalDataSheet->year_level ?: 'Not provided' }}</div>
+                                <div class="border-b border-gray-400 pb-1">{{ $student->personalDataSheet->year_level ?: $student->year_level ?: 'Not provided' }}</div>
                             </div>
                         </div>
 
@@ -178,7 +180,7 @@
                             </div>
                             <div>
                                 <label class="font-semibold">Contact Number:</label>
-                                <div class="border-b border-gray-400 pb-1">{{ $student->personalDataSheet->contact_number ?: 'Not provided' }}</div>
+                                <div class="border-b border-gray-400 pb-1">{{ $student->personalDataSheet->contact_number ?: $student->phone_number ?: 'Not provided' }}</div>
                             </div>
                         </div>
 

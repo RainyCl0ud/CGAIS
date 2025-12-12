@@ -36,15 +36,19 @@ class StudentManagementController extends Controller
 
         // Filter by course
         if ($request->filled('course')) {
-            $query->whereHas('personalDataSheet', function ($q) use ($request) {
-                $q->where('course', $request->course);
+            $query->where(function ($q) use ($request) {
+                $q->whereHas('personalDataSheet', function ($subQ) use ($request) {
+                    $subQ->where('course', $request->course);
+                })->orWhere('course_category', $request->course);
             });
         }
 
         // Filter by year level
         if ($request->filled('year_level')) {
-            $query->whereHas('personalDataSheet', function ($q) use ($request) {
-                $q->where('year_level', $request->year_level);
+            $query->where(function ($q) use ($request) {
+                $q->whereHas('personalDataSheet', function ($subQ) use ($request) {
+                    $subQ->where('year_level', $request->year_level);
+                })->orWhere('year_level', $request->year_level);
             });
         }
 
@@ -107,17 +111,27 @@ class StudentManagementController extends Controller
         ];
 
         // Get unique courses and year levels for filters
-        $courses = PersonalDataSheet::whereNotNull('course')
+        $pdsCourses = PersonalDataSheet::whereNotNull('course')
             ->distinct()
-            ->pluck('course')
-            ->sort()
-            ->values();
+            ->pluck('course');
+            
+        $userCourses = User::where('role', 'student')
+            ->whereNotNull('course_category')
+            ->distinct()
+            ->pluck('course_category');
+            
+        $courses = $pdsCourses->merge($userCourses)->sort()->values();
 
-        $yearLevels = PersonalDataSheet::whereNotNull('year_level')
+        $pdsYearLevels = PersonalDataSheet::whereNotNull('year_level')
             ->distinct()
-            ->pluck('year_level')
-            ->sort()
-            ->values();
+            ->pluck('year_level');
+            
+        $userYearLevels = User::where('role', 'student')
+            ->whereNotNull('year_level')
+            ->distinct()
+            ->pluck('year_level');
+            
+        $yearLevels = $pdsYearLevels->merge($userYearLevels)->sort()->values();
 
         return view('student-management.index', compact(
             'students',
@@ -247,14 +261,18 @@ ActivityLogService::log(
         }
 
         if ($request->filled('course')) {
-            $query->whereHas('personalDataSheet', function ($q) use ($request) {
-                $q->where('course', $request->course);
+            $query->where(function ($q) use ($request) {
+                $q->whereHas('personalDataSheet', function ($subQ) use ($request) {
+                    $subQ->where('course', $request->course);
+                })->orWhere('course_category', $request->course);
             });
         }
 
         if ($request->filled('year_level')) {
-            $query->whereHas('personalDataSheet', function ($q) use ($request) {
-                $q->where('year_level', $request->year_level);
+            $query->where(function ($q) use ($request) {
+                $q->whereHas('personalDataSheet', function ($subQ) use ($request) {
+                    $subQ->where('year_level', $request->year_level);
+                })->orWhere('year_level', $request->year_level);
             });
         }
 
@@ -291,9 +309,9 @@ ActivityLogService::log(
                     $student->student_id ?? 'N/A',
                     $student->getFullNameAttribute(),
                     $student->email,
-                    $pds->course ?? 'N/A',
-                    $pds->year_level ?? 'N/A',
-                    $pds->mobile_number ?? 'N/A',
+                    $pds->course ?? $student->course_category ?? 'N/A',
+                    $pds->year_level ?? $student->year_level ?? 'N/A',
+                    $pds->mobile_number ?? $student->phone_number ?? 'N/A',
                     $pds ? $pds->getCompletionPercentage() . '%' : '0%',
                     $appointments->count(),
                     $appointments->where('status', 'completed')->count(),

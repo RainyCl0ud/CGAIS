@@ -212,15 +212,15 @@
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap">
                                                 <div class="text-sm text-gray-900">
-                                                    {{ $student->personalDataSheet->course ?? 'N/A' }}
+                                                    {{ $student->personalDataSheet->course ?? $student->course_category ?? 'N/A' }}
                                                 </div>
                                                 <div class="text-sm text-gray-500">
-                                                    {{ $student->personalDataSheet->year_level ?? 'N/A' }}
+                                                    {{ $student->personalDataSheet->year_level ?? $student->year_level ?? 'N/A' }}
                                                 </div>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap">
                                                 <div class="text-sm text-gray-900">
-                                                    {{ $student->personalDataSheet->mobile_number ?? 'N/A' }}
+                                                    {{ $student->personalDataSheet->mobile_number ?? $student->phone_number ?? 'N/A' }}
                                                 </div>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap">

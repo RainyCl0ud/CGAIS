@@ -2,23 +2,34 @@
     <div class="flex flex-col items-center justify-start py-4 sm:py-8 px-2 sm:px-4 overflow-auto">
             <div class="w-full max-w-7xl mx-auto">
                 <div class="bg-white/80 rounded-lg sm:rounded-2xl shadow-lg sm:shadow-2xl border border-blue-100 p-4 sm:p-8 backdrop-blur">
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6">
-                        <div> 
-                        <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-900">Appointments</h1>
-                        <p class="text-gray-600 text-xs sm:text-sm mt-1">View and manage your counseling appointments</p>
+                    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4 sm:mb-6">
+                        <div class="mb-4 sm:mb-0">
+                            <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-900">Appointments</h1>
+                            <p class="text-gray-600 text-xs sm:text-sm mt-1">View and manage your counseling appointments</p>
                         </div>
-                        @if(!auth()->user()->isCounselor() && !auth()->user()->isAssistant())
-                        <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 mt-3 sm:mt-0">
-                            <a href="{{ route('appointments.create') }}" 
-                               class="px-4 sm:px-6 py-2 sm:py-3 bg-blue-900 text-white font-semibold rounded-lg hover:bg-blue-800 transition-colors text-sm">
-                                Book Appointment
-                            </a>
-                            <a href="{{ route('appointments.create') }}?type=urgent" 
-                               class="px-4 sm:px-6 py-2 sm:py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors text-sm">
-                                Request Urgent
-                            </a>
+                        <div class="flex flex-col items-end gap-2">
+                            @if(request('search'))
+                                <a href="{{ url()->previous() }}"
+                                   class="inline-flex items-center px-3 py-1 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                                    </svg>
+                                    Back to Student Directory
+                                </a>
+                            @endif
+                            @if(!auth()->user()->isCounselor() && !auth()->user()->isAssistant())
+                                <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                                    <a href="{{ route('appointments.create') }}"
+                                       class="px-4 sm:px-6 py-2 sm:py-3 bg-blue-900 text-white font-semibold rounded-lg hover:bg-blue-800 transition-colors text-sm">
+                                        Book Appointment
+                                    </a>
+                                    <a href="{{ route('appointments.create') }}?type=urgent"
+                                       class="px-4 sm:px-6 py-2 sm:py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors text-sm">
+                                        Request Urgent
+                                    </a>
+                                </div>
+                            @endif
                         </div>
-                        @endif
                     </div>
 
                     @if(session('success'))

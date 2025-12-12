@@ -24,16 +24,26 @@ class AppointmentController extends Controller
         $appointments = collect();
 
         if ($user->isCounselor() || $user->isAssistant()) {
-            // Assistants and Counselors see all active appointments system-wide (not in session history)
-            $appointments = Appointment::with(['user', 'counselor'])
-                ->whereNotIn('status', ['completed', 'cancelled', 'no_show', 'failed'])
-                ->orderByRaw("CASE WHEN type = 'urgent' THEN 0 ELSE 1 END")
+            // Assistants and Counselors see all appointments system-wide
+            $query = Appointment::with(['user', 'counselor']);
+
+            // Handle search parameter for filtering by specific student
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $query->where(function($q) use ($search) {
+                    $q->whereHas('user', function($userQuery) use ($search) {
+                        $userQuery->where('email', 'like', "%{$search}%")
+                                 ->orWhere('id', '=', $search);
+                    });
+                });
+            }
+
+            $appointments = $query->orderByRaw("CASE WHEN type = 'urgent' THEN 0 ELSE 1 END")
                 ->orderBy('appointment_date')
                 ->orderBy('start_time')
                 ->paginate(10);
         } else {
             $appointments = $user->appointments()
-                ->whereNotIn('status', ['completed', 'cancelled', 'no_show', 'failed'])
                 ->orderByRaw("CASE WHEN type = 'urgent' THEN 0 ELSE 1 END")
                 ->orderBy('appointment_date')
                 ->orderBy('start_time')
