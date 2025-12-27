@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Course;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -43,7 +44,7 @@ class RegisteredUserController extends Controller
             'student_id' => ['required_if:role,student', 'nullable', 'string', 'unique:users,student_id', 'exclude_unless:role,student'],
             'faculty_id' => ['required_if:role,faculty', 'nullable', 'string', 'unique:users,faculty_id', 'exclude_unless:role,faculty'],
             'staff_id' => ['required_if:role,staff', 'nullable', 'string', 'unique:users,staff_id', 'exclude_unless:role,staff'],
-            'course_category' => ['required_if:role,student', 'nullable', 'in:BSIT,BTLED,BAT,BSA', 'exclude_unless:role,student'],
+            'course_id' => ['required_if:role,student', 'nullable', 'exists:courses,id', 'exclude_unless:role,student'],
             'year_level' => ['required_if:role,student', 'nullable', 'in:1st Year,2nd Year,3rd Year,4th Year,5th Year', 'exclude_unless:role,student'],
         ]);
 

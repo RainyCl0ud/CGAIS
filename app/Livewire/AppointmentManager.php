@@ -303,6 +303,16 @@ class AppointmentManager extends Component
             'reason' => 'required|string|max:1000',
         ]);
 
+        $appointmentDate = Carbon::parse($this->appointment_date);
+        $startTime = Carbon::parse($this->start_time);
+        $endTime = Carbon::parse($this->end_time);
+
+        $counselor = User::find($this->counselor_id);
+        if ($counselor && !$counselor->isAvailableForSlot($appointmentDate, $startTime, $endTime)) {
+            $this->addError('start_time', 'Counselor is not available during the selected time range.');
+            return;
+        }
+
         $appointmentData = [
             'user_id' => Auth::id(),
             'counselor_id' => $this->counselor_id,
@@ -339,6 +349,16 @@ class AppointmentManager extends Component
             'counseling_category' => 'required_if:type,regular|in:conduct_intake_interview,information_services,internal_referral_services,counseling_services,conduct_exit_interview',
             'reason' => 'required|string|max:1000',
         ]);
+
+        $appointmentDate = Carbon::parse($this->appointment_date);
+        $startTime = Carbon::parse($this->start_time);
+        $endTime = Carbon::parse($this->end_time);
+
+        $counselor = User::find($this->counselor_id);
+        if ($counselor && !$counselor->isAvailableForSlot($appointmentDate, $startTime, $endTime)) {
+            $this->addError('start_time', 'Counselor is not available during the selected time range.');
+            return;
+        }
 
         $this->selectedAppointment->update([
             'counselor_id' => $this->counselor_id,
@@ -440,6 +460,16 @@ class AppointmentManager extends Component
 
         if (!Auth::user()->canApproveAppointments()) {
             session()->flash('error', 'You do not have permission to reschedule appointments.');
+            return;
+        }
+
+        $appointmentDate = Carbon::parse($this->new_appointment_date);
+        $startTime = Carbon::parse($this->new_start_time);
+        $endTime = Carbon::parse($this->new_end_time);
+
+        $counselor = $this->selectedAppointment->counselor;
+        if ($counselor && !$counselor->isAvailableForSlot($appointmentDate, $startTime, $endTime)) {
+            $this->addError('new_start_time', 'Counselor is not available during the selected time range.');
             return;
         }
 
@@ -560,8 +590,9 @@ class AppointmentManager extends Component
         }
 
         $allowedTransitions = [
-            'pending' => ['confirmed', 'cancelled'],
-            'confirmed' => ['cancelled', 'no_show'],
+            'pending' => ['confirmed', 'cancelled', 'on_hold'],
+            'confirmed' => ['cancelled', 'no_show', 'on_hold'],
+            'on_hold' => ['confirmed', 'cancelled'],
             'completed' => [],
             'cancelled' => [],
             'no_show' => [],

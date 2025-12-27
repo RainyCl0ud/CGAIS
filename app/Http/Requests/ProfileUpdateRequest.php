@@ -15,7 +15,7 @@ class ProfileUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
+        $rules = [
             'first_name' => ['required', 'string', 'max:255'],
             'middle_name' => ['nullable', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
@@ -30,5 +30,14 @@ class ProfileUpdateRequest extends FormRequest
                 Rule::unique(User::class)->ignore($this->user()->id),
             ],
         ];
+
+        // Counselor-specific availability fields
+        if ($this->user() && $this->user()->isCounselor()) {
+            $rules['availability_status'] = ['required', 'string', Rule::in(['AVAILABLE', 'ON_LEAVE', 'UNAVAILABLE'])];
+            $rules['unavailable_from'] = ['nullable', 'date_format:H:i'];
+            $rules['unavailable_to'] = ['nullable', 'date_format:H:i', 'after:unavailable_from'];
+        }
+
+        return $rules;
     }
 }

@@ -23,8 +23,20 @@
                                     class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm">
                                 <option value="">Select a counselor</option>
                                 @foreach($counselors as $counselor)
+                                    @php
+                                        $status = $counselor->availability_status ?? 'AVAILABLE';
+                                        $statusLabel = match($status) {
+                                            'AVAILABLE' => 'Available',
+                                            'ON_LEAVE' => 'On Leave',
+                                            'UNAVAILABLE' => 'Unavailable',
+                                            default => 'Availability not set',
+                                        };
+                                    @endphp
                                     <option value="{{ $counselor->id }}" {{ old('counselor_id') == $counselor->id ? 'selected' : '' }}>
-                                        {{ $counselor->full_name }}
+                                        {{ $counselor->full_name }} 
+                                        @if($status !== 'AVAILABLE')
+                                            ({{ $statusLabel }})
+                                        @endif
                                     </option>
                                 @endforeach
                             </select>
@@ -208,7 +220,7 @@
         fetch(`/api/student/counselors/${counselorId}/available-slots?date=${date}&urgent=${isUrgent}`)
             .then(response => response.json())
             .then(data => {
-                timeSelect.innerHTML = '<option value="">Select a time</option>';
+                    timeSelect.innerHTML = '<option value="">Select a time</option>';
 
                 if (data.slots && data.slots.length > 0) {
                     data.slots.forEach(slot => {
@@ -236,7 +248,12 @@
                         timeSelect.parentElement.appendChild(warningDiv);
                     }
                 } else {
-                    timeSelect.innerHTML = '<option value="">No available times for this date</option>';
+                    let message = 'No available times for this date.';
+                    // If the API provided a message, surface it (e.g. counselor on leave/unavailable)
+                    if (data.message) {
+                        message = data.message;
+                    }
+                    timeSelect.innerHTML = `<option value="">${message}</option>`;
                 }
             })
             .catch(error => {

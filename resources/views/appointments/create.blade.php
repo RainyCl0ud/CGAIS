@@ -23,8 +23,20 @@
                                     class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm">
                                 <option value="">Select a counselor</option>
                                 @foreach($counselors as $counselor)
+                                    @php
+                                        $status = $counselor->availability_status ?? 'AVAILABLE';
+                                        $statusLabel = match($status) {
+                                            'AVAILABLE' => 'Available',
+                                            'ON_LEAVE' => 'On Leave',
+                                            'UNAVAILABLE' => 'Unavailable',
+                                            default => 'Availability not set',
+                                        };
+                                    @endphp
                                     <option value="{{ $counselor->id }}" {{ old('counselor_id') == $counselor->id ? 'selected' : '' }}>
                                         {{ $counselor->full_name }}
+                                        @if($status !== 'AVAILABLE')
+                                            ({{ $statusLabel }})
+                                        @endif
                                     </option>
                                 @endforeach
                             </select>
@@ -262,7 +274,11 @@
                             timeDiv.appendChild(warningDiv);
                         }
                     } else {
-                        timeSelect.innerHTML = '<option value="">No available times for this date</option>';
+                        let message = 'No available times for this date';
+                        if (data.message) {
+                            message = data.message;
+                        }
+                        timeSelect.innerHTML = `<option value="">${message}</option>`;
                     }
                 })
                 .catch(error => {

@@ -6,6 +6,30 @@
                         <div class="mb-4 sm:mb-0">
                             <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-900">Appointments</h1>
                             <p class="text-gray-600 text-xs sm:text-sm mt-1">View and manage your counseling appointments</p>
+
+                            @if(auth()->user()->isCounselor())
+                                @php
+                                    $status = auth()->user()->availability_status ?? 'AVAILABLE';
+
+                                    $badgeClass = match($status) {
+                                        'AVAILABLE' => 'bg-green-100 text-green-800 border-green-200',
+                                        'ON_LEAVE' => 'bg-yellow-100 text-yellow-800 border-yellow-200',
+                                        'UNAVAILABLE' => 'bg-red-100 text-red-800 border-red-200',
+                                        default => 'bg-gray-100 text-gray-800 border-gray-200',
+                                    };
+
+                                    $label = match($status) {
+                                        'AVAILABLE' => 'You are currently AVAILABLE for bookings.',
+                                        'ON_LEAVE' => 'You are marked as ON LEAVE. New bookings are limited based on your time range.',
+                                        'UNAVAILABLE' => 'You are marked as UNAVAILABLE. New bookings are limited based on your time range.',
+                                        default => 'Availability status not set.',
+                                    };
+                                @endphp
+                                <div class="mt-2 inline-flex items-center px-3 py-1 border text-xs rounded-full {{ $badgeClass }}">
+                                    <span class="font-semibold mr-1">Your Availability:</span>
+                                    <span>{{ $label }}</span>
+                                </div>
+                            @endif
                         </div>
                         <div class="flex flex-col items-end gap-2">
                             @if(request('search'))

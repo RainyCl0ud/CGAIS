@@ -2,7 +2,31 @@
     <!-- Header with Stats (for counselors and assistants) -->
     @if(Auth::user()->isCounselor() || Auth::user()->isAssistant())
         <div class="mb-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Appointment Statistics</h3>
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-900 mb-2 md:mb-0">Appointment Statistics</h3>
+
+                @if(Auth::user()->isCounselor())
+                    @php
+                        $availabilityStatus = Auth::user()->availability_status ?? 'AVAILABLE';
+                        $availabilityLabel = match($availabilityStatus) {
+                            'AVAILABLE' => 'Available for bookings',
+                            'ON_LEAVE' => 'On leave (limited availability)',
+                            'UNAVAILABLE' => 'Unavailable for bookings (see time range)',
+                            default => 'Availability status not set',
+                        };
+                        $availabilityBadgeClass = match($availabilityStatus) {
+                            'AVAILABLE' => 'bg-green-100 text-green-800 border-green-200',
+                            'ON_LEAVE' => 'bg-yellow-100 text-yellow-800 border-yellow-200',
+                            'UNAVAILABLE' => 'bg-red-100 text-red-800 border-red-200',
+                            default => 'bg-gray-100 text-gray-800 border-gray-200',
+                        };
+                    @endphp
+                    <div class="inline-flex items-center px-3 py-1 border text-xs rounded-full {{ $availabilityBadgeClass }}">
+                        <span class="font-semibold mr-1">Your Availability:</span>
+                        <span>{{ $availabilityLabel }}</span>
+                    </div>
+                @endif
+            </div>
             <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                 <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
                     <div class="text-sm font-medium text-gray-600">Total</div>

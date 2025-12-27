@@ -17,6 +17,19 @@ class Kernel extends ConsoleKernel
         
         // Schedule appointment reminder emails to be sent daily at 9:00 AM
         $schedule->command('appointments:send-reminders')->dailyAt('09:00');
+        
+        // Schedule automatic backup daily at 12:00 AM Philippine Time
+        $schedule->command('backup:create --type=automatic')
+            ->dailyAt('00:00')
+            ->timezone('Asia/Manila')
+            ->withoutOverlapping()
+            ->runInBackground()
+            ->onSuccess(function () {
+                \Log::info('Automatic backup completed successfully');
+            })
+            ->onFailure(function () {
+                \Log::error('Automatic backup failed');
+            });
     }
 
     /**

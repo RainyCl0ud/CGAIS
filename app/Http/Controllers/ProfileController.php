@@ -76,6 +76,11 @@ class ProfileController extends Controller
     }
 
     /**
+     * Create a new counselor account.
+     */
+    // Counselor creation feature removed.
+
+    /**
      * Delete the user's account.
      */
     public function destroy(Request $request): RedirectResponse

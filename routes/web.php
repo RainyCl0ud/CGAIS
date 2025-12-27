@@ -14,6 +14,7 @@ use App\Http\Controllers\StudentManagementController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\SystemController;
 use App\Http\Controllers\AuthorizedIdController;
+use App\Http\Controllers\CourseController;
 use App\Http\Controllers\PendingEmailChangeController;
 use Illuminate\Support\Facades\Route;
 
@@ -22,7 +23,7 @@ Route::get('/', function () {
 });
 
 // Route::middleware(['auth', 'verified'])->group(function () {
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth'])->group(function () {
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/today-appointments', [DashboardController::class, 'todayAppointments'])->name('today.appointments');
@@ -38,6 +39,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/students', [StudentManagementController::class, 'index'])->name('students.index');
         Route::get('/students/{student}', [StudentManagementController::class, 'show'])->name('students.show');
         Route::get('/students/statistics', [StudentManagementController::class, 'getStatistics'])->name('students.statistics');
+
+        // Course Management - View only for assistants
+        Route::resource('courses', CourseController::class);
         
         // Activity Logs - View only for assistants
         Route::get('/activity-logs', [ActivityLogController::class, 'index'])->name('activity-logs.index');
@@ -74,7 +78,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // System Backup (Counselor only)
         Route::get('/system/backup', [SystemController::class, 'backup'])->name('system.backup');
+        Route::post('/system/backup/create', [SystemController::class, 'createManualBackup'])->name('system.backup.create');
         Route::get('/system/backup/download', [SystemController::class, 'downloadBackup'])->name('system.backup.download');
+        Route::get('/system/backup/download/{filename}', [SystemController::class, 'downloadBackupFile'])->name('system.backup.download-file');
     });
     
     // Appointments - Different access levels
@@ -110,6 +116,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::patch('/appointments/{appointment}/approve', [AppointmentController::class, 'approve'])->name('appointments.approve');
         Route::patch('/appointments/{appointment}/reject', [AppointmentController::class, 'reject'])->name('appointments.reject');
         Route::patch('/appointments/{appointment}/reschedule', [AppointmentController::class, 'reschedule'])->name('appointments.reschedule');
+        Route::patch('/appointments/{appointment}/put-on-hold', [AppointmentController::class, 'putOnHold'])->name('appointments.put-on-hold');
         Route::patch('/appointments/{appointment}/mark-done', [AppointmentController::class, 'markAsDone'])->name('appointments.mark-done');
     });
     

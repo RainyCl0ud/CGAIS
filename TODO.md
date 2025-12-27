@@ -1,8 +1,3 @@
-# Feedback Access Update TODO
-
-## Tasks
-- [ ] Update FeedbackFormPolicy viewAny to allow faculty and staff
-- [ ] Update FeedbackFormPolicy update and delete to only allow students
-- [ ] Update index.blade.php to conditionally show Edit/Delete links only for students
-- [ ] Update index.blade.php to conditionally show "Submit Feedback" button only for students
-- [ ] Test the changes to ensure faculty/staff can view but not edit
+- [x] Create UserSeeder.php with one user for each role (student, faculty, counselor, assistant, staff)
+- [x] Update DatabaseSeeder.php to include UserSeeder
+- [x] Run the seeder to test the implementation

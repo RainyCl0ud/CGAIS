@@ -171,6 +171,14 @@ $validationRules['notes'] = 'nullable|string|max:1000';
             return back()->withErrors(['start_time' => 'Appointment time must be within counselor\'s schedule.']);
         }
 
+        // Check counselor availability status (ON_LEAVE / UNAVAILABLE with or without time range)
+        $counselor = User::find($request->counselor_id);
+        if ($counselor && !$counselor->isAvailableForSlot($appointmentDate, $startTime, $endTime)) {
+            return back()->withErrors([
+                'start_time' => 'Counselor is not available during the selected time range.',
+            ])->withInput();
+        }
+
         // Check if slot is available
         $existingAppointment = Appointment::where('counselor_id', $request->counselor_id)
             ->where('appointment_date', $request->appointment_date)
@@ -367,6 +375,15 @@ $appointmentData = [
         $counselor = User::find($request->counselor_id);
         if (!$counselor || $counselor->role !== 'counselor') {
             return back()->withErrors(['counselor_id' => 'Selected counselor is not available.']);
+        }
+
+        // Respect counselor availability status for the new slot
+        $startTime = Carbon::parse($request->start_time);
+        $endTime = Carbon::parse($request->end_time);
+        if (!$counselor->isAvailableForSlot($appointmentDate, $startTime, $endTime)) {
+            return back()->withErrors([
+                'start_time' => 'Counselor is not available during the selected time range.',
+            ])->withInput();
         }
 
         // Check for conflicts
@@ -604,6 +621,12 @@ $appointmentData = [
             $slotStart = $currentTime->copy();
             $slotEnd = $currentTime->copy()->addMinutes(30);
 
+            // Skip slots that fall into counselor's unavailable window (status-based)
+            if (!$counselor->isAvailableForSlot(Carbon::parse($date), $slotStart, $slotEnd)) {
+                $currentTime->addMinutes(30);
+                continue;
+            }
+
             $existingAppointment = Appointment::where('counselor_id', $counselor->id)
                 ->where('appointment_date', $date)
                 ->where('status', '!=', 'cancelled')
@@ -662,6 +685,11 @@ $appointmentData = [
                     ->exists();
 
                 if (!$isUnavailable) {
+                    // Respect full-day availability status: ON_LEAVE / UNAVAILABLE with no time range
+                    if (!$counselor->isAvailable() && (!$counselor->unavailable_from || !$counselor->unavailable_to)) {
+                        continue;
+                    }
+
                     // Check if counselor has schedule or uses default hours
                     $hasSchedule = Schedule::where('counselor_id', $counselor->id)
                         ->where('day_of_week', strtolower($date->format('l')))

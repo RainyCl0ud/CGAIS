@@ -153,6 +153,14 @@ class AppointmentController extends Controller
             return back()->withErrors(['start_time' => 'Appointment time must be within counselor\'s schedule.']);
         }
 
+        // Respect counselor availability status (ON_LEAVE / UNAVAILABLE)
+        $counselor = User::find($request->counselor_id);
+        if ($counselor && !$counselor->isAvailableForSlot($appointmentDate, $startTime, $endTime)) {
+            return back()->withErrors([
+                'start_time' => 'Counselor is not available during the selected time range.',
+            ])->withInput();
+        }
+
         $existingAppointment = Appointment::where('counselor_id', $request->counselor_id)
             ->where('appointment_date', $request->appointment_date)
             ->where('status', '!=', 'cancelled')
@@ -248,7 +256,7 @@ class AppointmentController extends Controller
 
         if ($request->has('status')) {
             $request->validate([
-                'status' => 'required|in:pending,confirmed,completed,cancelled,no_show',
+                'status' => 'required|in:pending,confirmed,completed,cancelled,no_show,on_hold',
             ]);
             $currentStatus = $appointment->status;
             $newStatus = $request->status;
@@ -329,6 +337,15 @@ class AppointmentController extends Controller
             return back()->withErrors(['counselor_id' => 'Selected counselor is not available.']);
         }
 
+        // Respect counselor availability status for the new slot
+        $startTime = Carbon::parse($request->start_time);
+        $endTime = Carbon::parse($request->end_time);
+        if (!$counselor->isAvailableForSlot($appointmentDate, $startTime, $endTime)) {
+            return back()->withErrors([
+                'start_time' => 'Counselor is not available during the selected time range.',
+            ])->withInput();
+        }
+
         $conflict = Appointment::where('counselor_id', $request->counselor_id)
             ->where('appointment_date', $request->appointment_date)
             ->where('id', '!=', $appointment->id)
@@ -374,8 +391,9 @@ class AppointmentController extends Controller
     private function getAllowedStatusTransitions(string $currentStatus): array
     {
         return match($currentStatus) {
-            'pending' => ['confirmed', 'cancelled'],
-            'confirmed' => ['cancelled', 'no_show'],
+            'pending' => ['confirmed', 'cancelled', 'on_hold'],
+            'confirmed' => ['cancelled', 'no_show', 'on_hold'],
+            'on_hold' => ['confirmed', 'cancelled'],
             'completed' => [],
             'cancelled' => [],
             'no_show' => [],
@@ -688,6 +706,11 @@ class AppointmentController extends Controller
                     ->exists();
 
                 if (!$isUnavailable) {
+                    // Respect full-day availability status: ON_LEAVE / UNAVAILABLE with no time range
+                    if (!$counselor->isAvailable() && (!$counselor->unavailable_from || !$counselor->unavailable_to)) {
+                        continue;
+                    }
+
                     // Check if counselor has schedule or uses default hours
                     $hasSchedule = Schedule::where('counselor_id', $counselor->id)
                         ->where('day_of_week', strtolower($date->format('l')))
@@ -861,6 +884,16 @@ class AppointmentController extends Controller
             return back()->withErrors(['new_appointment_date' => 'Counselor is not available on this date.']);
         }
 
+        // Respect counselor availability status for the new slot
+        $counselor = $appointment->counselor;
+        $newStartTime = Carbon::parse($request->new_start_time);
+        $newEndTime = Carbon::parse($request->new_end_time);
+        if ($counselor && !$counselor->isAvailableForSlot($appointmentDate, $newStartTime, $newEndTime)) {
+            return back()->withErrors([
+                'new_start_time' => 'Counselor is not available during the selected time range.',
+            ])->withInput();
+        }
+
         $conflictingAppointment = Appointment::where('counselor_id', $appointment->counselor_id)
             ->where('appointment_date', $request->new_appointment_date)
             ->where('status', '!=', 'cancelled')
@@ -921,6 +954,49 @@ class AppointmentController extends Controller
 
         return redirect()->route('appointments.show', $appointment)
             ->with('success', 'Appointment rescheduled successfully.');
+    }
+
+    public function putOnHold(Appointment $appointment): RedirectResponse
+    {
+        $user = Auth::user();
+        
+        if (!$user->isCounselor() && !$user->isAssistant()) {
+            return redirect()->route('appointments.index')
+                ->with('error', 'You do not have permission to put appointments on hold.');
+        }
+
+        // Only pending or confirmed appointments can be put on hold
+        if (!in_array($appointment->status, ['pending', 'confirmed'])) {
+            return redirect()->route('appointments.show', $appointment)
+                ->with('error', 'Only pending or confirmed appointments can be put on hold.');
+        }
+
+        $appointment->update([
+            'status' => 'on_hold',
+            'counselor_notes' => ($appointment->counselor_notes ?? '') . "\n\n[Put on Hold on " . now()->format('M d, Y g:i A') . "]"
+        ]);
+
+        // Notify the student that their appointment is on hold
+        $appointment->user->notifications()->create([
+            'appointment_id' => $appointment->id,
+            'title' => 'Appointment Put on Hold',
+            'message' => "Your appointment on {$appointment->getFormattedDateTime()} has been put on hold. The counselor will review and contact you soon.",
+            'type' => 'appointment_on_hold',
+            'is_read' => false,
+            'read_at' => null,
+        ]);
+
+        // Send email notification to student
+        $appointment->user->notify(new AppointmentStatusNotification($appointment, 'on_hold', 'Appointment put on hold by counselor'));
+
+        // Mark related notifications as read for the counselor
+        Notification::where('user_id', Auth::id())
+            ->where('appointment_id', $appointment->id)
+            ->unread()
+            ->update(['is_read' => true, 'read_at' => now()]);
+
+        return redirect()->route('appointments.show', $appointment)
+            ->with('success', 'Appointment put on hold successfully. The student has been notified.');
     }
 
     public function markAsDone(Appointment $appointment): RedirectResponse
@@ -1017,6 +1093,14 @@ class AppointmentController extends Controller
         while ($currentTime < $endTime) {
             $slotTime = $currentTime->format('H:i');
             $slotEndTime = $currentTime->copy()->addMinutes(30)->format('H:i');
+
+            // Skip slots that fall into counselor's unavailable window (status-based)
+            $slotStartCarbon = $currentTime->copy();
+            $slotEndCarbon = $currentTime->copy()->addMinutes(30);
+            if (!$counselor->isAvailableForSlot(Carbon::parse($date), $slotStartCarbon, $slotEndCarbon)) {
+                $currentTime->addMinutes(30);
+                continue;
+            }
 
             $existingAppointment = Appointment::where('counselor_id', $counselor->id)
                 ->where('appointment_date', $date)

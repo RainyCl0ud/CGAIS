@@ -83,6 +83,11 @@ class Appointment extends Model
         return $query->where('status', 'failed');
     }
 
+    public function scopeOnHold($query)
+    {
+        return $query->where('status', 'on_hold');
+    }
+
     public function scopeForDate($query, $date)
     {
         return $query->where('appointment_date', $date);
@@ -140,6 +145,11 @@ class Appointment extends Model
         return $this->status === 'failed';
     }
 
+    public function isOnHold(): bool
+    {
+        return $this->status === 'on_hold';
+    }
+
     public function isUrgent(): bool
     {
         return $this->type === 'urgent';
@@ -168,6 +178,7 @@ class Appointment extends Model
             'rejected' => 'bg-red-100 text-red-800',
             'rescheduled' => 'bg-purple-100 text-purple-800',
             'failed' => 'bg-red-100 text-red-800',
+            'on_hold' => 'bg-orange-100 text-orange-800',
             default => 'bg-gray-100 text-gray-800',
         };
     }

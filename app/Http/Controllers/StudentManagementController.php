@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Course;
 use Illuminate\View\View;
 use App\Models\Appointment;
 use Illuminate\Http\Request;
@@ -36,10 +37,8 @@ class StudentManagementController extends Controller
 
         // Filter by course
         if ($request->filled('course')) {
-            $query->where(function ($q) use ($request) {
-                $q->whereHas('personalDataSheet', function ($subQ) use ($request) {
-                    $subQ->where('course', $request->course);
-                })->orWhere('course_category', $request->course);
+            $query->whereHas('course', function ($q) use ($request) {
+                $q->where('name', $request->course);
             });
         }
 
@@ -111,16 +110,7 @@ class StudentManagementController extends Controller
         ];
 
         // Get unique courses and year levels for filters
-        $pdsCourses = PersonalDataSheet::whereNotNull('course')
-            ->distinct()
-            ->pluck('course');
-            
-        $userCourses = User::where('role', 'student')
-            ->whereNotNull('course_category')
-            ->distinct()
-            ->pluck('course_category');
-            
-        $courses = $pdsCourses->merge($userCourses)->sort()->values();
+        $courses = Course::active()->pluck('name')->sort()->values();
 
         $pdsYearLevels = PersonalDataSheet::whereNotNull('year_level')
             ->distinct()
@@ -261,10 +251,8 @@ ActivityLogService::log(
         }
 
         if ($request->filled('course')) {
-            $query->where(function ($q) use ($request) {
-                $q->whereHas('personalDataSheet', function ($subQ) use ($request) {
-                    $subQ->where('course', $request->course);
-                })->orWhere('course_category', $request->course);
+            $query->whereHas('course', function ($q) use ($request) {
+                $q->where('name', $request->course);
             });
         }
 
@@ -309,7 +297,7 @@ ActivityLogService::log(
                     $student->student_id ?? 'N/A',
                     $student->getFullNameAttribute(),
                     $student->email,
-                    $pds->course ?? $student->course_category ?? 'N/A',
+                    $student->course?->name ?? $pds->course ?? $student->course_category ?? 'N/A',
                     $pds->year_level ?? $student->year_level ?? 'N/A',
                     $pds->mobile_number ?? $student->phone_number ?? 'N/A',
                     $pds ? $pds->getCompletionPercentage() . '%' : '0%',

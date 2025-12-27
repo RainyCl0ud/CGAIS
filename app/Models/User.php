@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Providers\CacheServiceProvider;
+use Carbon\Carbon;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -27,9 +28,13 @@ class User extends Authenticatable implements MustVerifyEmail
         'phone_number',
         'password',
         'role',
+        'availability_status',
+        'unavailable_from',
+        'unavailable_to',
         'student_id',
         'faculty_id',
         'staff_id',
+        'course_id',
         'course_category',
         'year_level',
         'pending_email',
@@ -56,6 +61,8 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'unavailable_from' => 'datetime:H:i',
+            'unavailable_to' => 'datetime:H:i',
         ];
     }
 
@@ -161,6 +168,66 @@ class User extends Authenticatable implements MustVerifyEmail
     public function getUnreadNotificationsCount(): int
     {
         return $this->notifications()->unread()->count();
+    }
+
+    /**
+     * Availability helpers
+     */
+    public function isAvailable(): bool
+    {
+        return $this->availability_status === 'AVAILABLE';
+    }
+
+    public function isOnLeave(): bool
+    {
+        return $this->availability_status === 'ON_LEAVE';
+    }
+
+    public function isTemporarilyUnavailable(): bool
+    {
+        return $this->availability_status === 'UNAVAILABLE';
+    }
+
+    /**
+     * Determine if counselor is available for a specific slot.
+     *
+     * Rules:
+     * - AVAILABLE: always available (other checks like schedule still apply separately)
+     * - ON_LEAVE / UNAVAILABLE with no time range: full-day unavailability (no slots allowed)
+     * - ON_LEAVE / UNAVAILABLE with a time range: unavailable only within that range
+     */
+    public function isAvailableForSlot(Carbon $date, Carbon $slotStart, Carbon $slotEnd): bool
+    {
+        if (!$this->isCounselor()) {
+            return true;
+        }
+
+        if ($this->availability_status === 'AVAILABLE') {
+            return true;
+        }
+
+        // Full-day unavailability
+        if (!$this->unavailable_from || !$this->unavailable_to) {
+            return false;
+        }
+
+        // Compare only times (ignore date portion)
+        $unavailableStart = Carbon::createFromTime(
+            $this->unavailable_from->format('H'),
+            $this->unavailable_from->format('i')
+        );
+        $unavailableEnd = Carbon::createFromTime(
+            $this->unavailable_to->format('H'),
+            $this->unavailable_to->format('i')
+        );
+
+        $slotStartTime = Carbon::createFromTime($slotStart->format('H'), $slotStart->format('i'));
+        $slotEndTime = Carbon::createFromTime($slotEnd->format('H'), $slotEnd->format('i'));
+
+        // Overlap check between slot and unavailable window
+        $overlapsUnavailable = $slotStartTime < $unavailableEnd && $slotEndTime > $unavailableStart;
+
+        return !$overlapsUnavailable;
     }
 
     public function getPendingAppointments()

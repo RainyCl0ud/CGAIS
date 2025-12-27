@@ -7,13 +7,18 @@ use Illuminate\View\View;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Artisan;
+use App\Services\BackupService;
 use Carbon\Carbon;
 
 class SystemController extends Controller
 {
-    public function __construct()
+    protected $backupService;
+
+    public function __construct(BackupService $backupService)
     {
         $this->middleware('counselor_only');
+        $this->backupService = $backupService;
     }
 
     /**
@@ -21,20 +26,56 @@ class SystemController extends Controller
      */
     public function backup(): View
     {
+        $backupStats = $this->backupService->getBackupStats();
+        $recentBackups = $this->backupService->getRecentBackups(10);
+
         $backupInfo = [
             'database_size' => $this->getDatabaseSize(),
-            'last_backup' => $this->getLastBackupTime(),
+            'last_backup' => $backupStats['last_backup'] ?? 'Never',
             'total_users' => DB::table('users')->count(),
             'total_appointments' => DB::table('appointments')->count(),
             'total_activity_logs' => DB::table('activity_logs')->count(),
             'system_uptime' => $this->getSystemUptime(),
+            'backup_stats' => $backupStats,
+            'recent_backups' => $recentBackups,
         ];
 
         return view('system.backup', compact('backupInfo'));
     }
 
     /**
-     * Download system backup.
+     * Create a manual backup.
+     */
+    public function createManualBackup(): Response
+    {
+        $result = $this->backupService->createBackup('manual');
+
+        if ($result['success']) {
+            return redirect()->route('system.backup')
+                ->with('success', "Manual backup created successfully: {$result['filename']}");
+        } else {
+            return redirect()->route('system.backup')
+                ->with('error', "Backup failed: {$result['error']}");
+        }
+    }
+
+    /**
+     * Download a specific backup file.
+     */
+    public function downloadBackupFile(string $filename)
+    {
+        $download = $this->backupService->downloadBackup($filename);
+
+        if ($download) {
+            return $download;
+        }
+
+        return redirect()->route('system.backup')
+            ->with('error', 'Backup file not found.');
+    }
+
+    /**
+     * Download system backup (legacy method - creates on-the-fly backup).
      */
     public function downloadBackup(): Response
     {
@@ -71,14 +112,6 @@ class SystemController extends Controller
         }
     }
 
-    /**
-     * Get last backup time.
-     */
-    private function getLastBackupTime(): string
-    {
-        // This would typically check a backup log or storage
-        return 'Never';
-    }
 
     /**
      * Get system uptime.

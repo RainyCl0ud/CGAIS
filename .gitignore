@@ -4,6 +4,7 @@
 /public/hot
 /storage/*.key
 /storage/pail
+/storage/app/backups
 /vendor
 .env
 .env.backup

@@ -140,17 +140,18 @@
                     <x-input-error :messages="$errors->get('student_id')" class="mt-2" />
                 </div>
 
-                <!-- Course Category -->
+                <!-- Course -->
                 <div class="relative">
-                    <x-input-label for="course_category" :value="__('Course Category')" />
-                    <select id="course_category" name="course_category" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
-                        <option value="">Select Course Category</option>
-                        <option value="BSIT" {{ old('course_category') == 'BSIT' ? 'selected' : '' }}>BSIT - Bachelor of Science in Information Technology</option>
-                        <option value="BTLED" {{ old('course_category') == 'BTLED' ? 'selected' : '' }}>BTLED - Bachelor of Technology and Livelihood Education</option>
-                        <option value="BAT" {{ old('course_category') == 'BAT' ? 'selected' : '' }}>BAT - Bachelor of Agricultural Technology</option>
-                        <option value="BSA" {{ old('course_category') == 'BSA' ? 'selected' : '' }}>BSA - Bachelor of Science in Agriculture Major in Precision Agriculture</option>
+                    <x-input-label for="course_id" :value="__('Course')" />
+                    <select id="course_id" name="course_id" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
+                        <option value="">Select Course</option>
+                        @foreach(\App\Models\Course::active()->get() as $course)
+                            <option value="{{ $course->id }}" {{ old('course_id') == $course->id ? 'selected' : '' }}>
+                                {{ $course->name }} ({{ $course->code }})
+                            </option>
+                        @endforeach
                     </select>
-                    <x-input-error :messages="$errors->get('course_category')" class="mt-2" />
+                    <x-input-error :messages="$errors->get('course_id')" class="mt-2" />
                 </div>
 
                 <!-- Year Level -->

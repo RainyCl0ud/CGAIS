@@ -3,7 +3,31 @@
             <div class="w-full max-w-4xl mx-auto">
                 <div class="bg-white/90 rounded-2xl shadow-2xl border border-blue-100 p-8">
                     <div class="flex justify-between items-center mb-6">
-                        <h1 class="text-3xl font-bold text-blue-900">Appointment Details</h1>
+                        <div>
+                            <h1 class="text-3xl font-bold text-blue-900">Appointment Details</h1>
+
+                            @if(auth()->user()->isCounselor())
+                                @php
+                                    $availabilityStatus = auth()->user()->availability_status ?? 'AVAILABLE';
+                                    $availabilityLabel = match($availabilityStatus) {
+                                        'AVAILABLE' => 'Available for bookings',
+                                        'ON_LEAVE' => 'On leave (limited availability)',
+                                        'UNAVAILABLE' => 'Unavailable for bookings (see time range)',
+                                        default => 'Availability status not set',
+                                    };
+                                    $availabilityBadgeClass = match($availabilityStatus) {
+                                        'AVAILABLE' => 'bg-green-100 text-green-800 border-green-200',
+                                        'ON_LEAVE' => 'bg-yellow-100 text-yellow-800 border-yellow-200',
+                                        'UNAVAILABLE' => 'bg-red-100 text-red-800 border-red-200',
+                                        default => 'bg-gray-100 text-gray-800 border-gray-200',
+                                    };
+                                @endphp
+                                <div class="mt-2 inline-flex items-center px-3 py-1 border text-xs rounded-full {{ $availabilityBadgeClass }}">
+                                    <span class="font-semibold mr-1">Your Availability:</span>
+                                    <span>{{ $availabilityLabel }}</span>
+                                </div>
+                            @endif
+                        </div>
                         @php
                             $backRoute = match(request()->get('back')) {
                                 'pending' => route('pending.appointments'),
@@ -187,12 +211,22 @@
                                                 ✗ Reject Appointment
                                             </button>
                                             
+                                            <button onclick="putOnHold('{{ $appointment->id }}')" 
+                                                    class="w-full px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors">
+                                                ⏸ Put on Hold
+                                            </button>
+                                            
                                             <button onclick="showRescheduleModal('{{ $appointment->id }}')" 
                                                     class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                                                 🔄 Reschedule Appointment
                                             </button>
                                             
                                         @elseif($appointment->status === 'confirmed')
+                                            <button onclick="putOnHold('{{ $appointment->id }}')" 
+                                                    class="w-full px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors">
+                                                ⏸ Put on Hold
+                                            </button>
+                                            
                                             <button onclick="confirmStatusChange('{{ $appointment->id }}', 'cancelled', 'Confirmed', 'Cancelled')" 
                                                     class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
                                                 ✗ Cancel Appointment
@@ -211,6 +245,18 @@
                                                     ✓ Mark as Done
                                                 </button>
                                             @endif
+                                            
+                                        @elseif($appointment->status === 'on_hold')
+                                            <button onclick="approveAppointment('{{ $appointment->id }}')"
+                                                    class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                                                ✓ Confirm Appointment
+                                            </button>
+                                            
+                                            <button onclick="confirmStatusChange('{{ $appointment->id }}', 'cancelled', 'On Hold', 'Cancelled')" 
+                                                    class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                                                ✗ Cancel Appointment
+                                            </button>
+                                            
                                         @elseif($appointment->status === 'completed')
                                             <div class="p-3 bg-green-100 border border-green-400 text-green-700 rounded text-center">
                                                 ✓ Appointment Completed
@@ -238,11 +284,22 @@
                                                 ✗ Reject Appointment
                                             </button>
                                             
+                                            <button onclick="putOnHold('{{ $appointment->id }}')" 
+                                                    class="w-full px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors">
+                                                ⏸ Put on Hold
+                                            </button>
+                                            
                                             <button onclick="showRescheduleModal('{{ $appointment->id }}')"
                                                     class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                                                 🔄 Reschedule Appointment
                                             </button>
+                                            
                                         @elseif($appointment->status === 'confirmed')
+                                            <button onclick="putOnHold('{{ $appointment->id }}')" 
+                                                    class="w-full px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors">
+                                                ⏸ Put on Hold
+                                            </button>
+                                            
                                             <button onclick="confirmStatusChange('{{ $appointment->id }}', 'cancelled', 'Confirmed', 'Cancelled')" 
                                                     class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
                                                 ✗ Cancel Appointment
@@ -253,6 +310,18 @@
                                                     ⚠ Mark as No Show
                                                 </button>
                                             @endif
+                                            
+                                        @elseif($appointment->status === 'on_hold')
+                                            <button onclick="approveAppointment('{{ $appointment->id }}')"
+                                                    class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                                                ✓ Confirm Appointment
+                                            </button>
+                                            
+                                            <button onclick="confirmStatusChange('{{ $appointment->id }}', 'cancelled', 'On Hold', 'Cancelled')" 
+                                                    class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                                                ✗ Cancel Appointment
+                                            </button>
+                                            
                                         @elseif($appointment->status === 'completed')
                                             <div class="p-3 bg-green-100 border border-green-400 text-green-700 rounded text-center">
                                                 ✓ Appointment Completed
@@ -298,6 +367,10 @@
                                         @elseif($appointment->isNoShow())
                                             <div class="p-3 bg-orange-100 border border-orange-400 text-orange-700 rounded text-center">
                                                 ⚠ No Show
+                                            </div>
+                                        @elseif($appointment->isOnHold())
+                                            <div class="p-3 bg-orange-100 border border-orange-400 text-orange-700 rounded text-center">
+                                                ⏸ Appointment On Hold - The counselor will contact you soon
                                             </div>
                                         @endif
                                     @endif
@@ -494,6 +567,31 @@
                 document.body.appendChild(form);
                 form.submit();
             };
+        }
+
+        // Put on Hold function
+        function putOnHold(appointmentId) {
+            if (confirm('Are you sure you want to put this appointment on hold? The student will be notified.')) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/appointments/${appointmentId}/put-on-hold`;
+
+                const csrfToken = document.createElement('input');
+                csrfToken.type = 'hidden';
+                csrfToken.name = '_token';
+                csrfToken.value = '{{ csrf_token() }}';
+
+                const methodField = document.createElement('input');
+                methodField.type = 'hidden';
+                methodField.name = '_method';
+                methodField.value = 'PATCH';
+
+                form.appendChild(csrfToken);
+                form.appendChild(methodField);
+
+                document.body.appendChild(form);
+                form.submit();
+            }
         }
 
         // Approve appointment function
