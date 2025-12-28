@@ -81,6 +81,11 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/system/backup/create', [SystemController::class, 'createManualBackup'])->name('system.backup.create');
         Route::get('/system/backup/download', [SystemController::class, 'downloadBackup'])->name('system.backup.download');
         Route::get('/system/backup/download/{filename}', [SystemController::class, 'downloadBackupFile'])->name('system.backup.download-file');
+            // Counselor-only: Create new counselor account from profile page
+            Route::post('/profile/create-counselor', [ProfileController::class, 'createCounselor'])->name('profile.create-counselor');
+            // Services management for counselors
+            Route::resource('services', App\Http\Controllers\ServiceController::class)->only(['index','store','update']);
+            Route::patch('services/{service}/toggle', [App\Http\Controllers\ServiceController::class, 'toggle'])->name('services.toggle');
     });
     
     // Appointments - Different access levels

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Carbon\Carbon;
 
@@ -24,6 +25,122 @@ class Appointment extends Model
         'notes',
         'counselor_notes',
     ];
+
+    protected static function booted()
+    {
+        static::creating(function ($appointment) {
+            if (isset($appointment->counseling_category) && $appointment->counseling_category !== null && $appointment->counseling_category !== '') {
+                // Early debug capture: log raw incoming value and a short backtrace
+                Log::warning('Appointment creating: raw counseling_category received', [
+                    'raw' => $appointment->counseling_category,
+                    'attributes' => $appointment->getAttributes(),
+                    'trace' => array_slice(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS), 0, 10),
+                ]);
+                $raw = $appointment->counseling_category;
+                $raw = is_string($raw) ? trim($raw) : $raw;
+
+                // 1) If numeric, treat as Service ID
+                if (is_numeric($raw)) {
+                    $service = Service::find(intval($raw));
+                    $appointment->counseling_category = $service ? $service->slug : null;
+                    return;
+                }
+
+                // 2) Prefer explicit Service match by slug or name (so custom services are preserved)
+                if (is_string($raw) && $raw !== '') {
+                    $service = Service::where('slug', $raw)->orWhere('name', $raw)->first();
+                    if ($service) {
+                        $appointment->counseling_category = $service->slug;
+                        return;
+                    }
+                }
+
+                // 3) Fallbacks: synonyms map then allow-list enums
+                $rawLower = is_string($raw) ? strtolower(trim($raw)) : $raw;
+                $synonymMap = [
+                    'counseling' => 'counseling_services',
+                    'counseling service' => 'counseling_services',
+                    'info' => 'information_services',
+                    'information' => 'information_services',
+                    'referral' => 'internal_referral_services',
+                    'intake' => 'conduct_intake_interview',
+                    'exit' => 'conduct_exit_interview',
+                    'consult' => 'consultation',
+                ];
+                if (is_string($rawLower) && array_key_exists($rawLower, $synonymMap)) {
+                    $raw = $synonymMap[$rawLower];
+                }
+
+                // allow only known enum slugs
+                $allowed = ['conduct_intake_interview','information_services','internal_referral_services','counseling_services','conduct_exit_interview','consultation'];
+                if (in_array($raw, $allowed)) {
+                    $appointment->counseling_category = $raw;
+                    return;
+                }
+
+                // last attempt: look up service by slug
+                $service = Service::where('slug', $raw)->first();
+                $appointment->counseling_category = $service ? $service->slug : null;
+                if (!$appointment->counseling_category) {
+                    Log::warning('Appointment creating: invalid counseling_category', [
+                        'raw' => $raw,
+                        'attributes' => $appointment->getAttributes(),
+                        'trace' => array_slice(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS), 0, 8),
+                    ]);
+                }
+            }
+        });
+
+        static::updating(function ($appointment) {
+            if (array_key_exists('counseling_category', $appointment->getAttributes())) {
+                if (isset($appointment->counseling_category) && $appointment->counseling_category !== null && $appointment->counseling_category !== '') {
+                    $raw = $appointment->counseling_category;
+                    $raw = is_string($raw) ? trim($raw) : $raw;
+
+                    // 1) If numeric, treat as Service ID
+                    if (is_numeric($raw)) {
+                        $service = Service::find(intval($raw));
+                        $appointment->counseling_category = $service ? $service->slug : null;
+                        return;
+                    }
+
+                    // 2) Prefer explicit Service match by slug or name
+                    if (is_string($raw) && $raw !== '') {
+                        $service = Service::where('slug', $raw)->orWhere('name', $raw)->first();
+                        if ($service) {
+                            $appointment->counseling_category = $service->slug;
+                            return;
+                        }
+                    }
+
+                    // 3) Fallbacks: synonyms then allow-list enums
+                    $rawLower = is_string($raw) ? strtolower(trim($raw)) : $raw;
+                    $synonymMap = [
+                        'counseling' => 'counseling_services',
+                        'counseling service' => 'counseling_services',
+                        'info' => 'information_services',
+                        'information' => 'information_services',
+                        'referral' => 'internal_referral_services',
+                        'intake' => 'conduct_intake_interview',
+                        'exit' => 'conduct_exit_interview',
+                        'consult' => 'consultation',
+                    ];
+                    if (is_string($rawLower) && array_key_exists($rawLower, $synonymMap)) {
+                        $raw = $synonymMap[$rawLower];
+                    }
+
+                    $allowed = ['conduct_intake_interview','information_services','internal_referral_services','counseling_services','conduct_exit_interview','consultation'];
+                    if (in_array($raw, $allowed)) {
+                        $appointment->counseling_category = $raw;
+                        return;
+                    }
+
+                    $service = Service::where('slug', $raw)->first();
+                    $appointment->counseling_category = $service ? $service->slug : null;
+                }
+            }
+        });
+    }
 
     protected $casts = [
         'appointment_date' => 'date',
@@ -205,6 +322,18 @@ class Appointment extends Model
 
     public function getCounselingCategoryLabel(): string
     {
+        // If counseling_category matches a Service slug, return the service name
+        if ($this->counseling_category) {
+            try {
+                $service = \App\Models\Service::where('slug', $this->counseling_category)->first();
+                if ($service) {
+                    return $service->name;
+                }
+            } catch (\Throwable $e) {
+                // ignore and fallback
+            }
+        }
+
         return match($this->counseling_category) {
             'conduct_intake_interview' => 'Conduct Intake Interview',
             'information_services' => 'Information Services',

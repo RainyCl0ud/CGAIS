@@ -48,10 +48,7 @@
                             <div class="text-xs sm:text-sm font-medium text-gray-600">Total Clients</div>
                             <div class="text-lg sm:text-xl font-semibold text-purple-900">{{ $clientStats['total_clients'] }}</div>
                         </div>
-                        <div class="bg-yellow-50 p-3 sm:p-4 rounded-lg border border-yellow-200">
-                            <div class="text-xs sm:text-sm font-medium text-gray-600">Avg Rating</div>
-                            <div class="text-lg sm:text-xl font-semibold text-yellow-900">{{ number_format($feedbackStats['average_rating'], 1) }}</div>
-                        </div>
+                        <!-- Feedback quick stat removed for counselors/assistants as requested -->
                     </div>
 
                     <!-- Detailed Statistics -->
@@ -145,23 +142,7 @@
                             </div>
                         </div>
 
-                        <div class="bg-white p-4 sm:p-6 rounded-lg border border-gray-200">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Feedback Analytics</h3>
-                            <div class="space-y-4">
-                                <div class="flex justify-between items-center p-3 bg-yellow-50 rounded-lg">
-                                    <span class="text-sm font-medium text-gray-700">Average Rating</span>
-                                    <span class="text-lg font-semibold text-yellow-900">{{ number_format($feedbackStats['average_rating'], 1) }}/5</span>
-                                </div>
-                                <div class="flex justify-between items-center p-3 bg-green-50 rounded-lg">
-                                    <span class="text-sm font-medium text-gray-700">Recommendation Rate</span>
-                                    <span class="text-lg font-semibold text-green-900">{{ number_format($feedbackStats['recommendation_rate'], 1) }}%</span>
-                                </div>
-                                <div class="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
-                                    <span class="text-sm font-medium text-gray-700">Total Feedback</span>
-                                    <span class="text-lg font-semibold text-blue-900">{{ $feedbackStats['total_feedback'] }}</span>
-                                </div>
-                            </div>
-                        </div>
+                        <!-- Feedback analytics removed from reports view for counselor/assistant dashboards -->
                     </div>
 
                     <!-- Category Distribution -->
@@ -236,20 +217,7 @@
                                 </div>
                             </a>
                             
-                            <a href="{{ route('reports.feedback', ['date_from' => $dateFrom, 'date_to' => $dateTo]) }}" 
-                               class="p-4 bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all">
-                                <div class="flex items-center">
-                                    <div class="p-2 bg-yellow-100 rounded-lg">
-                                        <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
-                                        </svg>
-                                    </div>
-                                    <div class="ml-3">
-                                        <h4 class="text-sm font-semibold text-gray-900">Feedback Report</h4>
-                                        <p class="text-xs text-gray-500">Client satisfaction analysis</p>
-                                    </div>
-                                </div>
-                            </a>
+                            <!-- Feedback Report link removed from Detailed Reports -->
                         </div>
                     </div>
                 </div>

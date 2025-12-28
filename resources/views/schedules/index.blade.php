@@ -38,7 +38,7 @@
                                     </template>
                                 </div>
                                 <div class="grid grid-cols-7 gap-1 mt-2 text-center">
-                                    <template x-for="date in calendarDays" :key="date.date">
+                                    <template x-for="date in calendarDays" :key="date.date.getTime()">
                                         <button
                                             @click="handleDateClick(date)"
                                             :class="{

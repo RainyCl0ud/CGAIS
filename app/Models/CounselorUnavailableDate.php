@@ -15,10 +15,12 @@ class CounselorUnavailableDate extends Model
         'counselor_id',
         'date',
         'is_unavailable',
+        'expires_at',
     ];
 
     protected $casts = [
         'date' => 'date',
         'is_unavailable' => 'boolean',
+        'expires_at' => 'datetime',
     ];
 }

@@ -6,12 +6,14 @@ use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Schedule;
 use App\Models\CounselorUnavailableDate;
+use App\Models\Service;
 use Illuminate\View\View;
 use App\Models\Appointment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
+use App\Notifications\AppointmentReminder;
 
 class StudentAppointmentController extends Controller
 {
@@ -56,11 +58,14 @@ class StudentAppointmentController extends Controller
 
         // Get available counselors
         $counselors = User::where('role', 'counselor')->get();
+
+        // Active services (counseling categories)
+        $services = Service::where('is_active', true)->orderBy('name')->get();
         
         // Get next 30 days of available dates
         $availableDates = $this->getAvailableDates();
         
-        return view('student.appointments.create', compact('counselors', 'availableDates'));
+        return view('student.appointments.create', compact('counselors', 'availableDates', 'services'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -89,13 +94,12 @@ class StudentAppointmentController extends Controller
             $validationRules['type'] = 'required|in:regular,urgent';
         }
 
-        // Counseling category requirement differs by user type:
-        // Students must select a category from specific options.
-        // Non-Teaching Staff and faculty optionally have category; default to 'consultation' if not provided.
-        if($user->isStudent()) {
-            $validationRules['counseling_category'] = 'required|in:conduct_intake_interview,information_services,internal_referral_services,counseling_services,conduct_exit_interview';
+        // Counseling category: accept either a service slug or a numeric service ID.
+        // We'll validate/map it manually after base validation so both forms are accepted.
+        if ($user->isStudent()) {
+            $validationRules['counseling_category'] = 'required';
         } else {
-            $validationRules['counseling_category'] = 'sometimes|nullable|in:conduct_intake_interview,information_services,internal_referral_services,counseling_services,conduct_exit_interview';
+            $validationRules['counseling_category'] = 'sometimes|nullable';
         }
 
 $validationRules['reason'] = 'required_if:type,urgent|nullable|string|max:500';
@@ -114,6 +118,53 @@ $validationRules['notes'] = 'nullable|string|max:1000';
                 'input' => $request->all()
             ]);
             return back()->withErrors($e->errors())->withInput();
+        }
+
+        // Normalize counseling_category: accept numeric service ID or service slug.
+        $rawCategory = $request->input('counseling_category');
+        $resolvedCategory = null;
+        if ($rawCategory !== null && $rawCategory !== '') {
+            // normalize common synonyms (e.g. 'counseling' -> 'counseling_services')
+            $rawLower = strtolower(trim($rawCategory));
+            $synonymMap = [
+                'counseling' => 'counseling_services',
+                'counseling service' => 'counseling_services',
+                'info' => 'information_services',
+                'information' => 'information_services',
+                'referral' => 'internal_referral_services',
+                'intake' => 'conduct_intake_interview',
+                'exit' => 'conduct_exit_interview',
+                'consult' => 'consultation',
+            ];
+            if (array_key_exists($rawLower, $synonymMap)) {
+                $rawCategory = $synonymMap[$rawLower];
+            }
+
+            if (is_numeric($rawCategory)) {
+                $service = Service::find(intval($rawCategory));
+                if ($service) {
+                    $resolvedCategory = $service->slug;
+                } else {
+                    return back()->withErrors(['counseling_category' => 'Selected counseling category is invalid.'])->withInput();
+                }
+            } else {
+                $service = Service::where('slug', $rawCategory)->first();
+                if ($service) {
+                    $resolvedCategory = $service->slug;
+                } else {
+                    // Allow certain administrative default slugs (e.g. 'consultation') if present in enum
+                    if (in_array($rawCategory, ['consultation','conduct_intake_interview','information_services','internal_referral_services','counseling_services','conduct_exit_interview'])) {
+                        $resolvedCategory = $rawCategory;
+                    } else {
+                        return back()->withErrors(['counseling_category' => 'Selected counseling category is invalid.'])->withInput();
+                    }
+                }
+            }
+        } else {
+            // For non-students, default to 'consultation'
+            if (!$user->isStudent()) {
+                $resolvedCategory = 'consultation';
+            }
         }
 
         Log::info('Appointment creation started', [
@@ -142,7 +193,8 @@ $validationRules['notes'] = 'nullable|string|max:1000';
         $unavailableDate = CounselorUnavailableDate::where('counselor_id', $request->counselor_id)
             ->where('date', $request->appointment_date)
             ->where('is_unavailable', true)
-            ->first();
+                ->where('expires_at', '>', Carbon::now('Asia/Manila'))
+                ->first();
 
         if ($unavailableDate) {
             return back()->withErrors(['appointment_date' => 'Counselor is not available on this date.']);
@@ -205,15 +257,15 @@ $validationRules['notes'] = 'nullable|string|max:1000';
         }
 
 
-$appointmentData = [
+        $appointmentData = [
     'user_id' => $user->id,
     'counselor_id' => $request->counselor_id,
     'appointment_date' => $request->appointment_date,
     'start_time' => $request->start_time,
     'end_time' => $request->end_time,
     'type' => $request->type,
-    // For non-students (faculty/Non-Teaching Staff), default counseling_category to 'consultation' if not set
-    'counseling_category' => $request->counseling_category ?? ($user->isStudent() ? null : 'consultation'),
+            // For non-students (faculty/Non-Teaching Staff), use resolved category (slug) or default to 'consultation'
+            'counseling_category' => $resolvedCategory ?? ($user->isStudent() ? null : 'consultation'),
     'reason' => $request->reason,
     'notes' => $request->notes,
     'status' => 'pending',
@@ -231,6 +283,16 @@ $appointmentData = [
             'user_id' => $appointment->user_id,
             'counselor_id' => $appointment->counselor_id,
         ]);
+
+        // Schedule 24-hour reminder email to the user if the reminder time is in the future
+        try {
+            $sendAt = $appointment->getAppointmentDateTime()->subDay();
+            if ($sendAt->gt(now())) {
+                $appointment->user->notify((new AppointmentReminder($appointment, 'tomorrow'))->delay($sendAt));
+            }
+        } catch (\Throwable $e) {
+            Log::error('Failed to schedule appointment reminder (student controller)', ['appointment_id' => $appointment->id, 'error' => $e->getMessage()]);
+        }
 
         // Notify counselor and assistant of new appointment request
         $counselor = $appointment->counselor;
@@ -299,8 +361,9 @@ $appointmentData = [
         }
 
         $counselors = User::where('role', 'counselor')->get();
+        $services = Service::where('is_active', true)->orderBy('name')->get();
 
-        return view('student.appointments.edit', compact('appointment', 'counselors'));
+        return view('student.appointments.edit', compact('appointment', 'counselors', 'services'));
     }
 
     public function update(Request $request, Appointment $appointment): RedirectResponse
@@ -338,17 +401,46 @@ $appointmentData = [
             $validationRules['type'] = 'required|in:regular,urgent';
         }
         
-        // Only require counseling_category if user is student
-        if($user->isStudent()) {
-            $validationRules['counseling_category'] = 'required|in:conduct_intake_interview,information_services,internal_referral_services,counseling_services,conduct_exit_interview';
+        // Counseling category: accept numeric service ID or slug; we'll normalize it after validation
+        if ($user->isStudent()) {
+            $validationRules['counseling_category'] = 'required';
         } else {
-            $validationRules['counseling_category'] = 'sometimes|nullable|in:conduct_intake_interview,information_services,internal_referral_services,counseling_services,conduct_exit_interview';
+            $validationRules['counseling_category'] = 'sometimes|nullable';
         }
         
         $validationRules['reason'] = 'required_if:type,urgent|nullable|string|max:500';
         $validationRules['notes'] = 'nullable|string|max:1000';
         
         $request->validate($validationRules);
+
+        // Normalize counseling_category: accept numeric service ID or service slug.
+        $rawCategory = $request->input('counseling_category');
+        $resolvedCategory = null;
+        if ($rawCategory !== null && $rawCategory !== '') {
+            if (is_numeric($rawCategory)) {
+                $service = Service::find(intval($rawCategory));
+                if ($service) {
+                    $resolvedCategory = $service->slug;
+                } else {
+                    return back()->withErrors(['counseling_category' => 'Selected counseling category is invalid.'])->withInput();
+                }
+            } else {
+                $service = Service::where('slug', $rawCategory)->first();
+                if ($service) {
+                    $resolvedCategory = $service->slug;
+                } else {
+                    if (in_array($rawCategory, ['consultation','conduct_intake_interview','information_services','internal_referral_services','counseling_services','conduct_exit_interview'])) {
+                        $resolvedCategory = $rawCategory;
+                    } else {
+                        return back()->withErrors(['counseling_category' => 'Selected counseling category is invalid.'])->withInput();
+                    }
+                }
+            }
+        } else {
+            if (!$user->isStudent()) {
+                $resolvedCategory = 'consultation';
+            }
+        }
 
         // Check if the new date is on a weekday (Monday through Friday)
         $appointmentDate = Carbon::parse($request->appointment_date);
@@ -365,7 +457,8 @@ $appointmentData = [
         $unavailableDate = CounselorUnavailableDate::where('counselor_id', $request->counselor_id)
             ->where('date', $request->appointment_date)
             ->where('is_unavailable', true)
-            ->first();
+                ->where('expires_at', '>', Carbon::now('Asia/Manila'))
+                ->first();
 
         if ($unavailableDate) {
             return back()->withErrors(['appointment_date' => 'Counselor is not available on this date.']);
@@ -415,7 +508,7 @@ $appointmentData = [
             'start_time' => $request->start_time,
             'end_time' => $request->end_time,
             'type' => $request->type,
-            'counseling_category' => $request->counseling_category,
+            'counseling_category' => $resolvedCategory ?? ($user->isStudent() ? null : 'consultation'),
             'reason' => $request->reason,
             'notes' => $request->notes,
             'status' => 'pending', // Reset to pending when rescheduled
@@ -590,6 +683,7 @@ $appointmentData = [
         $unavailableDate = CounselorUnavailableDate::where('counselor_id', $counselor->id)
             ->where('date', $date)
             ->where('is_unavailable', true)
+            ->where('expires_at', '>', Carbon::now('Asia/Manila'))
             ->first();
 
         if ($unavailableDate) {
@@ -616,6 +710,21 @@ $appointmentData = [
 
         $slots = [];
         $currentTime = $startTime->copy();
+
+        // Prepare debug info to help trace issues when slots are empty
+        $debug = [
+            'counselor_id' => $counselor->id,
+            'counselor_availability_status' => $counselor->availability_status ?? null,
+            'counselor_unavailable_from' => $counselor->unavailable_from ? $counselor->unavailable_from->format('H:i') : null,
+            'counselor_unavailable_to' => $counselor->unavailable_to ? $counselor->unavailable_to->format('H:i') : null,
+            'requested_date' => $date,
+            'day_name' => $dayName,
+            'using_custom_schedule' => $schedule ? true : false,
+            'schedule_start' => $schedule ? (is_object($schedule->start_time) ? $schedule->start_time->format('H:i') : $schedule->start_time) : $startTime->format('H:i'),
+            'schedule_end' => $schedule ? (is_object($schedule->end_time) ? $schedule->end_time->format('H:i') : $schedule->end_time) : $endTime->format('H:i'),
+            'is_urgent' => $isUrgent,
+            'found_existing_appointments' => 0,
+        ];
 
         while ($currentTime < $endTime) {
             $slotStart = $currentTime->copy();
@@ -650,13 +759,24 @@ $appointmentData = [
                 ];
             }
 
+            if ($existingAppointment) {
+                $debug['found_existing_appointments']++;
+            }
+
             $currentTime->addMinutes(30);
         }
 
-        return response()->json([
+        $response = [
             'slots' => $slots,
-            'message' => count($slots) > 0 ? 'Available time slots found.' : 'No available time slots for this date.'
-        ]);
+            'message' => count($slots) > 0 ? 'Available time slots found.' : 'No available time slots for this date.',
+            'debug' => $debug,
+        ];
+
+        if (count($slots) === 0) {
+            Log::debug('No available slots response', $response);
+        }
+
+        return response()->json($response);
     }
 
     private function getAvailableDates(): array
@@ -682,6 +802,7 @@ $appointmentData = [
                 $isUnavailable = CounselorUnavailableDate::where('counselor_id', $counselor->id)
                     ->where('date', $dateString)
                     ->where('is_unavailable', true)
+                    ->where('expires_at', '>', Carbon::now('Asia/Manila'))
                     ->exists();
 
                 if (!$isUnavailable) {

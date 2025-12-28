@@ -74,11 +74,9 @@
                             <select id="counseling_category" name="counseling_category" required 
                                     class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm">
                                 <option value="">Select counseling category</option>
-                                <option value="conduct_intake_interview" {{ old('counseling_category') == 'conduct_intake_interview' ? 'selected' : '' }}>Conduct Intake Interview</option>
-                                <option value="information_services" {{ old('counseling_category') == 'information_services' ? 'selected' : '' }}>Information Services</option>
-                                <option value="internal_referral_services" {{ old('counseling_category') == 'internal_referral_services' ? 'selected' : '' }}>Internal Referral Services</option>
-                                <option value="counseling_services" {{ old('counseling_category') == 'counseling_services' ? 'selected' : '' }}>Counseling Services</option>
-                                <option value="conduct_exit_interview" {{ old('counseling_category') == 'conduct_exit_interview' ? 'selected' : '' }}>Conduct Exit Interview</option>
+                                @foreach($services as $service)
+                                    <option value="{{ $service->slug }}" {{ old('counseling_category') == $service->slug ? 'selected' : '' }}>{{ $service->name }}</option>
+                                @endforeach
                             </select>
                             @error('counseling_category')
                                 <p class="mt-1 text-xs text-red-600">{{ $message }}</p>

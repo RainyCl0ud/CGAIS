@@ -3,11 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\User;
+use App\Notifications\NewCounselorCreated;
 use App\Providers\CacheServiceProvider;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
@@ -78,7 +81,41 @@ class ProfileController extends Controller
     /**
      * Create a new counselor account.
      */
-    // Counselor creation feature removed.
+    public function createCounselor(Request $request): RedirectResponse
+    {
+        $authUser = $request->user();
+
+        // Only counselors may create new counselor accounts
+        if (! $authUser || ! $authUser->isCounselor()) {
+            return Redirect::route('profile.edit')->with('error', 'Unauthorized.');
+        }
+
+        $data = $request->validate([
+            'first_name' => ['required', 'string', 'max:255'],
+            'middle_name' => ['nullable', 'string', 'max:255'],
+            'last_name' => ['required', 'string', 'max:255'],
+            'name_extension' => ['nullable', 'string', 'max:50'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'phone_number' => ['nullable', 'string', 'max:50'],
+        ]);
+
+        // Generate a temporary password for the new counselor
+        $tempPassword = substr(bin2hex(random_bytes(6)), 0, 12);
+
+        $newCounselor = User::create(array_merge($data, [
+            'role' => 'counselor',
+            'password' => Hash::make($tempPassword),
+        ]));
+
+        // Send notification/email to the newly created counselor with temp password
+        try {
+            $newCounselor->notify(new NewCounselorCreated($tempPassword));
+        } catch (\Throwable $e) {
+            // Do not fail creation if notification fails; just log later
+        }
+
+        return Redirect::route('profile.edit')->with('status', 'counselor-created');
+    }
 
     /**
      * Delete the user's account.

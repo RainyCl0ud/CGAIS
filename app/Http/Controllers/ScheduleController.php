@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 use App\Models\CounselorUnavailableDate;
+use Carbon\Carbon;
 
 class ScheduleController extends Controller
 {
@@ -26,6 +27,7 @@ class ScheduleController extends Controller
 
         // Get unavailable dates for calendar
         $unavailableDates = CounselorUnavailableDate::where('counselor_id', $user->id)
+            ->where('expires_at', '>', Carbon::now('Asia/Manila'))
             ->pluck('date')
             ->map(fn($date) => $date->format('Y-m-d'))
             ->toArray();
@@ -95,6 +97,7 @@ class ScheduleController extends Controller
         }
 
         $dates = CounselorUnavailableDate::where('counselor_id', $user->id)
+            ->where('expires_at', '>', Carbon::now('Asia/Manila'))
             ->pluck('date')
             ->map(fn($date) => $date->format('Y-m-d'));
 
@@ -169,6 +172,7 @@ class ScheduleController extends Controller
                 'counselor_id' => $user->id,
                 'date' => $date,
                 'is_unavailable' => true,
+                'expires_at' => Carbon::parse($date, 'Asia/Manila')->addDay()->startOfDay(),
             ]);
             $status = 'unavailable';
         }

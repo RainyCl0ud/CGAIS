@@ -140,17 +140,18 @@
                     </svg>
                     <span class="font-medium text-sm">Manage Courses</span>
                 </a>
+                <a href="{{ route('services.index') }}"
+                   class="flex items-center px-3 py-2.5 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors {{ request()->routeIs('services.*') ? 'bg-blue-100 text-blue-700' : '' }}">
+                    <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                    <span class="font-medium text-sm">Manage Services</span>
+                </a>
             </div>
             
             <div class="border-t border-gray-200 pt-4 mt-4">
                 <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 mb-2">Analytics & Reports</h3>
-                <a href="{{ route('reports.index') }}"
-                   class="flex items-center px-3 py-2.5 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors {{ request()->routeIs('reports.*') ? 'bg-blue-100 text-blue-700' : '' }}">
-                    <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                    </svg>
-                    <span class="font-medium text-sm">Reports & Analytics</span>
-                </a>
+                <!-- Reports link hidden for counselor/assistant as requested -->
                 <a href="{{ route('activity-logs.index') }}"
                    class="flex items-center px-3 py-2.5 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors {{ request()->routeIs('activity-logs.*') ? 'bg-blue-100 text-blue-700' : '' }}">
                     <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -226,13 +227,7 @@
             
             <div class="border-t border-gray-200 pt-4 mt-4">
                 <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 mb-2">Analytics & Reports</h3>
-                <a href="{{ route('reports.index') }}"
-                   class="flex items-center px-3 py-2.5 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors {{ request()->routeIs('reports.*') ? 'bg-blue-100 text-blue-700' : '' }}">
-                    <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                    </svg>
-                    <span class="font-medium text-sm">Reports & Analytics</span>
-                </a>
+                <!-- Reports link hidden for counselor/assistant as requested -->
                 <a href="{{ route('activity-logs.index') }}"
                    class="flex items-center px-3 py-2.5 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors {{ request()->routeIs('activity-logs.*') ? 'bg-blue-100 text-blue-700' : '' }}">
                     <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

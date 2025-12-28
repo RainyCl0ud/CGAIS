@@ -9,12 +9,14 @@ use App\Models\CounselorUnavailableDate;
 use App\Models\Notification;
 use Illuminate\View\View;
 use App\Models\Appointment;
+use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\RedirectResponse;
 use App\Notifications\AppointmentStatusNotification;
 use App\Notifications\AssistantAppointmentNotification;
+use App\Notifications\AppointmentReminder;
 
 class AppointmentController extends Controller
 {
@@ -126,6 +128,7 @@ class AppointmentController extends Controller
         $unavailableDate = CounselorUnavailableDate::where('counselor_id', $request->counselor_id)
             ->where('date', $request->appointment_date)
             ->where('is_unavailable', true)
+            ->where('expires_at', '>', Carbon::now('Asia/Manila'))
             ->first();
 
         if ($unavailableDate) {
@@ -195,7 +198,38 @@ class AppointmentController extends Controller
         ];
 
         if ($user->isStudent()) {
-            $appointmentData['counseling_category'] = $request->counseling_category;
+            $raw = $request->counseling_category ?? null;
+            if ($raw !== null && $raw !== '') {
+                $rawLower = strtolower(trim($raw));
+                $synonymMap = [
+                    'counseling' => 'counseling_services',
+                    'counseling service' => 'counseling_services',
+                    'info' => 'information_services',
+                    'information' => 'information_services',
+                    'referral' => 'internal_referral_services',
+                    'intake' => 'conduct_intake_interview',
+                    'exit' => 'conduct_exit_interview',
+                    'consult' => 'consultation',
+                ];
+                if (array_key_exists($rawLower, $synonymMap)) {
+                    $raw = $synonymMap[$rawLower];
+                }
+
+                if (is_numeric($raw)) {
+                    $service = Service::find(intval($raw));
+                    $appointmentData['counseling_category'] = $service ? $service->slug : null;
+                } else {
+                    $allowed = ['conduct_intake_interview','information_services','internal_referral_services','counseling_services','conduct_exit_interview','consultation'];
+                    if (in_array($raw, $allowed)) {
+                        $appointmentData['counseling_category'] = $raw;
+                    } else {
+                        $service = Service::where('slug', $raw)->first();
+                        $appointmentData['counseling_category'] = $service ? $service->slug : null;
+                    }
+                }
+            } else {
+                $appointmentData['counseling_category'] = null;
+            }
         } else {
             $appointmentData['counseling_category'] = 'consultation';
         }
@@ -210,6 +244,16 @@ class AppointmentController extends Controller
         $assistants = User::where('role', 'assistant')->get();
         foreach ($assistants as $assistant) {
             $assistant->notify(new AssistantAppointmentNotification($appointment, 'booked'));
+        }
+
+        // Schedule 24-hour reminder email to the user if the reminder time is in the future
+        try {
+            $sendAt = $appointment->getAppointmentDateTime()->subDay();
+            if ($sendAt->gt(now())) {
+                $appointment->user->notify((new AppointmentReminder($appointment, 'tomorrow'))->delay($sendAt));
+            }
+        } catch (\Throwable $e) {
+            Log::error('Failed to schedule appointment reminder', ['appointment_id' => $appointment->id, 'error' => $e->getMessage()]);
         }
 
         $successMessage = $request->type === 'urgent'
@@ -326,6 +370,7 @@ class AppointmentController extends Controller
         $unavailableDate = CounselorUnavailableDate::where('counselor_id', $request->counselor_id)
             ->where('date', $request->appointment_date)
             ->where('is_unavailable', true)
+            ->where('expires_at', '>', Carbon::now('Asia/Manila'))
             ->first();
 
         if ($unavailableDate) {
@@ -367,13 +412,50 @@ class AppointmentController extends Controller
             return back()->withErrors(['start_time' => 'The selected time slot conflicts with an existing appointment.']);
         }
 
+        // Normalize counseling_category on update (accept numeric id, slug, or synonyms)
+        $raw = $request->counseling_category ?? null;
+        $resolvedCategory = null;
+        if ($raw !== null && $raw !== '') {
+            $rawLower = strtolower(trim($raw));
+            $synonymMap = [
+                'counseling' => 'counseling_services',
+                'counseling service' => 'counseling_services',
+                'info' => 'information_services',
+                'information' => 'information_services',
+                'referral' => 'internal_referral_services',
+                'intake' => 'conduct_intake_interview',
+                'exit' => 'conduct_exit_interview',
+                'consult' => 'consultation',
+            ];
+            if (array_key_exists($rawLower, $synonymMap)) {
+                $raw = $synonymMap[$rawLower];
+            }
+
+            if (is_numeric($raw)) {
+                $service = Service::find(intval($raw));
+                $resolvedCategory = $service ? $service->slug : null;
+            } else {
+                $allowed = ['conduct_intake_interview','information_services','internal_referral_services','counseling_services','conduct_exit_interview','consultation'];
+                if (in_array($raw, $allowed)) {
+                    $resolvedCategory = $raw;
+                } else {
+                    $service = Service::where('slug', $raw)->first();
+                    $resolvedCategory = $service ? $service->slug : null;
+                }
+            }
+        } else {
+            if (!$user->isStudent()) {
+                $resolvedCategory = 'consultation';
+            }
+        }
+
         $appointment->update([
             'counselor_id' => $request->counselor_id,
             'appointment_date' => $request->appointment_date,
             'start_time' => $request->start_time,
             'end_time' => $request->end_time,
             'type' => $request->type,
-            'counseling_category' => $request->counseling_category,
+            'counseling_category' => $resolvedCategory ?? ($user->isStudent() ? null : 'consultation'),
             'reason' => $request->reason,
             'notes' => $request->notes,
             'status' => 'pending',
@@ -703,6 +785,7 @@ class AppointmentController extends Controller
                 $isUnavailable = CounselorUnavailableDate::where('counselor_id', $counselor->id)
                     ->where('date', $dateString)
                     ->where('is_unavailable', true)
+                    ->where('expires_at', '>', Carbon::now('Asia/Manila'))
                     ->exists();
 
                 if (!$isUnavailable) {
@@ -878,6 +961,7 @@ class AppointmentController extends Controller
         $unavailableDate = CounselorUnavailableDate::where('counselor_id', $appointment->counselor_id)
             ->where('date', $request->new_appointment_date)
             ->where('is_unavailable', true)
+            ->where('expires_at', '>', Carbon::now('Asia/Manila'))
             ->first();
 
         if ($unavailableDate) {
@@ -1059,6 +1143,7 @@ class AppointmentController extends Controller
         $unavailableDate = CounselorUnavailableDate::where('counselor_id', $counselor->id)
             ->where('date', $date)
             ->where('is_unavailable', true)
+            ->where('expires_at', '>', Carbon::now('Asia/Manila'))
             ->first();
 
         if ($unavailableDate) {

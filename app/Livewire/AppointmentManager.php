@@ -10,6 +10,8 @@ use Illuminate\Support\Str;
 use Carbon\Carbon;
 use App\Notifications\AppointmentStatusNotification;
 use App\Notifications\AssistantAppointmentNotification;
+use App\Notifications\AppointmentReminder;
+use App\Models\Service;
 
 class AppointmentManager extends Component
 {
@@ -299,9 +301,48 @@ class AppointmentManager extends Component
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
             'type' => 'required|in:regular,urgent,follow_up',
-            'counseling_category' => 'required_if:type,regular|in:conduct_intake_interview,information_services,internal_referral_services,counseling_services,conduct_exit_interview',
+            'counseling_category' => 'required_if:type,regular',
             'reason' => 'required|string|max:1000',
         ]);
+
+        // Normalize counseling_category: accept numeric service ID or slug; map IDs to slugs and common synonyms
+        if ($this->counseling_category !== null && $this->counseling_category !== '') {
+            $rawLower = strtolower(trim($this->counseling_category));
+            $synonymMap = [
+                'counseling' => 'counseling_services',
+                'counseling service' => 'counseling_services',
+                'info' => 'information_services',
+                'information' => 'information_services',
+                'referral' => 'internal_referral_services',
+                'intake' => 'conduct_intake_interview',
+                'exit' => 'conduct_exit_interview',
+                'consult' => 'consultation',
+            ];
+            if (array_key_exists($rawLower, $synonymMap)) {
+                $this->counseling_category = $synonymMap[$rawLower];
+            }
+
+            if (is_numeric($this->counseling_category)) {
+                $service = Service::find(intval($this->counseling_category));
+                if ($service) {
+                    $this->counseling_category = $service->slug;
+                } else {
+                    $this->addError('counseling_category', 'Selected counseling category is invalid.');
+                    return;
+                }
+            } else {
+                $service = Service::where('slug', $this->counseling_category)->first();
+                if (!$service && !in_array($this->counseling_category, ['consultation','conduct_intake_interview','information_services','internal_referral_services','counseling_services','conduct_exit_interview'])) {
+                    $this->addError('counseling_category', 'Selected counseling category is invalid.');
+                    return;
+                }
+            }
+        } else {
+            if ($this->type === 'regular') {
+                $this->addError('counseling_category', 'The counseling category field is required for regular appointments.');
+                return;
+            }
+        }
 
         $appointmentDate = Carbon::parse($this->appointment_date);
         $startTime = Carbon::parse($this->start_time);
@@ -333,6 +374,16 @@ class AppointmentManager extends Component
             $assistant->notify(new AssistantAppointmentNotification($appointment, 'booked'));
         }
 
+        // Schedule 24-hour reminder email to the user if the reminder time is in the future
+        try {
+            $sendAt = $appointment->getAppointmentDateTime()->subDay();
+            if ($sendAt->gt(now())) {
+                $appointment->user->notify((new AppointmentReminder($appointment, 'tomorrow'))->delay($sendAt));
+            }
+        } catch (\Throwable $e) {
+            \Log::error('Failed to schedule appointment reminder (livewire)', ['appointment_id' => $appointment->id, 'error' => $e->getMessage()]);
+        }
+
         session()->flash('success', 'Appointment created successfully.');
         $this->closeModals();
         $this->loadAppointments();
@@ -346,7 +397,7 @@ class AppointmentManager extends Component
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
             'type' => 'required|in:regular,urgent,follow_up',
-            'counseling_category' => 'required_if:type,regular|in:conduct_intake_interview,information_services,internal_referral_services,counseling_services,conduct_exit_interview',
+            'counseling_category' => 'required_if:type,regular',
             'reason' => 'required|string|max:1000',
         ]);
 
@@ -358,6 +409,30 @@ class AppointmentManager extends Component
         if ($counselor && !$counselor->isAvailableForSlot($appointmentDate, $startTime, $endTime)) {
             $this->addError('start_time', 'Counselor is not available during the selected time range.');
             return;
+        }
+
+        // Normalize counseling_category similar to create
+        if ($this->counseling_category !== null && $this->counseling_category !== '') {
+            if (is_numeric($this->counseling_category)) {
+                $service = Service::find(intval($this->counseling_category));
+                if ($service) {
+                    $this->counseling_category = $service->slug;
+                } else {
+                    $this->addError('counseling_category', 'Selected counseling category is invalid.');
+                    return;
+                }
+            } else {
+                $service = Service::where('slug', $this->counseling_category)->first();
+                if (!$service && !in_array($this->counseling_category, ['consultation','conduct_intake_interview','information_services','internal_referral_services','counseling_services','conduct_exit_interview'])) {
+                    $this->addError('counseling_category', 'Selected counseling category is invalid.');
+                    return;
+                }
+            }
+        } else {
+            if ($this->type === 'regular') {
+                $this->addError('counseling_category', 'The counseling category field is required for regular appointments.');
+                return;
+            }
         }
 
         $this->selectedAppointment->update([
