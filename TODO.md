@@ -1,3 +1,10 @@
-- [x] Create UserSeeder.php with one user for each role (student, faculty, counselor, assistant, staff)
-- [x] Update DatabaseSeeder.php to include UserSeeder
-- [x] Run the seeder to test the implementation
+- [x] Update pds.blade.php with complete PDS template
+  - [x] Add confidentiality section
+  - [x] Add instruction section
+  - [x] Expand personal background with all fields
+  - [x] Expand family background with detailed information
+  - [x] Add other information section with questions
+  - [x] Add seminars/activities checklist
+  - [x] Add awards and recognition table
+  - [x] Add certification section
+  - [x] Structure as 2-page document

@@ -16,6 +16,7 @@ use App\Http\Controllers\SystemController;
 use App\Http\Controllers\AuthorizedIdController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\PendingEmailChangeController;
+use App\Http\Controllers\PdfPreviewController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -75,6 +76,11 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('counselor_only')->group(function () {
         // Student PDS directory access (Counselor only)
         Route::get('/students/{student}/pds', [StudentManagementController::class, 'showPds'])->name('students.pds');
+        // Print PDS to server-side PDF
+        Route::get('/students/{student}/pds/print', [StudentManagementController::class, 'printPds'])->name('students.pds.print');
+        // Printable HTML view (opens in browser for printing) and generate+save PDF endpoint
+        Route::get('/students/{student}/pds/print-view', [StudentManagementController::class, 'printViewPds'])->name('students.pds.print-view');
+        Route::post('/students/{student}/pds/generate', [StudentManagementController::class, 'generatePdsPdf'])->name('students.pds.generate');
 
         // System Backup (Counselor only)
         Route::get('/system/backup', [SystemController::class, 'backup'])->name('system.backup');
@@ -161,11 +167,15 @@ Route::middleware(['auth'])->group(function () {
     // Personal Data Sheet (Students only)
     Route::middleware('student')->group(function () {
         Route::get('/pds', [PersonalDataSheetController::class, 'show'])->name('pds.show');
+        Route::get('/pds/print-view', [PersonalDataSheetController::class, 'printView'])->name('pds.print-view');
+        Route::post('/pds/generate', [PersonalDataSheetController::class, 'generatePdf'])->name('pds.generate');
         Route::get('/pds/edit', [PersonalDataSheetController::class, 'edit'])->name('pds.edit');
         Route::patch('/pds', [PersonalDataSheetController::class, 'update'])->name('pds.update');
         Route::post('/pds/auto-save', [PersonalDataSheetController::class, 'autoSave'])->name('pds.auto-save');
     });
     
+    // PDF preview for authenticated users (server-side DOMPDF)
+    Route::get('/preview-pdf', [PdfPreviewController::class, 'previewPdf'])->name('preview.pdf');
     // Feedback Forms (Students, Faculty, and Staff)
     Route::middleware('feedback_access')->group(function () {
         Route::resource('feedback', FeedbackFormController::class);

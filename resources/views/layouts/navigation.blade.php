@@ -16,12 +16,42 @@
             <div class="flex items-center space-x-4">
                 <!-- PDF Print Button (only visible on PDS show page for students) -->
                 @if(Auth::check() && Auth::user()->role === 'student' && Route::currentRouteName() === 'pds.show')
-                    <button onclick="window.print()" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                    <button id="navPrintPdsBtn" data-generate-url="{{ route('pds.generate') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
                         </svg>
                         Print PDS
                     </button>
+                    <script>
+                        (function(){
+                            const btn = document.getElementById('navPrintPdsBtn');
+                            if (!btn) return;
+                            btn.addEventListener('click', function(e){
+                                e.preventDefault();
+                                const url = this.getAttribute('data-generate-url');
+                                const win = window.open('about:blank', '_blank');
+                                const token = '{{ csrf_token() }}';
+                                fetch(url, {
+                                    method: 'POST',
+                                    headers: {
+                                        'X-CSRF-TOKEN': token,
+                                        'Accept': 'application/json',
+                                        'X-Requested-With': 'XMLHttpRequest'
+                                    }
+                                }).then(r => r.json()).then(j => {
+                                    if (j && j.url) {
+                                        win.location = j.url;
+                                    } else {
+                                        try { win.close(); } catch(e){}
+                                        alert('Failed to generate PDF.');
+                                    }
+                                }).catch(err => {
+                                    try { win.close(); } catch(e){}
+                                    alert('Failed to generate PDF.');
+                                });
+                            });
+                        })();
+                    </script>
                 @endif
 
                 <!-- Notifications -->

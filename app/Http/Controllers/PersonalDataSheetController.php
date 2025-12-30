@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class PersonalDataSheetController extends Controller
 {
@@ -236,5 +237,87 @@ class PersonalDataSheetController extends Controller
             'message' => 'Data auto-saved successfully',
             'completion_percentage' => $pds->getCompletionPercentage()
         ]);
+    }
+
+    /**
+     * Return a printable HTML view of the authenticated student's PDS.
+     */
+    public function printView()
+    {
+        $user = Auth::user();
+        $pds = $user->personalDataSheet;
+
+        $logos = [];
+        $logoPath = public_path('images/ustp-logo.png');
+        if (file_exists($logoPath)) {
+            $contents = file_get_contents($logoPath);
+            $mime = (new \finfo(FILEINFO_MIME_TYPE))->buffer($contents);
+            $logos['logo'] = 'data:' . ($mime ?: 'image/png') . ';base64,' . base64_encode($contents);
+        }
+
+        $photoData = null;
+        if ($pds && ! empty($pds->photo)) {
+            $storagePath = storage_path('app/public/' . ltrim($pds->photo, '/'));
+            if (file_exists($storagePath)) {
+                $contents = file_get_contents($storagePath);
+                $mime = (new \finfo(FILEINFO_MIME_TYPE))->buffer($contents);
+                $photoData = 'data:' . ($mime ?: 'image/jpeg') . ';base64,' . base64_encode($contents);
+            }
+        }
+
+        return view('pdfs.pds_html', [
+            'student' => $user,
+            'pds' => $pds,
+            'logos' => $logos,
+            'photoData' => $photoData,
+        ]);
+    }
+
+    /**
+     * Generate PDS PDF for the authenticated student, save to public storage, and return URL.
+     */
+    public function generatePdf(Request $request)
+    {
+        try {
+            $user = Auth::user();
+            $pds = $user->personalDataSheet;
+
+            $logos = [];
+            $logoPath = public_path('images/ustp-logo.png');
+            if (file_exists($logoPath)) {
+                $contents = file_get_contents($logoPath);
+                $mime = (new \finfo(FILEINFO_MIME_TYPE))->buffer($contents);
+                $logos['logo'] = 'data:' . ($mime ?: 'image/png') . ';base64,' . base64_encode($contents);
+            }
+
+            $photoData = null;
+            if ($pds && ! empty($pds->photo)) {
+                $storagePath = storage_path('app/public/' . ltrim($pds->photo, '/'));
+                if (file_exists($storagePath)) {
+                    $contents = file_get_contents($storagePath);
+                    $mime = (new \finfo(FILEINFO_MIME_TYPE))->buffer($contents);
+                    $photoData = 'data:' . ($mime ?: 'image/jpeg') . ';base64,' . base64_encode($contents);
+                }
+            }
+
+            $data = [
+                'student' => $user,
+                'pds' => $pds,
+                'logos' => $logos,
+                'photoData' => $photoData,
+            ];
+
+            $pdf = Pdf::loadView('pdfs.pds', $data)->setPaper('A4', 'portrait');
+            $output = $pdf->output();
+
+            $filename = 'pds/pds_' . ($user->id ?? 'user') . '_' . time() . '.pdf';
+            Storage::disk('public')->put($filename, $output);
+
+            $url = asset('storage/' . $filename);
+            return response()->json(['url' => $url]);
+        } catch (\Throwable $e) {
+            Log::error('Failed to generate personal PDS PDF: ' . $e->getMessage(), ['exception' => $e]);
+            return response()->json(['error' => 'PDF generation failed'], 500);
+        }
     }
 } 

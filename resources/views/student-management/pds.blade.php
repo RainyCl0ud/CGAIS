@@ -1,7 +1,7 @@
 <x-app-layout>
     <!-- Navigation Header - Outside Document Content -->
     <div class="fixed top-3 right-80 z-50">
-        <button onclick="window.print()" 
+        <button id="generatePdsBtn" data-generate-url="{{ route('students.pds.generate', $student) }}" 
                 class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150 shadow-lg">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
@@ -9,6 +9,33 @@
             Print PDS
         </button>
     </div>
+    <script>
+        document.getElementById('generatePdsBtn').addEventListener('click', function (e) {
+            e.preventDefault();
+            const url = this.getAttribute('data-generate-url');
+            const win = window.open('about:blank', '_blank');
+            const token = '{{ csrf_token() }}';
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': token,
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            }).then(r => r.json()).then(j => {
+                if (j && j.url) {
+                    win.location = j.url;
+                } else {
+                    win.close();
+                    alert('Failed to generate PDF.');
+                }
+            }).catch(err => {
+                try { win.close(); } catch (e) {}
+                alert('Failed to generate PDF.');
+            });
+        });
+    </script>
 
     <div class="py-12 page-1">
         <div class="max-w-5xl mx-auto sm:px-6 lg:px-8">
