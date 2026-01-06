@@ -216,56 +216,7 @@
             @endif
         </div>
 
-        @if ($user->isCounselor())
-            <div class="mt-6 border-t border-gray-200 pt-4">
-                <h3 class="text-md font-semibold text-gray-900 mb-3">Counselor Availability</h3>
-                <p class="text-sm text-gray-600 mb-4">
-                    Set your availability status. Students will not be able to book appointments during times you mark as unavailable.
-                </p>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                        <x-input-label for="availability_status" :value="__('Status')" />
-                        <select id="availability_status"
-                                name="availability_status"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
-                            @php
-                                $currentStatus = old('availability_status', $user->availability_status ?? 'AVAILABLE');
-                            @endphp
-                            <option value="AVAILABLE" {{ $currentStatus === 'AVAILABLE' ? 'selected' : '' }}>Available</option>
-                            <option value="ON_LEAVE" {{ $currentStatus === 'ON_LEAVE' ? 'selected' : '' }}>On Leave</option>
-                            <option value="UNAVAILABLE" {{ $currentStatus === 'UNAVAILABLE' ? 'selected' : '' }}>Unavailable</option>
-                        </select>
-                        <x-input-error class="mt-2" :messages="$errors->get('availability_status')" />
-                    </div>
-
-                    <div>
-                        <x-input-label for="unavailable_from" :value="__('Unavailable From (optional)')" />
-                        <x-text-input id="unavailable_from"
-                                      name="unavailable_from"
-                                      type="time"
-                                      class="mt-1 block w-full {{ $errors->has('unavailable_from') ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : '' }}"
-                                      :value="old('unavailable_from', optional($user->unavailable_from)->format('H:i'))" />
-                        <x-input-error class="mt-2" :messages="$errors->get('unavailable_from')" />
-                    </div>
-
-                    <div>
-                        <x-input-label for="unavailable_to" :value="__('Unavailable To (optional)')" />
-                        <x-text-input id="unavailable_to"
-                                      name="unavailable_to"
-                                      type="time"
-                                      class="mt-1 block w-full {{ $errors->has('unavailable_to') ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : '' }}"
-                                      :value="old('unavailable_to', optional($user->unavailable_to)->format('H:i'))" />
-                        <x-input-error class="mt-2" :messages="$errors->get('unavailable_to')" />
-                    </div>
-                </div>
-
-                <p class="mt-2 text-xs text-gray-500">
-                    Selecting <strong>On Leave</strong> or <strong>Unavailable</strong> with no time range will block bookings for the full day.
-                    Providing a time range will block only that time range (useful for half-day availability).
-                </p>
-            </div>
-        @endif
 
         <div class="flex items-center gap-4 mt-6">
             <x-primary-button>{{ __('Save') }}</x-primary-button>

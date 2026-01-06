@@ -31,6 +31,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'availability_status',
         'unavailable_from',
         'unavailable_to',
+        'is_active',
         'student_id',
         'faculty_id',
         'staff_id',
@@ -63,6 +64,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
             'unavailable_from' => 'datetime:H:i',
             'unavailable_to' => 'datetime:H:i',
+            'is_active' => 'boolean',
         ];
     }
 
@@ -72,6 +74,16 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isCounselor() { return $this->role === 'counselor'; }
     public function isAssistant() { return $this->role === 'assistant'; }
     public function isStaff() { return $this->role === 'staff'; }
+
+    // Active status helper methods
+    public function isActive() { return $this->is_active; }
+    public function isInactive() { return !$this->is_active; }
+
+    // Static method to count active counselors
+    public static function activeCounselorsCount()
+    {
+        return self::where('role', 'counselor')->where('is_active', true)->count();
+    }
 
     /**
      * Get the role display name

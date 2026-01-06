@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
@@ -115,6 +116,57 @@ class ProfileController extends Controller
         }
 
         return Redirect::route('profile.edit')->with('status', 'counselor-created');
+    }
+
+    /**
+     * Toggle counselor availability status.
+     */
+    public function toggleCounselorActive(Request $request): RedirectResponse
+    {
+        $authUser = $request->user();
+
+        // Only counselors may toggle their availability status
+        if (!$authUser || !$authUser->isCounselor()) {
+            return Redirect::route('profile.edit')->with('error', 'Unauthorized.');
+        }
+
+        // Both actions now require confirmation
+        try {
+            $request->validate([
+                'confirm_intent' => 'required|boolean',
+                'confirm_text' => 'sometimes|string',
+                'final_confirm' => 'required|boolean',
+            ]);
+
+            if (!$request->confirm_intent || !$request->final_confirm) {
+                throw ValidationException::withMessages([
+                    'confirm_intent' => 'Confirmation required.',
+                    'confirm_text' => 'Confirmation required.',
+                    'final_confirm' => 'Confirmation required.',
+                ])->errorBag('counselor_toggle');
+            }
+
+            if ($authUser->isAvailable()) {
+                // Setting to unavailable: requires text confirmation
+                $expectedText = 'SET UNAVAILABLE';
+                if (strtoupper($request->confirm_text) !== $expectedText) {
+                    throw ValidationException::withMessages([
+                        'confirm_text' => 'Confirmation text does not match.',
+                    ])->errorBag('counselor_toggle');
+                }
+
+                $authUser->availability_status = 'UNAVAILABLE';
+                $authUser->save();
+                return Redirect::route('profile.edit')->with('status', 'counselor-unavailable');
+            } else {
+                // Setting back to available: no text confirmation needed, just intent and final confirm
+                $authUser->availability_status = 'AVAILABLE';
+                $authUser->save();
+                return Redirect::route('profile.edit')->with('status', 'counselor-available');
+            }
+        } catch (ValidationException $e) {
+            return Redirect::route('profile.edit')->withErrors($e->errors(), 'counselor_toggle');
+        }
     }
 
     /**

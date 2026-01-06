@@ -57,7 +57,7 @@ class StudentAppointmentController extends Controller
         }
 
         // Get available counselors
-        $counselors = User::where('role', 'counselor')->get();
+        $counselors = User::where('role', 'counselor')->where('is_active', true)->get();
 
         // Active services (counseling categories)
         $services = Service::where('is_active', true)->orderBy('name')->get();
@@ -360,7 +360,7 @@ $validationRules['notes'] = 'nullable|string|max:1000';
             abort(403, 'You can only edit your own appointments.');
         }
 
-        $counselors = User::where('role', 'counselor')->get();
+        $counselors = User::where('role', 'counselor')->where('is_active', true)->where('availability_status', '!=', 'UNAVAILABLE')->get();
         $services = Service::where('is_active', true)->orderBy('name')->get();
 
         return view('student.appointments.edit', compact('appointment', 'counselors', 'services'));
@@ -783,7 +783,7 @@ $validationRules['notes'] = 'nullable|string|max:1000';
     {
         $dates = [];
         $startDate = Carbon::today();
-        $counselors = User::where('role', 'counselor')->get();
+        $counselors = User::where('role', 'counselor')->where('is_active', true)->where('availability_status', '!=', 'UNAVAILABLE')->get();
 
         for ($i = 0; $i < 30; $i++) {
             $date = $startDate->copy()->addDays($i);

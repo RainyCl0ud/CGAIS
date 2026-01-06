@@ -64,7 +64,7 @@ class AppointmentController extends Controller
                 ->with('error', 'Counselors and assistants cannot book appointments.');
         }
 
-        $counselors = User::where('role', 'counselor')->get();
+        $counselors = User::where('role', 'counselor')->where('is_active', true)->where('availability_status', '!=', 'UNAVAILABLE')->get();
         $availableDates = $this->getAvailableDates();
         
         return view('appointments.create', compact('counselors', 'availableDates'));
@@ -280,7 +280,7 @@ class AppointmentController extends Controller
             abort(403);
         }
         // Assistants and Counselors can edit all appointments system-wide
-        $counselors = User::where('role', 'counselor')->get();
+        $counselors = User::where('role', 'counselor')->where('is_active', true)->get();
         return view('appointments.edit', compact('appointment', 'counselors'));
     }
 
@@ -768,7 +768,7 @@ class AppointmentController extends Controller
     {
         $dates = [];
         $startDate = Carbon::today();
-        $counselors = User::where('role', 'counselor')->get();
+        $counselors = User::where('role', 'counselor')->where('is_active', true)->where('availability_status', '!=', 'UNAVAILABLE')->get();
 
         for ($i = 0; $i < 30; $i++) {
             $date = $startDate->copy()->addDays($i);

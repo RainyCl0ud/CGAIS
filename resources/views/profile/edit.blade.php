@@ -72,6 +72,157 @@
                     </div>
                 </form>
             </div>
+
+            @if(auth()->user() && auth()->user()->isCounselor())
+            <div class="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
+                <h2 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">Counselor Availability</h2>
+
+                @if(session('status') === 'counselor-deactivated')
+                    <div class="rounded-md bg-green-50 p-4 border border-green-200 mb-4">
+                        <div class="flex">
+                            <div class="ml-3">
+                                <p class="text-sm font-medium text-green-800">You have been marked as inactive. Students will no longer see you as available for appointments.</p>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
+                @if(session('status') === 'counselor-activated')
+                    <div class="rounded-md bg-green-50 p-4 border border-green-200 mb-4">
+                        <div class="flex">
+                            <div class="ml-3">
+                                <p class="text-sm font-medium text-green-800">You have been reactivated. Students can now book appointments with you.</p>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
+                @if($errors->has('counselor_toggle'))
+                    <div class="rounded-md bg-red-50 p-4 border border-red-200 mb-4">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium text-red-800">
+                                    {{ __('There were errors with your availability update:') }}
+                                </h3>
+                                <div class="mt-2 text-sm">
+                                    <ul class="list-disc pl-5 space-y-1">
+                                        @foreach ($errors->getBag('counselor_toggle')->all() as $error)
+                                            <li class="text-red-600 font-medium">* {{ $error }}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
+                <div class="mb-4">
+                    <p class="text-sm text-gray-600 mb-4">
+                        Mark yourself as inactive to prevent new appointment bookings. This action is permanent until reactivated, and students will see you as unavailable.
+                    </p>
+
+                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-900">Current Availability Status</h3>
+                            <p class="text-sm text-gray-600">
+                                You are currently <strong>{{ auth()->user()->isAvailable() ? 'Available' : 'Unavailable' }}</strong> for appointments
+                            </p>
+                        </div>
+
+                        @if(auth()->user()->isAvailable())
+                            <!-- Mark as Unavailable - Requires Confirmation -->
+                            <button type="button" onclick="openUnavailableModal()" class="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+                                Mark as Unavailable
+                            </button>
+                        @else
+                            <!-- Reactivate - Requires Confirmation -->
+                            <button type="button" onclick="openReactivateModal()" class="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                                Reactivate
+                            </button>
+                        @endif
+                    </div>
+
+
+                </div>
+
+                <!-- Confirmation Modal for Marking as Unavailable -->
+                <div id="unavailableModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+                    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                        <div class="mt-3">
+                            <h3 class="text-lg font-medium text-gray-900 mb-4">Confirm Unavailability</h3>
+                            <p class="text-sm text-gray-600 mb-4">
+                                This action will mark you as unavailable for new appointments. Students will not be able to book appointments with you until you reactivate. This is a permanent action until manually reactivated.
+                            </p>
+
+                            <form method="post" action="{{ route('profile.toggle-active') }}" id="unavailableForm">
+                                @csrf
+
+                                <!-- Hidden confirmation fields -->
+                                <input type="hidden" name="confirm_intent" value="1">
+                                <input type="hidden" name="final_confirm" value="1">
+
+                                <div class="mb-4">
+                                    <label for="confirm_text" class="block text-sm font-medium text-gray-700 mb-2">
+                                        Type "SET UNAVAILABLE" to confirm:
+                                    </label>
+                                    <input type="text" id="confirm_text" name="confirm_text"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                                           placeholder="SET UNAVAILABLE" required>
+                                </div>
+
+                                <div class="flex justify-end space-x-3">
+                                    <button type="button" onclick="closeUnavailableModal()"
+                                            class="px-4 py-2 bg-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                                        Cancel
+                                    </button>
+                                    <button type="submit"
+                                            class="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500">
+                                        Mark as Unavailable
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Confirmation Modal for Reactivating -->
+                <div id="reactivateModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+                    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                        <div class="mt-3">
+                            <h3 class="text-lg font-medium text-gray-900 mb-4">Confirm Reactivation</h3>
+                            <p class="text-sm text-gray-600 mb-4">
+                                This action will mark you as available for new appointments. Students will be able to book appointments with you again.
+                            </p>
+
+                            <form method="post" action="{{ route('profile.toggle-active') }}" id="reactivateForm">
+                                @csrf
+
+                                <!-- Hidden confirmation fields -->
+                                <input type="hidden" name="confirm_intent" value="1">
+                                <input type="hidden" name="final_confirm" value="1">
+
+                                <div class="flex justify-end space-x-3">
+                                    <button type="button" onclick="closeReactivateModal()"
+                                            class="px-4 py-2 bg-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                                        Cancel
+                                    </button>
+                                    <button type="submit"
+                                            class="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+                                        Reactivate
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endif
+
             @endif
 
             <!-- Delete account (kept commented out) -->
@@ -83,4 +234,39 @@
             --}}
         </div>
     </div>
+
+    <script>
+        function openUnavailableModal() {
+            document.getElementById('unavailableModal').classList.remove('hidden');
+        }
+
+        function closeUnavailableModal() {
+            document.getElementById('unavailableModal').classList.add('hidden');
+            // Reset form
+            document.getElementById('unavailableForm').reset();
+        }
+
+        function openReactivateModal() {
+            document.getElementById('reactivateModal').classList.remove('hidden');
+        }
+
+        function closeReactivateModal() {
+            document.getElementById('reactivateModal').classList.add('hidden');
+            // Reset form
+            document.getElementById('reactivateForm').reset();
+        }
+
+        // Close modals when clicking outside
+        document.getElementById('unavailableModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeUnavailableModal();
+            }
+        });
+
+        document.getElementById('reactivateModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeReactivateModal();
+            }
+        });
+    </script>
 </x-app-layout>
