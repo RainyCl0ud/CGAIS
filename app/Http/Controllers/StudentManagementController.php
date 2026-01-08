@@ -8,6 +8,7 @@ use Illuminate\View\View;
 use App\Models\Appointment;
 use Illuminate\Http\Request;
 use App\Models\PersonalDataSheet;
+use App\Models\DocumentCode;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
@@ -181,6 +182,9 @@ ActivityLogService::log(
         // Load PDS
         $student->load('personalDataSheet');
 
+        // Get document code
+        $documentCode = DocumentCode::first();
+
         // Log the access
         ActivityLogService::log(
             Auth::id(),
@@ -189,7 +193,7 @@ ActivityLogService::log(
             ['student_id' => $student->id]
         );
 
-        return view('student-management.pds', compact('student'));
+        return view('student-management.pds', compact('student', 'documentCode'));
     }
 
     /**
@@ -226,11 +230,15 @@ ActivityLogService::log(
                 }
             }
 
+            // Get document code
+            $documentCode = DocumentCode::first();
+
             $data = [
                 'student' => $student,
                 'pds' => $pds,
                 'logos' => $logos,
                 'photoData' => $photoData,
+                'documentCode' => $documentCode,
             ];
 
             $pdf = Pdf::loadView('pdfs.pds', $data)->setPaper('A4', 'portrait');
@@ -272,11 +280,15 @@ ActivityLogService::log(
             }
         }
 
+        // Get document code
+        $documentCode = DocumentCode::first();
+
         return view('pdfs.pds_html', [
             'student' => $student,
             'pds' => $pds,
             'logos' => $logos,
             'photoData' => $photoData,
+            'documentCode' => $documentCode,
         ]);
     }
 
@@ -311,11 +323,15 @@ ActivityLogService::log(
                 }
             }
 
+            // Get document code
+            $documentCode = DocumentCode::first();
+
             $data = [
                 'student' => $student,
                 'pds' => $pds,
                 'logos' => $logos,
                 'photoData' => $photoData,
+                'documentCode' => $documentCode,
             ];
 
             $pdf = Pdf::loadView('pdfs.pds', $data)->setPaper('A4', 'portrait');

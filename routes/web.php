@@ -70,6 +70,10 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('authorized-ids', AuthorizedIdController::class);
         Route::get('/authorized-ids/export', [AuthorizedIdController::class, 'export'])->name('authorized-ids.export');
         Route::post('/authorized-ids/bulk-destroy', [AuthorizedIdController::class, 'bulkDestroy'])->name('authorized-ids.bulk-destroy');
+
+        // Document Codes Management (Counselor and Assistant)
+        Route::get('document-codes', [App\Http\Controllers\DocumentCodeController::class, 'index'])->name('document-codes.index');
+        Route::put('document-codes', [App\Http\Controllers\DocumentCodeController::class, 'update'])->name('document-codes.update');
     });
     
     // Restricted features - Counselor only (Student PDS and System Backup)

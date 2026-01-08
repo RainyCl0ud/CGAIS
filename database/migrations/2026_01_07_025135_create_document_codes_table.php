@@ -13,6 +13,10 @@ return new class extends Migration
     {
         Schema::create('document_codes', function (Blueprint $table) {
             $table->id();
+            $table->string('document_code_no')->default('FM-USTP-GCS-02');
+            $table->string('revision_no')->default('00');
+            $table->string('effective_date')->default('03.17.25');
+            $table->string('page_no')->default('1 of 2');
             $table->timestamps();
         });
     }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\PersonalDataSheet;
+use App\Models\DocumentCode;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -22,24 +23,46 @@ class PersonalDataSheetController extends Controller
     {
         $user = Auth::user();
         $pds = $user->personalDataSheet;
-        
+
         if (!$pds) {
             $pds = new PersonalDataSheet();
         }
-        
-        return view('pds.show', compact('pds'));
+
+        $documentCode = DocumentCode::first();
+
+        if (!$documentCode) {
+            $documentCode = DocumentCode::create([
+                'document_code_no' => 'FM-USTP-GCS-02',
+                'revision_no' => '00',
+                'effective_date' => '03.17.25',
+                'page_no' => '1 of 2',
+            ]);
+        }
+
+        return view('pds.show', compact('pds', 'documentCode'));
     }
 
     public function edit()
     {
         $user = Auth::user();
         $pds = $user->personalDataSheet;
-        
+
         if (!$pds) {
             $pds = new PersonalDataSheet();
         }
-        
-        return view('pds.edit', compact('pds'));
+
+        $documentCode = DocumentCode::first();
+
+        if (!$documentCode) {
+            $documentCode = DocumentCode::create([
+                'document_code_no' => 'FM-USTP-GCS-02',
+                'revision_no' => '00',
+                'effective_date' => '03.17.25',
+                'page_no' => '1 of 2',
+            ]);
+        }
+
+        return view('pds.edit', compact('pds', 'documentCode'));
     }
 
     public function update(Request $request)
@@ -282,6 +305,17 @@ class PersonalDataSheetController extends Controller
             $user = Auth::user();
             $pds = $user->personalDataSheet;
 
+            $documentCode = DocumentCode::first();
+
+            if (!$documentCode) {
+                $documentCode = DocumentCode::create([
+                    'document_code_no' => 'FM-USTP-GCS-02',
+                    'rev_no' => '00',
+                    'effective_date' => '03.17.25',
+                    'page_no' => '1 of 2',
+                ]);
+            }
+
             $logos = [];
             $logoPath = public_path('images/ustp-logo.png');
             if (file_exists($logoPath)) {
@@ -303,6 +337,7 @@ class PersonalDataSheetController extends Controller
             $data = [
                 'student' => $user,
                 'pds' => $pds,
+                'documentCode' => $documentCode,
                 'logos' => $logos,
                 'photoData' => $photoData,
             ];

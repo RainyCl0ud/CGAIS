@@ -58,25 +58,24 @@
         </p>
     </div>
 
-    <!-- Document Code Box -->
-    <div class="document-code-box absolute top-0 right-0 bg-white text-center border border-black leading-tight">
-        <div class="bg-[#1b2a6b] text-white font-semibold py-[2px] text-[9px]">
-            Document Code No.
-        </div>
-        <div class="py-[2px] font-bold text-[7px]">FM-USTP-GCS-02</div>
-        <div class="grid grid-cols-2 border-t border-black text-[7px]">
-            <div class="border-r border-black py-[1px] font-semibold text-[7px]">Rev. No.</div>
-            <div class="py-[1px] font-semibold text-[7px]">Effective Date</div>
-        </div>
-        <div class="grid grid-cols-2 border-t border-black text-[7px]">
-            <div class="border-r border-black py-[1px] text-[7px]">00</div>
-            <div class="py-[1px] text-[7px]">03.17.25</div>
-        </div>
-        <div class="border-t border-black py-[2px] text-[7px] font-semibold">
-            Page No. 1 of 2
-        </div>
-
-</div>
+                            <!-- Document Code Box -->
+                            <div class="document-code-box absolute top-0 right-0 bg-white text-center border border-black leading-tight">
+                                <div class="bg-[#1b2a6b] text-white font-semibold py-[2px] text-[9px]">
+                                    Document Code No.
+                                </div>
+                                <div class="py-[2px] font-bold text-[7px]">{{ $documentCode->document_code_no ?? 'FM-USTP-GCS-02' }}</div>
+                                <div class="grid grid-cols-2 border-t border-black text-[7px]">
+                                    <div class="border-r border-black py-[1px] font-semibold text-[7px]">Rev. No.</div>
+                                    <div class="py-[1px] font-semibold text-[7px]">Effective Date</div>
+                                </div>
+                                <div class="grid grid-cols-2 border-t border-black text-[7px]">
+                                    <div class="border-r border-black py-[1px] text-[7px]">{{ $documentCode->rev_no ?? '00' }}</div>
+                                    <div class="py-[1px] text-[7px]">{{ $documentCode->effective_date ?? '03.17.25' }}</div>
+                                </div>
+                                <div class="border-t border-black py-[2px] text-[7px] font-semibold">
+                                    Page No. 1 of {{ explode(' of ', $documentCode->page_no ?? '2 of 2')[1] }}
+                                </div>
+                            </div>
 
 
                     <!-- Title -->
@@ -368,17 +367,17 @@
                                 <div class="bg-[#1b2a6b] text-white font-semibold py-[2px] text-[9px]">
                                     Document Code No.
                                 </div>
-                                <div class="py-[2px] font-bold text-[9px]">FM-USTP-GCS-02</div>
+                                <div class="py-[2px] font-bold text-[9px]">{{ $documentCode->document_code_no ?? 'FM-USTP-GCS-02' }}</div>
                                 <div class="grid grid-cols-2 border-t border-black text-[9px]">
                                     <div class="border-r border-black py-[1px] font-semibold">Rev. No.</div>
                                     <div class="py-[1px] font-semibold">Effective Date</div>
                                 </div>
                                 <div class="grid grid-cols-2 border-t border-black text-[9px]">
-                                    <div class="border-r border-black py-[1px]">00</div>
-                                    <div class="py-[1px]">03.17.25</div>
+                                    <div class="border-r border-black py-[1px]">{{ $documentCode->revision_no ?? '00' }}</div>
+                                    <div class="py-[1px]">{{ $documentCode->effective_date ?? '03.17.25' }}</div>
                                 </div>
                                 <div class="border-t border-black py-[2px] text-[9px] font-semibold">
-                                    Page No. 2 of 2
+                                    Page No. {{ $documentCode->page_no ?? '2 of 2' }}
                                 </div>
                             </div>
                         </div>

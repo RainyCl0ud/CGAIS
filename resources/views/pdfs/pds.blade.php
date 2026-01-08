@@ -43,16 +43,16 @@
         <div style="position:absolute; right:0; top:0; width:100px;">
             <div style="border:1px solid #000; padding:1px; font-size:5px; text-align:center; background:#fff;">
                 <div style="background:#1b2a6b; color:#fff; font-weight:700; padding:1px;">Document Code No.</div>
-                <div style="font-weight:700; font-size:6px; padding:2px 0;">FM-USTP-GCS-02</div>
+                <div style="font-weight:700; font-size:6px; padding:2px 0;">{{ $documentCode->document_code_no ?? 'FM-USTP-GCS-02' }}</div>
                 <div style="display:flex; font-size:6px; border-top:1px solid #000;">
                     <div style="flex:1; border-right:1px solid #000; padding:1px;">Rev. No.</div>
                     <div style="flex:1; padding:1px;">Effective Date</div>
                 </div>
                 <div style="display:flex; font-size:6px; border-top:1px solid #000;">
-                    <div style="flex:1; border-right:1px solid #000; padding:1px;">00</div>
-                    <div style="flex:1; padding:1px;">03.17.25</div>
+                    <div style="flex:1; border-right:1px solid #000; padding:1px;">{{ $documentCode->revision_no ?? '00' }}</div>
+                    <div style="flex:1; padding:1px;">{{ $documentCode->effective_date ?? '03.17.25' }}</div>
                 </div>
-                <div style="border-top:1px solid #000; padding:2px; font-size:6px; font-weight:700;">Page No. 1 of 2</div>
+                <div style="border-top:1px solid #000; padding:2px; font-size:6px; font-weight:700;">Page No. 1 of {{ explode(' of ', $documentCode->page_no ?? '1 of 2')[1] ?? '2' }}</div>
             </div>
         </div>
 
