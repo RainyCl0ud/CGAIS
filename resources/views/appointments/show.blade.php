@@ -206,9 +206,9 @@
                                                 ✓ Approve Appointment
                                             </button>
                                             
-                                            <button onclick="showRejectModal('{{ $appointment->id }}')" 
+                                            <button onclick="showCancelModal('{{ $appointment->id }}')"
                                                     class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
-                                                ✗ Reject Appointment
+                                                ✗ Cancel Appointment
                                             </button>
                                             
                                             <button onclick="putOnHold('{{ $appointment->id }}')" 
@@ -279,9 +279,9 @@
                                                 ✓ Approve Appointment
                                             </button>
                                             
-                                            <button onclick="showRejectModal('{{ $appointment->id }}')"
+                                            <button onclick="showCancelModal('{{ $appointment->id }}')"
                                                     class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
-                                                ✗ Reject Appointment
+                                                ✗ Cancel Appointment
                                             </button>
                                             
                                             <button onclick="putOnHold('{{ $appointment->id }}')" 
@@ -427,8 +427,8 @@
         </div>
     </div>
 
-    <!-- Reject Appointment Modal -->
-    <div id="rejectModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <!-- Cancel Appointment Modal -->
+    <div id="cancelModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
         <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
             <div class="mt-3">
                 <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
@@ -436,24 +436,24 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
                 </div>
-                <h3 class="text-lg font-medium text-gray-900 mt-4 text-center">Reject Appointment</h3>
-                <form id="rejectForm" method="POST" class="mt-4">
+                <h3 class="text-lg font-medium text-gray-900 mt-4 text-center">Cancel Appointment</h3>
+                <form id="cancelForm" method="POST" class="mt-4">
                     @csrf
                     @method('PATCH')
                     <div class="mb-4">
-                        <label for="rejection_reason" class="block text-sm font-medium text-gray-700 mb-2">Rejection Reason</label>
-                        <textarea id="rejection_reason" name="rejection_reason" rows="3" required
+                        <label for="cancellation_reason" class="block text-sm font-medium text-gray-700 mb-2">Cancellation Reason</label>
+                        <textarea id="cancellation_reason" name="cancellation_reason" rows="3" required
                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                                  placeholder="Please provide a reason for rejecting this appointment..."></textarea>
+                                  placeholder="Please provide a reason for cancelling this appointment..."></textarea>
                     </div>
                     <div class="flex justify-end space-x-3">
-                        <button type="button" onclick="hideRejectModal()" 
+                        <button type="button" onclick="hideCancelModal()"
                                 class="px-4 py-2 bg-gray-300 text-gray-700 text-base font-medium rounded-md hover:bg-gray-400 transition-colors">
                             Cancel
                         </button>
-                        <button type="submit" 
+                        <button type="submit"
                                 class="px-4 py-2 bg-red-600 text-white text-base font-medium rounded-md hover:bg-red-700 transition-colors">
-                            Reject
+                            Cancel Appointment
                         </button>
                     </div>
                 </form>
@@ -670,7 +670,7 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             const statusModal = document.getElementById('statusModal');
-            const rejectModal = document.getElementById('rejectModal');
+            const cancelModal = document.getElementById('cancelModal');
             const rescheduleModal = document.getElementById('rescheduleModal');
             const cancelButton = document.getElementById('cancelStatusChange');
 
@@ -686,9 +686,9 @@
                 }
             });
 
-            rejectModal.addEventListener('click', function(e) {
-                if (e.target === rejectModal) {
-                    rejectModal.classList.add('hidden');
+            cancelModal.addEventListener('click', function(e) {
+                if (e.target === cancelModal) {
+                    cancelModal.classList.add('hidden');
                 }
             });
 

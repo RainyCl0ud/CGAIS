@@ -95,7 +95,7 @@ class Notification extends Model
     {
         return match($this->type) {
             'appointment_confirmed', 'appointment_approved' => 'bg-green-50 border-green-200 hover:bg-green-100',
-            'appointment_cancelled', 'appointment_rejected' => 'bg-red-50 border-red-200 hover:bg-red-100',
+            'appointment_cancelled' => 'bg-red-50 border-red-200 hover:bg-red-100',
             'appointment_reminder' => 'bg-yellow-50 border-yellow-200 hover:bg-yellow-100',
             'general' => 'bg-gray-50 border-gray-200 hover:bg-gray-100',
             default => 'bg-white border-gray-200 hover:bg-gray-50',

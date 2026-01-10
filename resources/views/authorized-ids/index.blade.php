@@ -84,7 +84,6 @@
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID Number</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Registered By</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Used By</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
                                 </tr>
@@ -108,10 +107,6 @@
                                             <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {{ $authorizedId->status_badge_class }}">
                                                 {{ $authorizedId->status_label }}
                                             </span>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm text-gray-900">{{ $authorizedId->registeredBy?->full_name ?? 'N/A' }}</div>
-                                            <div class="text-sm text-gray-500">{{ $authorizedId->created_at->format('M d, Y') }}</div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             @if($authorizedId->is_used)

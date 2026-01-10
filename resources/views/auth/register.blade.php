@@ -393,7 +393,7 @@
         // Enable student fields
         const studentFields = [
             'student_first_name', 'student_middle_name', 'student_last_name',
-            'student_email', 'student_phone', 'student_id', 'course_category', 'year_level',
+            'student_email', 'student_phone', 'student_id', 'course_id', 'year_level',
             'student_password', 'student_password_confirmation'
         ];
         
@@ -419,7 +419,7 @@
         // Disable student fields
         const studentFields = [
             'student_first_name', 'student_middle_name', 'student_last_name', 'student_name_extension',
-            'student_email', 'student_phone', 'student_id', 'course_category', 'year_level',
+            'student_email', 'student_phone', 'student_id', 'course_id', 'year_level',
             'student_password', 'student_password_confirmation'
         ];
         

@@ -74,6 +74,12 @@
                                             <p class="text-gray-900">{{ $appointment->notes }}</p>
                                         </div>
                                     @endif
+                                    @if($appointment->isCancelled() && $appointment->cancellation_reason)
+                                        <div>
+                                            <span class="font-medium text-red-600">Cancellation Reason:</span>
+                                            <p class="text-gray-900">{{ $appointment->cancellation_reason }}</p>
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
 

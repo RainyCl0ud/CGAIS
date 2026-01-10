@@ -41,7 +41,6 @@
                                     <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pending</option>
                                     <option value="confirmed" {{ request('status') === 'confirmed' ? 'selected' : '' }}>Confirmed</option>
                                     <option value="completed" {{ request('status') === 'completed' ? 'selected' : '' }}>Completed</option>
-                                    <option value="cancelled" {{ request('status') === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
                                     <option value="rejected" {{ request('status') === 'rejected' ? 'selected' : '' }}>Rejected</option>
                                     <option value="rescheduled" {{ request('status') === 'rescheduled' ? 'selected' : '' }}>Rescheduled</option>
                                 </select>

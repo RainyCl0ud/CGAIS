@@ -237,10 +237,10 @@ class AppointmentManager extends Component
         $this->showApproveModal = true;
     }
 
-    public function openRejectModal($appointmentId)
+    public function openCancelModal($appointmentId)
     {
         $this->selectedAppointment = Appointment::find($appointmentId);
-        $this->showRejectModal = true;
+        $this->showCancelModal = true;
     }
 
     public function openRescheduleModal($appointmentId)
@@ -254,7 +254,7 @@ class AppointmentManager extends Component
         $this->showCreateModal = false;
         $this->showEditModal = false;
         $this->showApproveModal = false;
-        $this->showRejectModal = false;
+        $this->showCancelModal = false;
         $this->showRescheduleModal = false;
         $this->selectedAppointment = null;
         $this->resetForm();
@@ -271,7 +271,7 @@ class AppointmentManager extends Component
         $this->reason = '';
         $this->notes = '';
         $this->counselor_notes = '';
-        $this->rejection_reason = '';
+        $this->cancellation_reason = '';
         $this->reschedule_reason = '';
         $this->new_appointment_date = '';
         $this->new_start_time = '';
@@ -491,7 +491,7 @@ class AppointmentManager extends Component
 
     public function rejectAppointment()
     {
-        $this->validate(['rejection_reason' => 'required|string|max:500']);
+        $this->validate(['cancellation_reason' => 'required|string|max:500']);
 
         if (!Auth::user()->canApproveAppointments()) {
             session()->flash('error', 'You do not have permission to reject appointments.');
@@ -500,25 +500,26 @@ class AppointmentManager extends Component
 
         $this->selectedAppointment->update([
             'status' => 'cancelled',
-            'counselor_notes' => $this->selectedAppointment->counselor_notes . "\n\n[Rejected on " . now()->format('M d, Y g:i A') . " - Reason: {$this->rejection_reason}]"
+            'cancellation_reason' => $this->cancellation_reason,
+            'counselor_notes' => $this->selectedAppointment->counselor_notes . "\n\n[Cancelled on " . now()->format('M d, Y g:i A') . " - Reason: {$this->cancellation_reason}]"
         ]);
 
         $this->selectedAppointment->user->notifications()->create([
             'appointment_id' => $this->selectedAppointment->id,
-            'title' => 'Appointment Rejected',
-            'message' => "Your appointment on {$this->selectedAppointment->getFormattedDateTime()} has been rejected. Reason: {$this->rejection_reason}",
-            'type' => 'appointment_rejected',
+            'title' => 'Appointment Cancelled',
+            'message' => "Your appointment on {$this->selectedAppointment->getFormattedDateTime()} has been cancelled. Reason: {$this->cancellation_reason}",
+            'type' => 'appointment_cancelled',
             'is_read' => false,
             'read_at' => null,
         ]);
 
         // Send email notification to student
-        $this->selectedAppointment->user->notify(new AppointmentStatusNotification($this->selectedAppointment, 'cancelled', $this->rejection_reason));
-        
-        // Send email notification to counselor
-        $this->selectedAppointment->counselor->notify(new AppointmentStatusNotification($this->selectedAppointment, 'cancelled', $this->rejection_reason));
+        $this->selectedAppointment->user->notify(new AppointmentStatusNotification($this->selectedAppointment, 'cancelled', $this->cancellation_reason));
 
-        session()->flash('success', 'Appointment rejected successfully.');
+        // Send email notification to counselor
+        $this->selectedAppointment->counselor->notify(new AppointmentStatusNotification($this->selectedAppointment, 'cancelled', $this->cancellation_reason));
+
+        session()->flash('success', 'Appointment cancelled successfully.');
         $this->closeModals();
         $this->loadAppointments();
         $this->loadStats();

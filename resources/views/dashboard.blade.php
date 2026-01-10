@@ -151,8 +151,10 @@ if (!isset($upcomingAppointments)) {
                                         <p class="text-lg lg:text-2xl font-bold text-gray-900">{{ $stats['unread_notifications'] ?? 0 }}</p>
                                     </div>
                                 </div>
+                            </div>
 
-                        @else
+                        @endif
+                        @if(!auth()->user()->isCounselor() && !auth()->user()->isAssistant())
                             <!-- Student/Faculty Statistics -->
                             <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-4 lg:p-6 rounded-xl border border-blue-200">
                                 <div class="flex items-center">

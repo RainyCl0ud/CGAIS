@@ -26,14 +26,6 @@ class AuthorizedId extends Model
     ];
 
     /**
-     * Get the counselor who registered this ID
-     */
-    public function registeredBy(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'registered_by');
-    }
-
-    /**
      * Get the user who used this ID
      */
     public function usedBy(): BelongsTo

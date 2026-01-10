@@ -1,7 +1,11 @@
-# Task: Modify Referral Appointment Title
+# Authorized ID Assignment Fix
 
-## Steps to Complete:
-- [ ] Modify resources/views/appointments/create.blade.php to make title dynamic
-- [ ] Add JavaScript to update title when type changes to 'urgent'
-- [ ] Initialize title based on URL parameters on page load
-- [ ] Test the changes for referral appointments
+## Tasks
+- [x] Remove 'registered_by' association from AuthorizedId creation to prevent automatic assignment to counselor's account
+- [x] Update AuthorizedIdController index method to remove registeredBy relationship loading
+- [x] Remove "Registered By" column from authorized-ids index view
+- [x] Update CSV export to remove "Registered By" and "Registered Date" columns
+- [x] Remove 'registered_by' from AuthorizedId model fillable array
+- [x] Remove registeredBy relationship method from AuthorizedId model
+- [x] Test Authorized ID creation and user registration flow
+- [x] Verify no existing Authorized IDs are affected

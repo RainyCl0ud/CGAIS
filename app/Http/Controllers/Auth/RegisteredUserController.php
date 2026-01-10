@@ -50,7 +50,7 @@ class RegisteredUserController extends Controller
 
         // Pre-approved ID check using AuthorizedId system
         if ($request->role === 'student') {
-            $authorizedId = AuthorizedId::where('id_number', $request->student_id)
+            $authorizedId = AuthorizedId::where('id_number', trim($request->student_id))
                 ->where('type', 'student')
                 ->where('is_used', false)
                 ->first();
@@ -58,7 +58,7 @@ class RegisteredUserController extends Controller
                 return back()->withErrors(['student_id' => 'This Student ID is not authorized or has already been used. Please contact the counselor.'])->withInput();
             }
         } elseif ($request->role === 'faculty') {
-            $authorizedId = AuthorizedId::where('id_number', $request->faculty_id)
+            $authorizedId = AuthorizedId::where('id_number', trim($request->faculty_id))
                 ->where('type', 'faculty')
                 ->where('is_used', false)
                 ->first();
@@ -66,7 +66,7 @@ class RegisteredUserController extends Controller
                 return back()->withErrors(['faculty_id' => 'This Faculty ID is not authorized or has already been used. Please contact the counselor.'])->withInput();
             }
         } elseif ($request->role === 'staff') {
-            $authorizedId = AuthorizedId::where('id_number', $request->staff_id)
+            $authorizedId = AuthorizedId::where('id_number', trim($request->staff_id))
                 ->where('type', 'staff')
                 ->where('is_used', false)
                 ->first();

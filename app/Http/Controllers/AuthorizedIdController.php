@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AuthorizedId;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -20,7 +21,7 @@ class AuthorizedIdController extends Controller
      */
     public function index(Request $request)
     {
-        $query = AuthorizedId::with(['registeredBy', 'usedBy'])
+        $query = AuthorizedId::with(['usedBy'])
             ->orderBy('created_at', 'desc');
 
         // Filter by type
@@ -70,11 +71,24 @@ class AuthorizedIdController extends Controller
             return back()->withErrors(['id_number' => "ID '$idNumber' already exists."]);
         }
 
+        // Check if ID is already assigned to an existing user
+        $existingUser = null;
+        if ($request->type === 'student') {
+            $existingUser = User::where('student_id', $idNumber)->first();
+        } elseif ($request->type === 'faculty') {
+            $existingUser = User::where('faculty_id', $idNumber)->first();
+        } elseif ($request->type === 'staff') {
+            $existingUser = User::where('staff_id', $idNumber)->first();
+        }
+
+        if ($existingUser) {
+            return back()->withErrors(['id_number' => "ID '$idNumber' is already assigned to an existing user and cannot be authorized."]);
+        }
+
         try {
             AuthorizedId::create([
                 'id_number' => $idNumber,
                 'type' => $request->type,
-                'registered_by' => Auth::id(),
             ]);
             return redirect()->route('authorized-ids.index')->with('success', 'Successfully created authorized ID.');
         } catch (\Exception $e) {
@@ -213,8 +227,6 @@ class AuthorizedIdController extends Controller
                 'ID Number',
                 'Type',
                 'Status',
-                'Registered By',
-                'Registered Date',
                 'Used By',
                 'Used Date',
                 'Notes'
@@ -226,8 +238,6 @@ class AuthorizedIdController extends Controller
                     $id->id_number,
                     $id->type_label,
                     $id->status_label,
-                    $id->registeredBy?->full_name ?? 'N/A',
-                    $id->created_at->format('Y-m-d H:i:s'),
                     $id->usedBy?->full_name ?? 'N/A',
                     $id->used_at?->format('Y-m-d H:i:s') ?? 'N/A',
                     $id->notes ?? ''

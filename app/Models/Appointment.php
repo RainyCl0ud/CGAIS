@@ -24,6 +24,7 @@ class Appointment extends Model
         'reason',
         'notes',
         'counselor_notes',
+        'cancellation_reason',
     ];
 
     protected static function booted()
@@ -247,11 +248,6 @@ class Appointment extends Model
         return $this->status === 'no_show';
     }
 
-    public function isRejected(): bool
-    {
-        return $this->status === 'rejected';
-    }
-
     public function isRescheduled(): bool
     {
         return $this->status === 'rescheduled';
@@ -292,7 +288,6 @@ class Appointment extends Model
             'completed' => 'bg-green-100 text-green-800',
             'cancelled' => 'bg-red-100 text-red-800',
             'no_show' => 'bg-gray-100 text-gray-800',
-            'rejected' => 'bg-red-100 text-red-800',
             'rescheduled' => 'bg-purple-100 text-purple-800',
             'failed' => 'bg-red-100 text-red-800',
             'on_hold' => 'bg-orange-100 text-orange-800',

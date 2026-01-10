@@ -93,12 +93,12 @@ class AppointmentStatusNotification extends Notification
                     ->line("📅 **Date:** {$appointmentDate}")
                     ->line("🕐 **Time:** {$appointmentTime}")
                     ->line("👤 **Counselor:** " . ($this->appointment->counselor->full_name ?? 'Your Counselor'));
-                
+
                 if ($this->reason) {
                     $message->line('')
                         ->line("📝 **Reason for cancellation:** {$this->reason}");
                 }
-                
+
                 $message->line('')
                     ->line('If you would like to schedule a new appointment, please visit our system.');
                 break;
@@ -126,6 +126,8 @@ class AppointmentStatusNotification extends Notification
                 return 'Your Appointment Has Been Rescheduled';
             case 'cancelled':
                 return 'Your Appointment Has Been Cancelled';
+            case 'rejected':
+                return 'Your Appointment Has Been Rejected';
             default:
                 return 'Appointment Status Update';
         }

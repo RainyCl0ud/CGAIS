@@ -895,7 +895,8 @@ class AppointmentController extends Controller
         $request->validate(['rejection_reason' => 'required|string|max:500']);
 
         $appointment->update([
-            'status' => 'cancelled'
+            'status' => 'rejected',
+            'rejection_reason' => $request->rejection_reason
         ]);
 
         $appointment->user->notifications()->create([
@@ -908,7 +909,7 @@ class AppointmentController extends Controller
         ]);
 
         // Send email notification to student (counselor is rejecting)
-        $appointment->user->notify(new AppointmentStatusNotification($appointment, 'cancelled', $request->rejection_reason));
+        $appointment->user->notify(new AppointmentStatusNotification($appointment, 'rejected', $request->rejection_reason));
 
         // Notify assistant(s) of the rejection
         $assistants = User::where('role', 'assistant')->get();
