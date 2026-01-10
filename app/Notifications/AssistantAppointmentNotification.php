@@ -65,7 +65,7 @@ class AssistantAppointmentNotification extends Notification
                     ->line("👤 **Client:** " . $this->appointment->user->full_name)
                     ->line("📧 **Client Email:** " . $this->appointment->user->email)
                     ->line("👨‍⚕️ **Counselor:** " . ($this->appointment->counselor?->full_name ?? 'To be assigned'))
-                    ->line("🏥 **Type:** " . $this->appointment->getTypeLabel())
+                    ->line("🏥 **Type:** " . $this->appointment->getCounselingCategoryLabel())
                     ->line("📝 **Reason:** " . ($this->appointment->reason ?? 'Not specified'))
                     ->line('')
                     ->line('Please review and manage this appointment in the system.');

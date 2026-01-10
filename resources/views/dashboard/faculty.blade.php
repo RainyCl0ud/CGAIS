@@ -217,7 +217,7 @@
                     <div class="mb-6 sm:mb-8">
                         <h2 class="text-lg sm:text-2xl font-bold text-blue-900 mb-3 sm:mb-4">Quick Actions</h2>
                         <div class="flex flex-wrap gap-2 sm:gap-4">
-                            <a href="{{ route('student.appointments.create') }}"
+                            <a href="{{ route('student.appointments.create') }}?type=regular"
                                class="px-3 sm:px-6 py-2 sm:py-3 bg-blue-900 text-white font-semibold rounded-lg hover:bg-blue-800 transition-colors text-sm">
                                 Book Appointment
                             </a>

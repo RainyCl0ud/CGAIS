@@ -3,7 +3,7 @@
             <div class="w-full h-full mx-auto">
                 <div class="bg-white/90 rounded-lg sm:rounded-2xl shadow-lg sm:shadow-2xl border border-blue-100 p-6 sm:p-10 backdrop-blur h-full">
                     <div class="mb-4 sm:mb-6">
-                        <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-900">Book Appointment</h1>
+                        <h1 id="appointment-title" class="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-900">Book Appointment</h1>
                         <p class="text-gray-600 text-xs sm:text-sm mt-1">Schedule a counseling session with a counselor</p>
                     </div>
 
@@ -189,8 +189,27 @@
         }
     });
 
+    // Function to update appointment title based on type
+    function updateAppointmentTitle(type) {
+        const titleElement = document.getElementById('appointment-title');
+        // For students, always keep "Book Appointment" title
+        // Only faculty/staff get "Referral Appointment" title for urgent type
+        @if(auth()->user()->isStudent())
+            titleElement.textContent = 'Urgent Appointment';
+        @else
+            if (type === 'urgent') {
+                titleElement.textContent = 'Referral Appointment';
+            } else {
+                titleElement.textContent = 'Book Appointment';
+            }
+        @endif
+    }
+
     // Urgent appointment handling
     typeSelect.addEventListener('change', function() {
+        // Update title based on appointment type
+        updateAppointmentTitle(this.value);
+
         if (this.value === 'urgent') {
             urgencyDiv.classList.remove('hidden');
             reasonField.required = true;
@@ -204,8 +223,23 @@
         }
     });
 
-    // Auto-load on page ready (useful for old input restore)
+    // Initialize form state based on URL parameters
     document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const typeParam = urlParams.get('type');
+
+        if (typeParam === 'urgent') {
+            const typeSelect = document.getElementById('type');
+            typeSelect.value = 'urgent';
+            updateAppointmentTitle('urgent');
+            typeSelect.dispatchEvent(new Event('change'));
+        } else if (typeParam === 'regular') {
+            const typeSelect = document.getElementById('type');
+            typeSelect.value = 'regular';
+            updateAppointmentTitle('regular');
+            typeSelect.dispatchEvent(new Event('change'));
+        }
+
         if (counselorSelect.value && dateInput.value) {
             loadAvailableTimeSlots(counselorSelect.value, dateInput.value);
         }

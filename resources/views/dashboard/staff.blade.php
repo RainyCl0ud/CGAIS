@@ -21,8 +21,8 @@
                         </div>
                     @endif
 
-                    <!-- Student Statistics Cards -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
+                    <!-- Staff Statistics Cards -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 mb-6 sm:mb-8">
                         <div class="bg-blue-50 p-3 sm:p-6 rounded-lg border border-blue-200">
                             <div class="flex items-center">
                                 <div class="p-2 sm:p-3 bg-blue-500 rounded-full">
@@ -61,20 +61,6 @@
                                 <div class="ml-3 sm:ml-4">
                                     <p class="text-xs sm:text-sm font-medium text-gray-600">Completed</p>
                                     <p class="text-lg sm:text-2xl font-semibold text-gray-900">{{ $stats['completed_appointments'] ?? 0 }}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="bg-purple-50 p-3 sm:p-6 rounded-lg border border-purple-200">
-                            <div class="flex items-center">
-                                <div class="p-2 sm:p-3 bg-purple-500 rounded-full">
-                                    <svg class="w-4 h-4 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM4.19 4.19A2 2 0 004 6v10a2 2 0 002 2h10a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-1.81 1.19z"></path>
-                                    </svg>
-                                </div>
-                                <div class="ml-3 sm:ml-4">
-                                    <p class="text-xs sm:text-sm font-medium text-gray-600">Notifications</p>
-                                    <p class="text-lg sm:text-2xl font-semibold text-gray-900">{{ $stats['unread_notifications'] ?? 0 }}</p>
                                 </div>
                             </div>
                         </div>
@@ -233,11 +219,11 @@
                         </div>
                     @endif
 
-                    <!-- Student Quick Actions -->
+                    <!-- Staff Quick Actions -->
                     <div class="mb-6 sm:mb-8">
                         <h2 class="text-lg sm:text-2xl font-bold text-blue-900 mb-3 sm:mb-4">Quick Actions</h2>
                         <div class="flex flex-wrap gap-2 sm:gap-4">
-                            <a href="{{ route('student.appointments.create') }}"
+                            <a href="{{ route('student.appointments.create') }}?type=regular"
                                class="px-3 sm:px-6 py-2 sm:py-3 bg-blue-900 text-white font-semibold rounded-lg hover:bg-blue-800 transition-colors text-sm">
                                 Book Appointment
                             </a>
@@ -245,17 +231,9 @@
                                class="px-3 sm:px-6 py-2 sm:py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors text-sm">
                                 Request Referral Appointment
                             </a>
-                            <a href="{{ route('student.appointments.index') }}"
-                               class="px-3 sm:px-6 py-2 sm:py-3 bg-[#FFD700] text-[#1E3A8A] font-semibold rounded-lg hover:bg-[#FFE44D] transition-colors text-sm">
-                                My Appointments
-                            </a>
                             <a href="{{ route('feedback.index') }}"
                                class="px-3 sm:px-6 py-2 sm:py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors text-sm">
                                 Submit Feedback
-                            </a>
-                            <a href="{{ route('notifications.index') }}"
-                               class="px-3 sm:px-6 py-2 sm:py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors text-sm">
-                                Notifications
                             </a>
                         </div>
                     </div>

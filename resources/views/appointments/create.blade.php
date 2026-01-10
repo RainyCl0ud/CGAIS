@@ -3,7 +3,7 @@
             <div class="w-full max-w-none mx-auto">
                 <div class="bg-white/80 rounded-lg sm:rounded-2xl shadow-lg sm:shadow-2xl border border-blue-100 p-4 sm:p-8 backdrop-blur">
                     <div class="mb-4 sm:mb-6">
-                        <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-900">Book Appointment</h1>
+                        <h1 id="appointment-title" class="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-900">Book Appointment</h1>
                         <p class="text-gray-600 text-xs sm:text-sm mt-1">Schedule a counseling session with a counselor</p>
                     </div>
 
@@ -199,7 +199,10 @@
             const date = document.getElementById('appointment_date').value;
             const urgencyDiv = document.getElementById('urgency_reason_div');
             const reasonField = document.getElementById('reason');
-            
+
+            // Update title based on appointment type
+            updateAppointmentTitle(this.value);
+
             // Show/hide urgency reason field based on type
             if (this.value === 'urgent') {
                 urgencyDiv.classList.remove('hidden');
@@ -208,20 +211,31 @@
                 urgencyDiv.classList.add('hidden');
                 reasonField.required = false;
             }
-            
+
             if (counselorId && date) {
                 loadAvailableTimeSlots(counselorId, date);
             }
         });
 
+        // Function to update appointment title based on type
+        function updateAppointmentTitle(type) {
+            const titleElement = document.getElementById('appointment-title');
+            if (type === 'urgent') {
+                titleElement.textContent = 'Referral Appointment';
+            } else {
+                titleElement.textContent = 'Book Appointment';
+            }
+        }
+
         // Initialize form state based on URL parameters
         document.addEventListener('DOMContentLoaded', function() {
             const urlParams = new URLSearchParams(window.location.search);
             const typeParam = urlParams.get('type');
-            
+
             if (typeParam === 'urgent') {
                 const typeSelect = document.getElementById('type');
                 typeSelect.value = 'urgent';
+                updateAppointmentTitle('urgent');
                 typeSelect.dispatchEvent(new Event('change'));
             }
         });
