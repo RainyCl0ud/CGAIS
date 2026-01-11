@@ -24,7 +24,7 @@ Route::get('/', function () {
 });
 
 // Route::middleware(['auth', 'verified'])->group(function () {
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth'])->group(function () {
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/today-appointments', [DashboardController::class, 'todayAppointments'])->name('today.appointments');
@@ -183,7 +183,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/preview-pdf', [PdfPreviewController::class, 'previewPdf'])->name('preview.pdf');
     // Feedback Forms (Students, Faculty, and Staff)
     Route::middleware('feedback_access')->group(function () {
-        Route::resource('feedback', FeedbackFormController::class);
+        Route::resource('feedback', FeedbackFormController::class)->except(['create']);
+        Route::get('/feedback/download/pdf', [FeedbackFormController::class, 'downloadPdf'])->name('feedback.download.pdf');
     });
 });
 

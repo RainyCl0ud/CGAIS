@@ -4,8 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\FeedbackForm;
 use App\Models\Appointment;
+use App\Models\DocumentCode;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Log;
 
 class FeedbackFormController extends Controller
 {
@@ -22,13 +25,35 @@ class FeedbackFormController extends Controller
         return view('feedback.index', compact('feedbackForms'));
     }
 
-    public function create()
+
+
+    public function downloadPdf()
     {
-        $user = Auth::user();
-        $appointments = $user->appointments()->where('status', 'completed')->get();
-        $counselors = \App\Models\User::where('role', 'counselor')->get();
-        
-        return view('feedback.create', compact('appointments', 'counselors'));
+        try {
+            // Prepare logos (from public path)
+            $logos = [];
+            $logoPath = public_path('storage/ustp.png');
+            if (file_exists($logoPath)) {
+                $contents = file_get_contents($logoPath);
+                $mime = (new \finfo(FILEINFO_MIME_TYPE))->buffer($contents);
+                $logos['logo'] = 'data:' . ($mime ?: 'image/png') . ';base64,' . base64_encode($contents);
+            }
+
+            // Get document code
+            $documentCode = DocumentCode::first();
+
+            $data = [
+                'logos' => $logos,
+                'documentCode' => $documentCode,
+            ];
+
+            $pdf = Pdf::loadView('pdfs.feedback', $data)->setPaper([0, 0, 612, 1008], 'portrait'); // Custom size: 8.5" x 14" (legal size)
+
+            return $pdf->stream('feedback_form.pdf');
+        } catch (\Throwable $e) {
+            Log::error('Failed to generate feedback PDF: ' . $e->getMessage(), ['exception' => $e]);
+            return response()->json(['error' => 'PDF generation failed'], 500);
+        }
     }
 
     public function store(Request $request)
