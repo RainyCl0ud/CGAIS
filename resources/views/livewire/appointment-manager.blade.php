@@ -246,8 +246,8 @@
                                             </button>
                                         @endif
                                         
-                                        @if(in_array($appointment->status, ['pending', 'confirmed']) && (Auth::user()->isCounselor() || Auth::user()->isAssistant()))
-                                            <button wire:click="openRescheduleModal({{ $appointment->id }})" 
+                                        @if($appointment->canBeRescheduled() && (Auth::user()->isCounselor() || Auth::user()->isAssistant()))
+                                            <button wire:click="openRescheduleModal({{ $appointment->id }})"
                                                     class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm">
                                                 Reschedule
                                             </button>

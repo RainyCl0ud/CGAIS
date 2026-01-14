@@ -374,10 +374,17 @@ class AppointmentManager extends Component
             $assistant->notify(new AssistantAppointmentNotification($appointment, 'booked'));
         }
 
-        // Schedule 24-hour reminder email to the user if the reminder time is in the future
+        // Schedule reminder: send immediately if within 24 hours, or 24 hours before if further away
         try {
-            $sendAt = $appointment->getAppointmentDateTime()->subDay();
-            if ($sendAt->gt(now())) {
+            $appointmentDateTime = $appointment->getAppointmentDateTime();
+            $hoursUntilAppointment = now()->diffInHours($appointmentDateTime, false);
+
+            if ($hoursUntilAppointment <= 24) {
+                // Send immediately
+                $appointment->user->notify(new AppointmentReminder($appointment, 'soon'));
+            } else {
+                // Schedule for 24 hours before
+                $sendAt = $appointmentDateTime->subDay();
                 $appointment->user->notify((new AppointmentReminder($appointment, 'tomorrow'))->delay($sendAt));
             }
         } catch (\Throwable $e) {

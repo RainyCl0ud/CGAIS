@@ -40,7 +40,7 @@ class FeedbackFormController extends Controller
             }
 
             // Get document code
-            $documentCode = DocumentCode::first();
+            $documentCode = DocumentCode::where('type', 'feedback_form')->first();
 
             $data = [
                 'logos' => $logos,

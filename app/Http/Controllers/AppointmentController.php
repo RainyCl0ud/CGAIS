@@ -246,10 +246,17 @@ class AppointmentController extends Controller
             $assistant->notify(new AssistantAppointmentNotification($appointment, 'booked'));
         }
 
-        // Schedule 24-hour reminder email to the user if the reminder time is in the future
+        // Schedule reminder: send immediately if within 24 hours, or 24 hours before if further away
         try {
-            $sendAt = $appointment->getAppointmentDateTime()->subDay();
-            if ($sendAt->gt(now())) {
+            $appointmentDateTime = $appointment->getAppointmentDateTime();
+            $hoursUntilAppointment = now()->diffInHours($appointmentDateTime, false);
+
+            if ($hoursUntilAppointment <= 24) {
+                // Send immediately
+                $appointment->user->notify(new AppointmentReminder($appointment, 'soon'));
+            } else {
+                // Schedule for 24 hours before
+                $sendAt = $appointmentDateTime->subDay();
                 $appointment->user->notify((new AppointmentReminder($appointment, 'tomorrow'))->delay($sendAt));
             }
         } catch (\Throwable $e) {
@@ -293,8 +300,8 @@ class AppointmentController extends Controller
             if ($appointment->user_id !== $user->id) {
                 abort(403, 'You can only update your own appointments.');
             }
-            if (!in_array($appointment->status, ['pending', 'confirmed'])) {
-                return back()->with('error', 'You can only reschedule pending or confirmed appointments.');
+            if (!$appointment->canBeRescheduled()) {
+                return back()->with('error', 'Only confirmed appointments can be rescheduled.');
             }
         }
 
@@ -354,6 +361,7 @@ class AppointmentController extends Controller
         $request->validate([
             'reason' => 'required_if:type,urgent|nullable|string|max:500',
             'notes' => 'nullable|string|max:1000',
+            'reschedule_reason' => 'required|string|max:1000',
         ]);
 
         $appointmentDate = Carbon::parse($request->appointment_date);
@@ -458,6 +466,7 @@ class AppointmentController extends Controller
             'counseling_category' => $resolvedCategory ?? ($user->isStudent() ? null : 'consultation'),
             'reason' => $request->reason,
             'notes' => $request->notes,
+            'reschedule_reason' => $request->reschedule_reason,
             'status' => 'pending',
         ]);
 
@@ -704,6 +713,7 @@ class AppointmentController extends Controller
                 'Status',
                 'Reason',
                 'Counselor Notes',
+                'Reschedule Reason',
                 'Created At'
             ]);
             foreach ($appointments as $appointment) {
@@ -717,6 +727,7 @@ class AppointmentController extends Controller
                     ucfirst($appointment->status),
                     $appointment->reason,
                     $appointment->counselor_notes,
+                    $appointment->reschedule_reason,
                     $appointment->created_at->format('Y-m-d H:i:s')
                 ]);
             }
@@ -1002,7 +1013,8 @@ class AppointmentController extends Controller
         $appointment->update([
             'appointment_date' => $request->new_appointment_date,
             'start_time' => $request->new_start_time,
-            'end_time' => $request->new_end_time
+            'end_time' => $request->new_end_time,
+            'reschedule_reason' => $request->reschedule_reason
         ]);
 
         $appointment->user->notifications()->create([

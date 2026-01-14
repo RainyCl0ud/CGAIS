@@ -114,6 +114,12 @@
                                             <p class="text-gray-900">{{ $appointment->notes }}</p>
                                         </div>
                                     @endif
+                                    @if($appointment->reschedule_reason)
+                                        <div>
+                                            <span class="font-medium text-gray-700">Reschedule Reason:</span>
+                                            <p class="text-gray-900">{{ $appointment->reschedule_reason }}</p>
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
 
@@ -205,20 +211,15 @@
                                                     class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
                                                 ✓ Approve Appointment
                                             </button>
-                                            
+
                                             <button onclick="showCancelModal('{{ $appointment->id }}')"
                                                     class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
                                                 ✗ Cancel Appointment
                                             </button>
-                                            
-                                            <button onclick="putOnHold('{{ $appointment->id }}')" 
+
+                                            <button onclick="putOnHold('{{ $appointment->id }}')"
                                                     class="w-full px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors">
                                                 ⏸ Put on Hold
-                                            </button>
-                                            
-                                            <button onclick="showRescheduleModal('{{ $appointment->id }}')" 
-                                                    class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                                                🔄 Reschedule Appointment
                                             </button>
                                             
                                         @elseif($appointment->status === 'confirmed')
@@ -338,25 +339,24 @@
                                         
                                     @else
                                         <!-- User Actions -->
-                                        @if($appointment->isPending())
-                                            <a href="{{ route('appointments.edit', $appointment) }}" 
+                                        @if($appointment->canBeRescheduled())
+                                            <a href="{{ route('appointments.edit', $appointment) }}"
                                                class="block w-full px-4 py-2 bg-green-600 text-white text-center rounded-lg hover:bg-green-700 transition-colors">
-                                                Edit Appointment
+                                                Reschedule Appointment
                                             </a>
-                                            <form method="POST" action="{{ route('appointments.destroy', $appointment) }}" 
+                                        @endif
+                                        @if($appointment->isPending() || $appointment->isConfirmed())
+                                            <form method="POST" action="{{ route('appointments.destroy', $appointment) }}"
                                                   onsubmit="return confirm('Are you sure you want to cancel this appointment?')">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" 
+                                                <button type="submit"
                                                         class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
                                                     Cancel Appointment
                                                 </button>
                                             </form>
-                                        @elseif($appointment->isConfirmed())
-                                            <div class="p-3 bg-blue-100 border border-blue-400 text-blue-700 rounded text-center">
-                                                ✓ Appointment Confirmed
-                                            </div>
-                                        @elseif($appointment->isCompleted())
+                                        @endif
+                                        @if($appointment->isCompleted())
                                             <div class="p-3 bg-green-100 border border-green-400 text-green-700 rounded text-center">
                                                 ✓ Appointment Completed
                                             </div>

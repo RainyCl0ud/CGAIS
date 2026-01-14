@@ -30,7 +30,45 @@ class AppointmentReminder extends Notification implements ShouldQueue
      */
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['mail', 'database'];
+    }
+
+    /**
+     * Get the notification's database representation.
+     *
+     * @return array<string, mixed>
+     */
+    public function toDatabase(object $notifiable): array
+    {
+        $appointmentDate = $this->appointment->appointment_date->format('l, F j, Y');
+        $appointmentTime = $this->appointment->start_time->format('g:i A') . ' - ' . $this->appointment->end_time->format('g:i A');
+        $counselorName = $this->appointment->counselor->full_name ?? 'Your Counselor';
+
+        $title = $this->reminderType === 'tomorrow'
+            ? 'Appointment Reminder - Tomorrow'
+            : 'Appointment Reminder';
+
+        $message = $this->reminderType === 'tomorrow'
+            ? "Your appointment with {$counselorName} is scheduled for tomorrow at {$appointmentTime}. Please ensure you are available and prepared for the session."
+            : "Your appointment with {$counselorName} is scheduled for today at {$appointmentTime}.";
+
+        // Create in-app notification
+        $notifiable->notifications()->create([
+            'appointment_id' => $this->appointment->id,
+            'title' => $title,
+            'message' => $message,
+            'type' => 'appointment_reminder',
+            'is_read' => false,
+            'read_at' => null,
+        ]);
+
+        return [
+            'appointment_id' => $this->appointment->id,
+            'appointment_date' => $this->appointment->appointment_date->toDateString(),
+            'appointment_time' => $this->appointment->start_time->format('H:i'),
+            'counselor_name' => $this->appointment->counselor->full_name ?? null,
+            'reminder_type' => $this->reminderType,
+        ];
     }
 
     /**

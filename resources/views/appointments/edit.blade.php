@@ -42,22 +42,8 @@
                         </div>
                     </div>
 
-                    <!-- Counselor Selection -->
-                    <div>
-                        <label for="counselor_id" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Counselor</label>
-                        <select id="counselor_id" name="counselor_id" required 
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm">
-                            <option value="">Select a counselor</option>
-                            @foreach($counselors as $counselor)
-                                <option value="{{ $counselor->id }}" {{ old('counselor_id', $appointment->counselor_id) == $counselor->id ? 'selected' : '' }}>
-                                    {{ $counselor->full_name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('counselor_id')
-                            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
+                    <!-- Counselor Selection (Hidden for students during reschedule) -->
+                    <input type="hidden" name="counselor_id" value="{{ $appointment->counselor_id }}">
 
                     <!-- Date Selection -->
                     <div>
@@ -139,10 +125,22 @@
                     <!-- Purpose/Concern -->
                     <div>
                         <label for="notes" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Purpose/Concern</label>
-                        <textarea id="notes" name="notes" rows="3" 
+                        <textarea id="notes" name="notes" rows="3"
                                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
                                   placeholder="Please describe the purpose of your visit or any concerns you'd like to discuss">{{ old('notes', $appointment->notes) }}</textarea>
                         @error('notes')
+                            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Reschedule Reason -->
+                    <div>
+                        <label for="reschedule_reason" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Reschedule Reason</label>
+                        <textarea id="reschedule_reason" name="reschedule_reason" rows="3" required
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                  placeholder="Please provide a reason for rescheduling this appointment">{{ old('reschedule_reason', $appointment->reschedule_reason) }}</textarea>
+                        <p class="mt-1 text-xs text-gray-500">This field is required when rescheduling an appointment.</p>
+                        @error('reschedule_reason')
                             <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                         @enderror
                     </div>

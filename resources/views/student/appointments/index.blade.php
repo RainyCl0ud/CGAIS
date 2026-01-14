@@ -122,9 +122,11 @@
                                                 <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium" onclick="event.stopPropagation()">
                                                     @if($appointment->status === 'pending' || $appointment->status === 'confirmed')
                                                         <div class="flex space-x-2">
-                                                            <a href="{{ route('student.appointments.edit', $appointment) }}" 
-                                                               class="text-green-600 hover:text-green-900">Reschedule</a>
-                                                            <form method="POST" action="{{ route('student.appointments.cancel', $appointment) }}" class="inline" 
+                                                            @if($appointment->canBeRescheduled())
+                                                                <a href="{{ route('student.appointments.edit', $appointment) }}"
+                                                                   class="text-green-600 hover:text-green-900">Reschedule</a>
+                                                            @endif
+                                                            <form method="POST" action="{{ route('student.appointments.cancel', $appointment) }}" class="inline"
                                                                   onsubmit="return confirm('Are you sure you want to cancel this appointment?')">
                                                                 @csrf
                                                                 @method('PATCH')

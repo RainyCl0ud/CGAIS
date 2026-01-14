@@ -28,10 +28,11 @@ class PersonalDataSheetController extends Controller
             $pds = new PersonalDataSheet();
         }
 
-        $documentCode = DocumentCode::first();
+        $documentCode = DocumentCode::where('type', 'pds')->first();
 
         if (!$documentCode) {
             $documentCode = DocumentCode::create([
+                'type' => 'pds',
                 'document_code_no' => 'FM-USTP-GCS-02',
                 'revision_no' => '00',
                 'effective_date' => '03.17.25',
@@ -51,7 +52,7 @@ class PersonalDataSheetController extends Controller
             $pds = new PersonalDataSheet();
         }
 
-        $documentCode = DocumentCode::first();
+        $documentCode = DocumentCode::where('type', 'pds')->first();
 
         if (!$documentCode) {
             $documentCode = DocumentCode::create([
@@ -305,19 +306,20 @@ class PersonalDataSheetController extends Controller
             $user = Auth::user();
             $pds = $user->personalDataSheet;
 
-            $documentCode = DocumentCode::first();
+            $documentCode = DocumentCode::where('type', 'pds')->first();
 
             if (!$documentCode) {
                 $documentCode = DocumentCode::create([
+                    'type' => 'pds',
                     'document_code_no' => 'FM-USTP-GCS-02',
-                    'rev_no' => '00',
+                    'revision_no' => '00',
                     'effective_date' => '03.17.25',
                     'page_no' => '1 of 2',
                 ]);
             }
 
             $logos = [];
-            $logoPath = public_path('images/ustp-logo.png');
+            $logoPath = storage_path('app/public/ustp.png');
             if (file_exists($logoPath)) {
                 $contents = file_get_contents($logoPath);
                 $mime = (new \finfo(FILEINFO_MIME_TYPE))->buffer($contents);

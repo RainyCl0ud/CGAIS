@@ -42,19 +42,19 @@
                         </div>
                     </div>
 
-                    <!-- Counselor Selection -->
+                    <!-- Hidden Counselor ID (cannot be changed) -->
+                    <input type="hidden" id="counselor_id" name="counselor_id" value="{{ $appointment->counselor_id }}">
+
+                    <!-- Reschedule Reason -->
                     <div>
-                        <label for="counselor_id" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Counselor</label>
-                        <select id="counselor_id" name="counselor_id" required 
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm">
-                            <option value="">Select a counselor</option>
-                            @foreach($counselors as $counselor)
-                                <option value="{{ $counselor->id }}" {{ old('counselor_id', $appointment->counselor_id) == $counselor->id ? 'selected' : '' }}>
-                                    {{ $counselor->full_name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('counselor_id')
+                        <label for="reschedule_reason" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                            <span class="text-red-600">*</span> Reason for Rescheduling
+                        </label>
+                        <textarea id="reschedule_reason" name="reschedule_reason" rows="3" required
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                  placeholder="Please explain why you need to reschedule this appointment">{{ old('reschedule_reason') }}</textarea>
+                        <p class="mt-1 text-xs text-gray-500">This field is required to reschedule your appointment.</p>
+                        @error('reschedule_reason')
                             <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
@@ -168,16 +168,7 @@
     </div>
 
     <script>
-        // JavaScript for dynamic time slot loading
-        document.getElementById('counselor_id').addEventListener('change', function() {
-            const counselorId = this.value;
-            const dateInput = document.getElementById('appointment_date');
-            const timeSelect = document.getElementById('start_time');
-            
-            if (counselorId && dateInput.value) {
-                loadAvailableTimeSlots(counselorId, dateInput.value);
-            }
-        });
+        // JavaScript for dynamic time slot loading (counselor is fixed, no change event needed)
 
         document.getElementById('appointment_date').addEventListener('change', function() {
             const counselorId = document.getElementById('counselor_id').value;
@@ -205,11 +196,11 @@
 
         // Add event listener for appointment type to reload time slots and handle urgent form
         document.getElementById('type').addEventListener('change', function() {
-            const counselorId = document.getElementById('counselor_id').value;
+            const counselorId = {{ $appointment->counselor_id }};
             const date = document.getElementById('appointment_date').value;
             const urgencyDiv = document.getElementById('urgency_reason_div');
             const reasonField = document.getElementById('reason');
-            
+
             // Show/hide urgency reason field based on type
             if (this.value === 'urgent') {
                 urgencyDiv.classList.remove('hidden');
@@ -218,7 +209,7 @@
                 urgencyDiv.classList.add('hidden');
                 reasonField.required = false;
             }
-            
+
             if (counselorId && date) {
                 loadAvailableTimeSlots(counselorId, date);
             }

@@ -25,14 +25,12 @@
 <body>
 <div class="container">
 
-    <div class="header" style="position:relative; padding-top:6px;">
-        <div style="float:left; width:90px;">
-            @if(!empty($logos['logo']))
-                <img class="logo" src="{{ $logos['logo'] }}" alt="logo">
-            @endif
-        </div>
+    <div class="header" style="display: flex; flex-direction: column; align-items: center; padding-top:6px; position:relative;">
+        @if(!empty($logos['logo']))
+            <img class="logo" src="{{ $logos['logo'] }}" alt="logo" style="margin-bottom: 4px;">
+        @endif
 
-        <div style="text-align:center; margin-left:100px; margin-right:100px;">
+        <div style="text-align:center;">
             <div class="title" style="font-family: serif;">University of Science and Technology of Southern Philippines</div>
             <div class="subtitle" style="margin-top:4px;">
                 Alubijid | Balubal | Cagayan de Oro | Claveria | Jasaan | Oroquieta | Panaon | Villanueva
@@ -55,26 +53,22 @@
                 <div style="border-top:1px solid #000; padding:2px; font-size:6px; font-weight:700;">Page No. 1 of {{ explode(' of ', $documentCode->page_no ?? '1 of 2')[1] ?? '2' }}</div>
             </div>
         </div>
-
-        <div style="clear:both;"></div>
     </div>
 
     <h2 style="text-align:center; margin-top:10px; font-weight:700;">STUDENT'S PERSONAL DATA SHEET</h2>
 
     <div style="position:relative;">
-        <div style="width:68%; float:left;">
-            <div style="text-align:center;">
-                <div style="font-weight:700; font-size:13px;">{{ $student->getFullNameAttribute() }}</div>
-                <div class="muted">Student ID: {{ $student->student_id ?? 'N/A' }}</div>
-                <div class="muted">
-                    {{ $pds->course ?? $student->course_category ?? '' }}
-                    -
-                    {{ $pds->year_level ?? $student->year_level ?? '' }}
-                </div>
+        <div style="position:absolute; left:50%; transform:translateX(-50%); text-align:center;">
+            <div style="font-weight:700; font-size:13px;">{{ $student->getFullNameAttribute() }}</div>
+            <div class="muted">Student ID: {{ $student->student_id ?? 'N/A' }}</div>
+            <div class="muted">
+                {{ $pds->course ?? $student->course_category ?? '' }}
+                -
+                {{ $pds->year_level ?? $student->year_level ?? '' }}
             </div>
         </div>
 
-        <div style="float:right; width:120px;">
+        <div style="position:absolute; right:0; top:0; width:120px;">
             <div class="photo-box">
                 @if(!empty($photoData))
                     <img src="{{ $photoData }}" alt="photo">
@@ -83,8 +77,6 @@
                 @endif
             </div>
         </div>
-
-        <div style="clear:both;"></div>
     </div>
 
     <!-- PERSONAL BACKGROUND -->
@@ -141,10 +133,13 @@
             </tr>
 
             @for($i = 0; $i < 4; $i++)
+            @php
+                $award = $pds->awards[$i] ?? [];
+            @endphp
             <tr>
-                <td><div class="field">{{ $pds->awards[$i]['title'] ?? '' }}</div></td>
-                <td><div class="field">{{ $pds->awards[$i]['organization'] ?? '' }}</div></td>
-                <td><div class="field">{{ $pds->awards[$i]['year'] ?? '' }}</div></td>
+                <td><div class="field">{{ $award['title'] ?? '' }}</div></td>
+                <td><div class="field">{{ $award['organization'] ?? '' }}</div></td>
+                <td><div class="field">{{ $award['year'] ?? '' }}</div></td>
             </tr>
             @endfor
         </table>
@@ -154,16 +149,16 @@
             I also agree to allow GCS to use the information/data for research purposes.
         </div>
 
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px;">
-            <div style="text-align:center; width:55%;">
-                <div class="field" style="text-align:center; font-weight:600;">
+        <div style="text-align:center; margin-top:14px;">
+            <div style="display:inline-block; text-align:center; margin-right:40px;">
+                <div class="field" style="text-align:center; font-weight:600; width:200px;">
                     {{ $student->getFullNameAttribute() }}
                 </div>
                 <div style="font-size:10px; margin-top:2px;">SIGNATURE OVER PRINTED NAME</div>
             </div>
 
-            <div style="text-align:center; width:30%;">
-                <div class="field" style="text-align:center;">
+            <div style="display:inline-block; text-align:center;">
+                <div class="field" style="text-align:center; width:100px;">
                     {{ $pds->signed_at ?? \Carbon\Carbon::now()->format('m/d/Y') }}
                 </div>
                 <div style="font-size:10px; margin-top:2px;">DATE</div>
@@ -171,7 +166,7 @@
         </div>
     </div>
 
-    <div style="margin-top:18px; font-size:11px; color:#666;">
+    <div style="text-align:center; margin-top:18px; font-size:11px; color:#666;">
         Generated on {{ \Carbon\Carbon::now()->toDateTimeString() }}
     </div>
 

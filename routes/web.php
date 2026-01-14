@@ -24,7 +24,7 @@ Route::get('/', function () {
 });
 
 // Route::middleware(['auth', 'verified'])->group(function () {
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth','verified'])->group(function () {
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/today-appointments', [DashboardController::class, 'todayAppointments'])->name('today.appointments');
@@ -73,6 +73,7 @@ Route::middleware(['auth'])->group(function () {
 
         // Document Codes Management (Counselor and Assistant)
         Route::get('document-codes', [App\Http\Controllers\DocumentCodeController::class, 'index'])->name('document-codes.index');
+        Route::get('document-codes/{type}/edit', [App\Http\Controllers\DocumentCodeController::class, 'edit'])->name('document-codes.edit');
         Route::put('document-codes', [App\Http\Controllers\DocumentCodeController::class, 'update'])->name('document-codes.update');
     });
     

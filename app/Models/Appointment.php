@@ -25,6 +25,7 @@ class Appointment extends Model
         'notes',
         'counselor_notes',
         'cancellation_reason',
+        'reschedule_reason',
     ];
 
     protected static function booted()
@@ -261,6 +262,11 @@ class Appointment extends Model
     public function isOnHold(): bool
     {
         return $this->status === 'on_hold';
+    }
+
+    public function canBeRescheduled(): bool
+    {
+        return $this->isConfirmed();
     }
 
     public function isUrgent(): bool

@@ -284,10 +284,17 @@ $validationRules['notes'] = 'nullable|string|max:1000';
             'counselor_id' => $appointment->counselor_id,
         ]);
 
-        // Schedule 24-hour reminder email to the user if the reminder time is in the future
+        // Schedule reminder: send immediately if within 24 hours, or schedule for 24 hours before if further away
         try {
-            $sendAt = $appointment->getAppointmentDateTime()->subDay();
-            if ($sendAt->gt(now())) {
+            $appointmentDateTime = $appointment->getAppointmentDateTime();
+            $hoursUntilAppointment = now()->diffInHours($appointmentDateTime, false);
+
+            if ($hoursUntilAppointment <= 24) {
+                // Send immediately
+                $appointment->user->notify(new AppointmentReminder($appointment, 'tomorrow'));
+            } else {
+                // Schedule for 24 hours before
+                $sendAt = $appointmentDateTime->subDay();
                 $appointment->user->notify((new AppointmentReminder($appointment, 'tomorrow'))->delay($sendAt));
             }
         } catch (\Throwable $e) {
@@ -380,16 +387,16 @@ $validationRules['notes'] = 'nullable|string|max:1000';
             abort(403, 'You can only update your own appointments.');
         }
 
-        // Students can only reschedule pending or confirmed appointments
-        if (!in_array($appointment->status, ['pending', 'confirmed'])) {
-            return back()->with('error', 'You can only reschedule pending or confirmed appointments.');
+        // Students can only reschedule confirmed appointments
+        if (!$appointment->canBeRescheduled()) {
+            return back()->with('error', 'Only confirmed appointments can be rescheduled.');
         }
 
         $validationRules = [
-            'counselor_id' => 'required|exists:users,id',
             'appointment_date' => 'required|date|after_or_equal:today',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
+            'reschedule_reason' => 'required|string|max:1000',
         ];
 
         // Type validation differs by user role:
@@ -464,11 +471,8 @@ $validationRules['notes'] = 'nullable|string|max:1000';
             return back()->withErrors(['appointment_date' => 'Counselor is not available on this date.']);
         }
 
-        // Check if the selected counselor is available
-        $counselor = User::find($request->counselor_id);
-        if (!$counselor || $counselor->role !== 'counselor') {
-            return back()->withErrors(['counselor_id' => 'Selected counselor is not available.']);
-        }
+        // Use the existing counselor for the appointment
+        $counselor = $appointment->counselor;
 
         // Respect counselor availability status for the new slot
         $startTime = Carbon::parse($request->start_time);
@@ -480,7 +484,7 @@ $validationRules['notes'] = 'nullable|string|max:1000';
         }
 
         // Check for conflicts
-        $conflict = Appointment::where('counselor_id', $request->counselor_id)
+        $conflict = Appointment::where('counselor_id', $appointment->counselor_id)
             ->where('appointment_date', $request->appointment_date)
             ->where('id', '!=', $appointment->id)
             ->where(function($query) use ($request) {
@@ -503,7 +507,6 @@ $validationRules['notes'] = 'nullable|string|max:1000';
 
         // Update the appointment
         $appointment->update([
-            'counselor_id' => $request->counselor_id,
             'appointment_date' => $request->appointment_date,
             'start_time' => $request->start_time,
             'end_time' => $request->end_time,
@@ -511,8 +514,33 @@ $validationRules['notes'] = 'nullable|string|max:1000';
             'counseling_category' => $resolvedCategory ?? ($user->isStudent() ? null : 'consultation'),
             'reason' => $request->reason,
             'notes' => $request->notes,
+            'reschedule_reason' => $request->reschedule_reason,
             'status' => 'pending', // Reset to pending when rescheduled
         ]);
+
+        // Notify counselor of appointment reschedule
+        $counselor = $appointment->counselor;
+        $counselor->notifications()->create([
+            'appointment_id' => $appointment->id,
+            'title' => 'Appointment Rescheduled',
+            'message' => "{$appointment->user->full_name} has rescheduled their appointment to {$appointment->appointment_date->format('M d, Y')} at {$appointment->start_time->format('g:i A')}. Reason: {$request->reschedule_reason}",
+            'type' => 'appointment_rescheduled',
+            'is_read' => false,
+            'read_at' => null,
+        ]);
+
+        // Notify assistants of appointment reschedule
+        $assistants = User::where('role', 'assistant')->get();
+        foreach ($assistants as $assistant) {
+            $assistant->notifications()->create([
+                'appointment_id' => $appointment->id,
+                'title' => 'Appointment Rescheduled',
+                'message' => "{$appointment->user->full_name} has rescheduled their appointment with {$counselor->full_name} to {$appointment->appointment_date->format('M d, Y')} at {$appointment->start_time->format('g:i A')}. Reason: {$request->reschedule_reason}",
+                'type' => 'appointment_rescheduled',
+                'is_read' => false,
+                'read_at' => null,
+            ]);
+        }
 
         return redirect()->route('student.appointments.index')
             ->with('success', 'Appointment rescheduled successfully. Please wait for counselor confirmation.');

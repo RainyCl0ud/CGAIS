@@ -183,7 +183,7 @@ ActivityLogService::log(
         $student->load('personalDataSheet');
 
         // Get document code
-        $documentCode = DocumentCode::first();
+        $documentCode = DocumentCode::where('type', 'pds')->first();
 
         // Log the access
         ActivityLogService::log(
@@ -210,7 +210,7 @@ ActivityLogService::log(
 
             // Prepare logos (from public path)
             $logos = [];
-            $logoPath = public_path('images/ustp-logo.png');
+            $logoPath = storage_path('app/public/ustp.png');
             if (file_exists($logoPath)) {
                 $contents = file_get_contents($logoPath);
                 $mime = (new \finfo(FILEINFO_MIME_TYPE))->buffer($contents);
@@ -231,7 +231,7 @@ ActivityLogService::log(
             }
 
             // Get document code
-            $documentCode = DocumentCode::first();
+            $documentCode = DocumentCode::where('type', 'pds')->first();
 
             $data = [
                 'student' => $student,
@@ -281,7 +281,7 @@ ActivityLogService::log(
         }
 
         // Get document code
-        $documentCode = DocumentCode::first();
+        $documentCode = DocumentCode::where('type', 'pds')->first();
 
         return view('pdfs.pds_html', [
             'student' => $student,
@@ -324,7 +324,7 @@ ActivityLogService::log(
             }
 
             // Get document code
-            $documentCode = DocumentCode::first();
+            $documentCode = DocumentCode::where('type', 'pds')->first();
 
             $data = [
                 'student' => $student,

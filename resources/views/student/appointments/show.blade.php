@@ -80,6 +80,12 @@
                                             <p class="text-gray-900">{{ $appointment->cancellation_reason }}</p>
                                         </div>
                                     @endif
+                                    @if($appointment->reschedule_reason)
+                                        <div>
+                                            <span class="font-medium text-blue-600">Reschedule Reason:</span>
+                                            <p class="text-gray-900">{{ $appointment->reschedule_reason }}</p>
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
 
@@ -106,24 +112,27 @@
                                 <h2 class="text-xl font-semibold text-gray-900 mb-4">Actions</h2>
                                 <div class="space-y-3">
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        @if($appointment->status === 'pending')
-                                        {{-- || $appointment->status === 'confirmed' --}}
-                                            <a href="{{ route('student.appointments.edit', $appointment) }}" 
+                                        @if($appointment->canBeRescheduled())
+                                            <a href="{{ route('student.appointments.edit', $appointment) }}"
                                                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-center">
                                                 🔄 Reschedule
                                             </a>
-                                            
+                                        @endif
+
+                                        @if(in_array($appointment->status, ['pending', 'confirmed']))
                                             <form method="POST" action="{{ route('student.appointments.cancel', $appointment) }}" class="inline">
                                                 @csrf
                                                 @method('PATCH')
-                                                <button type="submit" 
+                                                <button type="submit"
                                                         onclick="return confirm('Are you sure you want to cancel this appointment?')"
                                                         class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
                                                     ✗ Cancel
                                                 </button>
                                             </form>
-                                            @else()
-                                                <p>No actions available</p>
+                                        @endif
+
+                                        @if(!$appointment->canBeRescheduled() && !in_array($appointment->status, ['pending', 'confirmed']))
+                                            <p class="col-span-2 text-center text-gray-500">No actions available</p>
                                         @endif
                                     </div>
                                 </div>

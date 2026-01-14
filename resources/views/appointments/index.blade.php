@@ -153,10 +153,12 @@
                                                 </td>
                                                 <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium" onclick="event.stopPropagation()">
                                                     @if(!auth()->user()->isCounselor() && !auth()->user()->isAssistant())
-                                                        @if($appointment->status === 'pending' || $appointment->status === 'confirmed')
-                                                            <a href="{{ route('appointments.edit', $appointment) }}" 
+                                                        @if($appointment->canBeRescheduled())
+                                                            <a href="{{ route('appointments.edit', $appointment) }}"
                                                                class="text-green-600 hover:text-green-900">Reschedule</a>
-                                                            <form method="POST" action="{{ route('appointments.cancel', $appointment) }}" class="inline" 
+                                                        @endif
+                                                        @if($appointment->status === 'pending' || $appointment->status === 'confirmed')
+                                                            <form method="POST" action="{{ route('appointments.cancel', $appointment) }}" class="inline"
                                                                   onsubmit="return confirm('Are you sure you want to cancel this appointment?')">
                                                                 @csrf
                                                                 @method('PATCH')
@@ -164,7 +166,6 @@
                                                             </form>
                                                         @endif
                                                     @endif
-                                                    </div>
                                                 </td>
                                             </tr>
                                         @endforeach
