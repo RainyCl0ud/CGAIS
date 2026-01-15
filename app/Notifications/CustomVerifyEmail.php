@@ -34,10 +34,23 @@ class CustomVerifyEmail extends Notification
      */
     public function toMail(object $notifiable): MailMessage
     {
+        // Generate verification token if not present
+        if (!$notifiable->email_verification_token) {
+            $notifiable->generateEmailVerificationToken();
+        }
+
+        $verificationUrl = route('verification.notice') . '?token=' . $notifiable->email_verification_token;
+
         return (new MailMessage)
-            ->line('The introduction to the notification.')
-            ->action('Notification Action', url('/'))
-            ->line('Thank you for using our application!');
+            ->subject('Verify Your Email Address')
+            ->greeting('Hello ' . $notifiable->first_name . '!')
+            ->line('Thank you for registering with our Counseling Appointment System.')
+            ->line('Please click the button below to verify your email address and complete your registration.')
+            ->action('Verify Email Address', $verificationUrl)
+            ->line('If you did not create an account, no further action is required.')
+            ->line('If you\'re having trouble clicking the "Verify Email Address" button, copy and paste the URL below into your web browser:')
+            ->line($verificationUrl)
+            ->salutation('Best regards, USTP Counseling Team');
     }
 
     /**

@@ -98,9 +98,6 @@ class RegisteredUserController extends Controller
 
         event(new Registered($user));
 
-        // Send custom email verification notification
-        $user->notify(new CustomVerifyEmail());
-
         Auth::login($user);
 
         return redirect(route('dashboard', absolute: false));
