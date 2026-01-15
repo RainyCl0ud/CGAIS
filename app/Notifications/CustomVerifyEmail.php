@@ -39,7 +39,7 @@ class CustomVerifyEmail extends Notification
             $notifiable->generateEmailVerificationToken();
         }
 
-        $verificationUrl = route('verification.notice') . '?token=' . $notifiable->email_verification_token;
+        $verificationUrl = route('verification.verify.token') . '?token=' . $notifiable->email_verification_token;
 
         return (new MailMessage)
             ->subject('Verify Your Email Address')

@@ -11,6 +11,11 @@ use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 
+// Token-based email verification (accessible to all users for email links)
+Route::get('verify-email', VerifyEmailController::class)
+    ->middleware('throttle:6,1')
+    ->name('verification.verify.token');
+
 Route::middleware('guest')->group(function () {
     Route::get('register', [RegisteredUserController::class, 'create'])
         ->name('register');

@@ -38,6 +38,7 @@ class VerifyEmailController extends Controller
             // If the user is not logged in, log them in
             if (!Auth::check()) {
                 Auth::login($user);
+                $request->session()->regenerate();
             }
 
             return redirect()->intended(route('dashboard', absolute: false).'?verified=1');
