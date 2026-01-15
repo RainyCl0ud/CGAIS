@@ -207,11 +207,22 @@ class User extends Authenticatable implements MustVerifyEmail
      * - AVAILABLE: always available (other checks like schedule still apply separately)
      * - ON_LEAVE / UNAVAILABLE with no time range: full-day unavailability (no slots allowed)
      * - ON_LEAVE / UNAVAILABLE with a time range: unavailable only within that range
+     * - Check CounselorUnavailableDate for specific date unavailability
      */
     public function isAvailableForSlot(Carbon $date, Carbon $slotStart, Carbon $slotEnd): bool
     {
         if (!$this->isCounselor()) {
             return true;
+        }
+
+        // Check if date is marked as unavailable in CounselorUnavailableDate
+        $isDateUnavailable = \App\Models\CounselorUnavailableDate::where('counselor_id', $this->id)
+            ->where('date', $date->toDateString())
+            ->where('expires_at', '>', Carbon::now('Asia/Manila'))
+            ->exists();
+
+        if ($isDateUnavailable) {
+            return false;
         }
 
         if ($this->availability_status === 'AVAILABLE') {

@@ -16,17 +16,36 @@ class ScheduleController extends Controller
     public function index(Request $request): View|RedirectResponse
     {
         $user = $request->user();
-        
+
         if (!$user->canManageSchedules()) {
             return redirect()->route('dashboard')
                 ->with('error', 'You do not have permission to manage schedules.');
         }
 
+        // Determine counselor to manage
+        $counselorId = $request->get('counselor_id');
+        if ($user->isAssistant()) {
+            if (!$counselorId) {
+                // Default to first counselor if none specified
+                $counselor = User::where('role', 'counselor')->first();
+                $counselorId = $counselor ? $counselor->id : null;
+            }
+            $counselor = User::find($counselorId);
+            if (!$counselor || !$counselor->isCounselor()) {
+                return redirect()->route('schedules.index')
+                    ->with('error', 'Invalid counselor selected.');
+            }
+        } else {
+            // Counselors manage their own schedules
+            $counselorId = $user->id;
+            $counselor = $user;
+        }
+
         // Get existing schedules
-        $existingSchedules = $user->schedules()->get()->keyBy('day_of_week');
+        $existingSchedules = $counselor->schedules()->get()->keyBy('day_of_week');
 
         // Get unavailable dates for calendar
-        $unavailableDates = CounselorUnavailableDate::where('counselor_id', $user->id)
+        $unavailableDates = CounselorUnavailableDate::where('counselor_id', $counselorId)
             ->where('expires_at', '>', Carbon::now('Asia/Manila'))
             ->pluck('date')
             ->map(fn($date) => $date->format('Y-m-d'))
@@ -72,16 +91,30 @@ class ScheduleController extends Controller
             ];
         }
         
-        return view('schedules.index', compact('scheduleData', 'unavailableDates'));
+        return view('schedules.index', compact('scheduleData', 'unavailableDates', 'counselor'));
     }
 
     public function create(Request $request): View|RedirectResponse
     {
         $user = $request->user();
-        
+
         if (!$user->canManageSchedules()) {
             return redirect()->route('dashboard')
                 ->with('error', 'You do not have permission to manage schedules.');
+        }
+
+        // For assistants, ensure counselor_id is provided
+        if ($user->isAssistant()) {
+            $counselorId = $request->get('counselor_id');
+            if (!$counselorId) {
+                return redirect()->route('schedules.index')
+                    ->with('error', 'Counselor selection required.');
+            }
+            $counselor = User::find($counselorId);
+            if (!$counselor || !$counselor->isCounselor()) {
+                return redirect()->route('schedules.index')
+                    ->with('error', 'Invalid counselor selected.');
+            }
         }
 
         return view('schedules.create');
@@ -107,10 +140,26 @@ class ScheduleController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $user = $request->user();
-        
+
         if (!$user->canManageSchedules()) {
             return redirect()->route('dashboard')
                 ->with('error', 'You do not have permission to manage schedules.');
+        }
+
+        // Determine counselor to manage
+        $counselorId = $request->get('counselor_id');
+        if ($user->isAssistant()) {
+            if (!$counselorId) {
+                return redirect()->route('schedules.index')
+                    ->with('error', 'Counselor selection required.');
+            }
+            $counselor = User::find($counselorId);
+            if (!$counselor || !$counselor->isCounselor()) {
+                return redirect()->route('schedules.index')
+                    ->with('error', 'Invalid counselor selected.');
+            }
+        } else {
+            $counselorId = $user->id;
         }
 
         $request->validate([
@@ -122,7 +171,7 @@ class ScheduleController extends Controller
         ]);
 
         // Check if schedule already exists for this day
-        $existingSchedule = Schedule::where('counselor_id', $user->id)
+        $existingSchedule = Schedule::where('counselor_id', $counselorId)
             ->where('day_of_week', $request->day_of_week)
             ->first();
 
@@ -131,7 +180,7 @@ class ScheduleController extends Controller
         }
 
         Schedule::create([
-            'counselor_id' => $user->id,
+            'counselor_id' => $counselorId,
             'day_of_week' => $request->day_of_week,
             'start_time' => $request->start_time,
             'end_time' => $request->end_time,
@@ -139,11 +188,11 @@ class ScheduleController extends Controller
             'is_available' => $request->has('is_available'),
         ]);
 
-        return redirect()->route('schedules.index')
+        return redirect()->route('schedules.index', $user->isAssistant() ? ['counselor_id' => $counselorId] : [])
             ->with('success', 'Schedule created successfully.');
     }
 
-    // New method to toggle unavailable date for logged-in counselor
+    // New method to toggle unavailable date for counselor
     public function toggleUnavailableDate(Request $request)
     {
         $user = $request->user();
@@ -156,9 +205,23 @@ class ScheduleController extends Controller
             'date' => 'required|date_format:Y-m-d',
         ]);
 
+        // Determine counselor to manage
+        $counselorId = $request->get('counselor_id');
+        if ($user->isAssistant()) {
+            if (!$counselorId) {
+                return response()->json(['error' => 'Counselor ID required'], 400);
+            }
+            $counselor = User::find($counselorId);
+            if (!$counselor || !$counselor->isCounselor()) {
+                return response()->json(['error' => 'Invalid counselor'], 400);
+            }
+        } else {
+            $counselorId = $user->id;
+        }
+
         $date = $request->input('date');
 
-        $unavailableDate = CounselorUnavailableDate::where('counselor_id', $user->id)
+        $unavailableDate = CounselorUnavailableDate::where('counselor_id', $counselorId)
             ->where('date', $date)
             ->first();
 
@@ -169,7 +232,7 @@ class ScheduleController extends Controller
         } else {
             // Otherwise, mark as unavailable
             CounselorUnavailableDate::create([
-                'counselor_id' => $user->id,
+                'counselor_id' => $counselorId,
                 'date' => $date,
                 'is_unavailable' => true,
                 'expires_at' => Carbon::parse($date, 'Asia/Manila')->addDay()->startOfDay(),
@@ -183,8 +246,18 @@ class ScheduleController extends Controller
     public function edit(Schedule $schedule, Request $request): View
     {
         $user = $request->user();
-        
-        if (!$user->canManageSchedules() || $schedule->counselor_id !== $user->id) {
+
+        if (!$user->canManageSchedules()) {
+            abort(403);
+        }
+
+        // For assistants, check if they can manage this counselor's schedule
+        if ($user->isAssistant() && $schedule->counselor_id !== $request->get('counselor_id')) {
+            abort(403);
+        }
+
+        // For counselors, only allow editing their own schedules
+        if ($user->isCounselor() && $schedule->counselor_id !== $user->id) {
             abort(403);
         }
 
@@ -194,8 +267,18 @@ class ScheduleController extends Controller
     public function update(Request $request, Schedule $schedule): RedirectResponse
     {
         $user = $request->user();
-        
-        if (!$user->canManageSchedules() || $schedule->counselor_id !== $user->id) {
+
+        if (!$user->canManageSchedules()) {
+            abort(403);
+        }
+
+        // For assistants, check if they can manage this counselor's schedule
+        if ($user->isAssistant() && $schedule->counselor_id !== $request->get('counselor_id')) {
+            abort(403);
+        }
+
+        // For counselors, only allow updating their own schedules
+        if ($user->isCounselor() && $schedule->counselor_id !== $user->id) {
             abort(403);
         }
 
@@ -213,7 +296,7 @@ class ScheduleController extends Controller
             'is_available' => $request->has('is_available'),
         ]);
 
-        return redirect()->route('schedules.index')
+        return redirect()->route('schedules.index', $user->isAssistant() ? ['counselor_id' => $schedule->counselor_id] : [])
             ->with('success', 'Schedule updated successfully.');
     }
 

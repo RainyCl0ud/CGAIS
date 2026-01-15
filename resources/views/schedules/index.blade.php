@@ -9,8 +9,30 @@
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6">
                     <div>
                         <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-900">Schedule Management</h1>
-                        <p class="text-gray-600 text-xs sm:text-sm mt-1">Manage your availability for appointments (Monday & Friday only)</p>
+                        <p class="text-gray-600 text-xs sm:text-sm mt-1">
+                            @if(auth()->user()->isAssistant())
+                                Manage counselor availability for appointments (Monday & Friday only)
+                            @else
+                                Manage your availability for appointments (Monday & Friday only)
+                            @endif
+                        </p>
                     </div>
+                    @if(auth()->user()->isAssistant())
+                        <div class="mt-4 sm:mt-0">
+                            <label for="counselor-select" class="block text-sm font-medium text-gray-700 mb-2">Select Counselor</label>
+                            <select id="counselor-select" onchange="changeCounselor(this.value)"
+                                    class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                @php
+                                    $counselors = \App\Models\User::where('role', 'counselor')->get();
+                                @endphp
+                                @foreach($counselors as $c)
+                                    <option value="{{ $c->id }}" {{ $counselor->id == $c->id ? 'selected' : '' }}>
+                                        {{ $c->full_name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
                 </div>
 
                 <div class="flex space-x-6">
@@ -254,13 +276,18 @@
                 },
 
                 toggleUnavailableDate(dateStr) {
+                    const data = { date: dateStr };
+                    @if(auth()->user()->isAssistant())
+                        data.counselor_id = {{ $counselor->id }};
+                    @endif
+
                     fetch("{{ route('schedules.toggleUnavailableDate') }}", {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                             'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').getAttribute('content')
                         },
-                        body: JSON.stringify({ date: dateStr })
+                        body: JSON.stringify(data)
                     })
                     .then(res => res.json())
                     .then(data => {
@@ -298,6 +325,12 @@
                             }
                         }
                     });
+                },
+
+                changeCounselor(counselorId) {
+                    const url = new URL(window.location);
+                    url.searchParams.set('counselor_id', counselorId);
+                    window.location.href = url.toString();
                 }
             }
         }
