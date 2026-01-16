@@ -12,6 +12,9 @@ class SendCustomEmailVerificationNotification
      */
     public function handle(Registered $event): void
     {
-        $event->user->notify(new CustomVerifyEmail());
+        // Only send verification email if user hasn't been sent one yet
+        if (!$event->user->email_verification_token) {
+            $event->user->notify(new CustomVerifyEmail());
+        }
     }
 }
