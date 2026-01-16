@@ -12,7 +12,7 @@ use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 
 // Token-based email verification (accessible to all users for email links)
-Route::get('verify-email', VerifyEmailController::class)
+Route::get('verify-email-token', VerifyEmailController::class)
     ->middleware('throttle:6,1')
     ->name('verification.verify.token');
 
