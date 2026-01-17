@@ -94,6 +94,8 @@ Route::middleware(['auth','verified'])->group(function () {
         Route::get('/system/backup/download/{filename}', [SystemController::class, 'downloadBackupFile'])->name('system.backup.download-file');
             // Counselor-only: Create new counselor account from profile page
             Route::post('/profile/create-counselor', [ProfileController::class, 'createCounselor'])->name('profile.create-counselor');
+            // Deactivate counselor account
+            Route::post('/profile/deactivate-counselor', [ProfileController::class, 'deactivateCounselor'])->name('profile.deactivate-counselor');
             // Services management for counselors
             Route::resource('services', App\Http\Controllers\ServiceController::class)->only(['index','store','update']);
             Route::patch('services/{service}/toggle', [App\Http\Controllers\ServiceController::class, 'toggle'])->name('services.toggle');

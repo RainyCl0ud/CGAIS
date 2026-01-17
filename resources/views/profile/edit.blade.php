@@ -223,6 +223,74 @@
             </div>
             @endif
 
+            @if(auth()->user() && auth()->user()->isCounselor())
+            <div class="bg-white rounded-lg border border-red-200 p-4 sm:p-6">
+                @if(session('status') === 'counselor-account-deactivated')
+                    <div class="rounded-md bg-green-50 p-4 border border-green-200 mb-4">
+                        <div class="flex">
+                            <div class="ml-3">
+                                <p class="text-sm font-medium text-green-800">Your counselor account has been successfully deactivated. You will be logged out shortly.</p>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
+                <h2 class="text-lg sm:text-xl font-semibold text-red-900 mb-3 sm:mb-4 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                    Danger Zone
+                </h2>
+
+                <div class="border border-red-300 rounded-lg p-4 bg-red-50">
+                    <h3 class="text-sm font-medium text-red-800 mb-2">Deactivate Account</h3>
+                    <p class="text-sm text-red-700 mb-4">
+                        Deactivating your account will disable your access to the system and prevent future logins. Existing records will be preserved but your account will be marked as inactive. This action cannot be undone.
+                    </p>
+
+                    <button type="button" onclick="openDeactivateModal()" class="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+                        Deactivate Account
+                    </button>
+                </div>
+
+                <!-- Confirmation Modal for Deactivating Account -->
+                <div id="deactivateModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+                    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                        <div class="mt-3">
+                            <h3 class="text-lg font-medium text-gray-900 mb-4">Confirm Account Deactivation</h3>
+                            <p class="text-sm text-gray-600 mb-4">
+                                This action will deactivate your counselor account. You will lose access to the system and will not be able to log in. Existing records will be preserved, but your account will be marked as inactive. This action is permanent and cannot be undone.
+                            </p>
+
+                            <form method="post" action="{{ route('profile.deactivate-counselor') }}" id="deactivateForm">
+                                @csrf
+
+                                <div class="mb-4">
+                                    <label for="confirm_text" class="block text-sm font-medium text-gray-700 mb-2">
+                                        Type "DEACTIVATE" to confirm:
+                                    </label>
+                                    <input type="text" id="confirm_text" name="confirm_text"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                                           placeholder="DEACTIVATE" required>
+                                </div>
+
+                                <div class="flex justify-end space-x-3">
+                                    <button type="button" onclick="closeDeactivateModal()"
+                                            class="px-4 py-2 bg-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                                        Cancel
+                                    </button>
+                                    <button type="submit" id="deactivateBtn"
+                                            class="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                                        Deactivate Account
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endif
+
             @endif
 
             <!-- Delete account (kept commented out) -->
@@ -256,6 +324,24 @@
             document.getElementById('reactivateForm').reset();
         }
 
+        function openDeactivateModal() {
+            document.getElementById('deactivateModal').classList.remove('hidden');
+        }
+
+        function closeDeactivateModal() {
+            document.getElementById('deactivateModal').classList.add('hidden');
+            // Reset form
+            document.getElementById('deactivateForm').reset();
+            // Reset button state
+            document.getElementById('deactivateBtn').disabled = true;
+        }
+
+        // Enable/disable deactivate button based on input
+        document.getElementById('confirm_text').addEventListener('input', function() {
+            const btn = document.getElementById('deactivateBtn');
+            btn.disabled = this.value.toUpperCase() !== 'DEACTIVATE';
+        });
+
         // Close modals when clicking outside
         document.getElementById('unavailableModal').addEventListener('click', function(e) {
             if (e.target === this) {
@@ -266,6 +352,12 @@
         document.getElementById('reactivateModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeReactivateModal();
+            }
+        });
+
+        document.getElementById('deactivateModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDeactivateModal();
             }
         });
     </script>

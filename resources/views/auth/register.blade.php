@@ -147,7 +147,7 @@
                         <option value="">Select Course</option>
                         @foreach(\App\Models\Course::active()->get() as $course)
                             <option value="{{ $course->id }}" {{ old('course_id') == $course->id ? 'selected' : '' }}>
-                                {{ $course->name }} ({{ $course->code }})
+                                {{ $course->description }} ({{ $course->name }})
                             </option>
                         @endforeach
                     </select>
@@ -163,7 +163,6 @@
                         <option value="2nd Year" {{ old('year_level') == '2nd Year' ? 'selected' : '' }}>2nd Year</option>
                         <option value="3rd Year" {{ old('year_level') == '3rd Year' ? 'selected' : '' }}>3rd Year</option>
                         <option value="4th Year" {{ old('year_level') == '4th Year' ? 'selected' : '' }}>4th Year</option>
-                        <option value="5th Year" {{ old('year_level') == '5th Year' ? 'selected' : '' }}>5th Year</option>
                     </select>
                     <x-input-error :messages="$errors->get('year_level')" class="mt-2" />
                 </div>

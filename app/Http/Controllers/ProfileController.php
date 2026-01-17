@@ -170,6 +170,40 @@ class ProfileController extends Controller
     }
 
     /**
+     * Deactivate the counselor's account.
+     */
+    public function deactivateCounselor(Request $request): RedirectResponse
+    {
+        $authUser = $request->user();
+
+        // Only counselors may deactivate their account
+        if (!$authUser || !$authUser->isCounselor()) {
+            return Redirect::route('profile.edit')->with('error', 'Unauthorized.');
+        }
+
+        // Validate confirmation
+        $request->validate([
+            'confirm_text' => 'required|string',
+        ]);
+
+        if (strtoupper($request->confirm_text) !== 'DEACTIVATE') {
+            return Redirect::route('profile.edit')->withErrors(['confirm_text' => 'Confirmation text does not match.'], 'deactivate');
+        }
+
+        // Deactivate the account
+        $authUser->is_active = false;
+        $authUser->save();
+
+        // Log out the user
+        Auth::logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return Redirect::to('/')->with('status', 'counselor-account-deactivated');
+    }
+
+    /**
      * Delete the user's account.
      */
     public function destroy(Request $request): RedirectResponse

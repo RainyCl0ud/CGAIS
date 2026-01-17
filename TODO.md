@@ -1,28 +1,27 @@
-# Fix Appointment Type Display Bug
+# Danger Zone Feature Implementation
 
-## Issue
-When faculty users book an appointment and select "Referral" as the consultation type, it is stored correctly as 'urgent' in the database, but displayed as "Urgent" instead of "Referral" in the "My Appointments" table and other views.
+## Completed Tasks
+- [x] Add route for deactivating counselor account in routes/web.php
+- [x] Implement deactivateCounselor method in ProfileController
+- [x] Add Danger Zone UI section in profile/edit.blade.php below Counselor Availability
+- [x] Include confirmation modal with "DEACTIVATE" input requirement
+- [x] Add JavaScript for modal functionality and button enabling/disabling
+- [x] Add success message handling for deactivation
+- [x] Add error handling for invalid confirmation text
+- [x] Fix login prevention for deactivated accounts in LoginRequest
 
-## Root Cause
-Views are using `{{ ucfirst($appointment->type) }}` which displays "Urgent" for type 'urgent', but the Appointment model has a `getTypeLabel()` method that correctly returns "Referral" for faculty users.
+## Features Implemented
+- Visually distinct Danger Zone with red border and warning icon
+- Confirmation modal with clear warnings about deactivation consequences
+- Input field requiring exact "DEACTIVATE" text to proceed
+- Deactivate button disabled until correct confirmation text is entered
+- Proper validation and error handling
+- Account deactivation sets is_active to false, preserves records
+- User is logged out immediately after deactivation
+- Success message displayed on home page after logout
+- Deactivated accounts cannot log in (shows error message)
 
-## Solution
-Replace `{{ ucfirst($appointment->type) }}` with `{{ $appointment->getTypeLabel() }}` in all relevant views.
-
-## Files to Update
-- [ ] resources/views/student/appointments/index.blade.php
-- [ ] resources/views/student/appointments/show.blade.php
-- [ ] resources/views/student/appointments/session-history.blade.php
-- [ ] resources/views/livewire/appointment-manager.blade.php
-- [ ] resources/views/dashboard/student.blade.php
-- [ ] resources/views/appointments/index.blade.php
-- [ ] resources/views/appointments/session-history.blade.php
-- [ ] resources/views/appointments/show.blade.php
-- [ ] resources/views/appointments/pending.blade.php
-- [ ] resources/views/appointments/today.blade.php
-- [ ] resources/views/user-management/show.blade.php
-- [ ] resources/views/student-management/show.blade.php
-
-## Testing
-- Book appointment as faculty user selecting "Referral"
-- Check that it displays as "Referral" in My Appointments and other views
+## Testing Completed
+- [x] Verified deactivation functionality works
+- [x] Confirmed deactivated users cannot log in
+- [x] Checked error message for deactivated accounts
