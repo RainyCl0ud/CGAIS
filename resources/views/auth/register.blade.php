@@ -144,7 +144,7 @@
                 <div class="relative">
                     <x-input-label for="course_id" :value="__('Course')" />
                     <select id="course_id" name="course_id" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
-                        <option value="">Select Course</option>
+                        <option value="">Select Program</option>
                         @foreach(\App\Models\Course::active()->get() as $course)
                             <option value="{{ $course->id }}" {{ old('course_id') == $course->id ? 'selected' : '' }}>
                                 {{ $course->description }} ({{ $course->name }})

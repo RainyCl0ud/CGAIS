@@ -73,10 +73,12 @@
                                         </td>
                                         <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium">
                                             <a href="{{ route('courses.edit', $course) }}" class="text-blue-600 hover:text-blue-900 mr-3">Edit</a>
-                                            <form method="POST" action="{{ route('courses.destroy', $course) }}" class="inline">
+                                            <form method="POST" action="{{ route('courses.toggle', $course) }}" class="inline">
                                                 @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="text-red-600 hover:text-red-900" onclick="return confirm('Are you sure you want to delete this course?')">Delete</button>
+                                                @method('PATCH')
+                                                <button type="submit" class="text-orange-600 hover:text-orange-900" onclick="return confirm('Are you sure you want to {{ $course->is_active ? 'deactivate' : 'activate' }} this course?')">
+                                                    {{ $course->is_active ? 'Deactivate' : 'Activate' }}
+                                                </button>
                                             </form>
                                         </td>
                                     </tr>

@@ -130,23 +130,19 @@ class CourseController extends Controller
     }
 
     /**
-     * Remove the specified course from storage.
+     * Toggle the active status of the specified course.
      */
-    public function destroy(Course $course): RedirectResponse
+    public function toggle(Course $course): RedirectResponse
     {
         if (!$this->canModifyCourses()) {
-            abort(403, 'Access denied. Only counselors can delete courses.');
+            abort(403, 'Access denied. Only counselors can modify courses.');
         }
 
-        // Check if course is being used by any users
-        if ($course->users()->exists()) {
-            return redirect()->route('courses.index')
-                ->with('error', 'Cannot delete course that is assigned to users.');
-        }
+        $course->update(['is_active' => !$course->is_active]);
 
-        $course->delete();
+        $status = $course->is_active ? 'activated' : 'deactivated';
 
         return redirect()->route('courses.index')
-            ->with('success', 'Course deleted successfully.');
+            ->with('success', "Course {$status} successfully.");
     }
 }

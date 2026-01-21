@@ -42,7 +42,8 @@ Route::middleware(['auth','verified'])->group(function () {
         Route::get('/students/statistics', [StudentManagementController::class, 'getStatistics'])->name('students.statistics');
 
         // Course Management - View only for assistants
-        Route::resource('courses', CourseController::class);
+        Route::resource('courses', CourseController::class)->except(['destroy']);
+        Route::patch('courses/{course}/toggle', [CourseController::class, 'toggle'])->name('courses.toggle');
         
         // Activity Logs - View only for assistants
         Route::get('/activity-logs', [ActivityLogController::class, 'index'])->name('activity-logs.index');

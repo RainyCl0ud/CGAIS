@@ -50,7 +50,7 @@
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                    <th class="px-6 py-3"></th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
@@ -72,7 +72,7 @@
                                                 <form method="post" action="{{ route('services.toggle', $service) }}">
                                                     @csrf
                                                     @method('patch')
-                                                    <button type="submit" class="text-sm px-3 py-1 rounded-md border {{ $service->is_active ? 'border-red-200 text-red-600' : 'border-green-200 text-green-700' }}">{{ $service->is_active ? 'Mute' : 'Unmute' }}</button>
+                                                    <button type="submit" class="text-sm px-3 py-1 rounded-md border {{ $service->is_active ? 'border-red-200 text-red-600' : 'border-green-200 text-green-700' }}">{{ $service->is_active ? 'Active' : 'Inactive' }}</button>
                                                 </form>
                                             </div>
 

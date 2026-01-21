@@ -14,7 +14,7 @@
                         </button>
                             <a href="{{ route('student.appointments.export-history') }}?{{ request()->getQueryString() }}" 
                            class="px-4 sm:px-6 py-2 sm:py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors text-sm">
-                                📊 Export to CSV
+                              Print PDF
                             </a>
                         </div>
                     </div>
