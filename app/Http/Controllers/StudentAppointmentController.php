@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use App\Notifications\AppointmentReminder;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class StudentAppointmentController extends Controller
 {
@@ -637,50 +638,24 @@ $validationRules['notes'] = 'nullable|string|max:1000';
 
         $appointments = $query->orderBy('appointment_date', 'desc')->get();
 
-        $filename = 'student_session_history_' . now()->format('Y-m-d_H-i-s') . '.csv';
-
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        $stats = [
+            'total_sessions' => $query->count(),
+            'completed_sessions' => (clone $query)->where('status', 'completed')->count(),
+            'cancelled_sessions' => (clone $query)->where('status', 'cancelled')->count(),
+            'no_show_sessions' => (clone $query)->where('status', 'no_show')->count(),
         ];
 
-        $callback = function() use ($appointments) {
-            $file = fopen('php://output', 'w');
+        $data = [
+            'appointments' => $appointments,
+            'stats' => $stats,
+            'user' => $user,
+        ];
 
-            // CSV headers
-            fputcsv($file, [
-                'Date',
-                'Time',
-                'Counselor Name',
-                'Type',
-                'Category',
-                'Status',
-                'Reason for Urgency',
-                'Purpose/Concern',
-                'Counselor Notes',
-                'Created At'
-            ]);
+        $pdf = Pdf::loadView('pdfs.student-session-history', $data)->setPaper('A4', 'landscape');
 
-            // CSV data
-            foreach ($appointments as $appointment) {
-                fputcsv($file, [
-                    \Carbon\Carbon::parse($appointment->appointment_date)->format('Y-m-d'),
-                    $appointment->start_time->format('H:i') . ' - ' . $appointment->end_time->format('H:i'),
-                    $appointment->counselor->full_name,
-                    ucfirst($appointment->type),
-                    $appointment->getCounselingCategoryLabel(),
-                    ucfirst($appointment->status),
-                    $appointment->reason,
-                    $appointment->notes,
-                    $appointment->counselor_notes,
-                    $appointment->created_at->format('Y-m-d H:i:s')
-                ]);
-            }
+        $filename = 'student_session_history_' . now()->format('Y-m-d_H-i-s') . '.pdf';
 
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
+        return $pdf->download($filename);
     }
 
     public function getAvailableSlots(User $counselor, Request $request)

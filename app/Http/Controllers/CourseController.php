@@ -126,7 +126,7 @@ class CourseController extends Controller
         $course->update($validated);
 
         return redirect()->route('courses.index')
-            ->with('success', 'Course updated successfully.');
+            ->with('success', 'Program updated successfully.');
     }
 
     /**
@@ -143,6 +143,21 @@ class CourseController extends Controller
         $status = $course->is_active ? 'activated' : 'deactivated';
 
         return redirect()->route('courses.index')
-            ->with('success', "Course {$status} successfully.");
+            ->with('success', "Program {$status} successfully.");
+    }
+
+    /**
+     * Remove the specified course from storage.
+     */
+    public function destroy(Course $course): RedirectResponse
+    {
+        if (!$this->canModifyCourses()) {
+            abort(403, 'Access denied. Only counselors can delete courses.');
+        }
+
+        $course->delete();
+
+        return redirect()->route('courses.index')   
+            ->with('success', 'Program deleted successfully.');
     }
 }

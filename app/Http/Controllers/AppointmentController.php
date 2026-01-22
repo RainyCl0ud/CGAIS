@@ -17,6 +17,7 @@ use Illuminate\Http\RedirectResponse;
 use App\Notifications\AppointmentStatusNotification;
 use App\Notifications\AssistantAppointmentNotification;
 use App\Notifications\AppointmentReminder;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class AppointmentController extends Controller
 {
@@ -694,47 +695,22 @@ class AppointmentController extends Controller
 
         $appointments = $query->orderBy('appointment_date', 'desc')->get();
 
-        $filename = 'session_history_' . now()->format('Y-m-d_H-i-s') . '.csv';
-        
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        $stats = [
+            'total_sessions' => $query->count(),
+            'completed_sessions' => $query->where('status', 'completed')->count(),
         ];
 
-        $callback = function() use ($appointments) {
-            $file = fopen('php://output', 'w');
-            fputcsv($file, [
-                'Date',
-                'Time',
-                'Client Name',
-                'Client Email',
-                'Type',
-                'Category',
-                'Status',
-                'Reason',
-                'Counselor Notes',
-                'Reschedule Reason',
-                'Created At'
-            ]);
-            foreach ($appointments as $appointment) {
-                fputcsv($file, [
-                    $appointment->appointment_date->format('Y-m-d'),
-                    $appointment->start_time->format('H:i') . ' - ' . $appointment->end_time->format('H:i'),
-                    $appointment->user->full_name,
-                    $appointment->user->email,
-                    ucfirst($appointment->type),
-                    $appointment->getCounselingCategoryLabel(),
-                    ucfirst($appointment->status),
-                    $appointment->reason,
-                    $appointment->counselor_notes,
-                    $appointment->reschedule_reason,
-                    $appointment->created_at->format('Y-m-d H:i:s')
-                ]);
-            }
-            fclose($file);
-        };
+        $data = [
+            'appointments' => $appointments,
+            'stats' => $stats,
+            'user' => $user,
+        ];
 
-        return response()->stream($callback, 200, $headers);
+        $pdf = Pdf::loadView('pdfs.session-history', $data)->setPaper('A4', 'landscape');
+
+        $filename = 'session_history_' . now()->format('Y-m-d_H-i-s') . '.pdf';
+
+        return $pdf->download($filename);
     }
 
     public function getStatistics(Request $request)

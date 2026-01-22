@@ -9,9 +9,9 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                             </svg>
                         </a>
-                        <span>Add New Course</span>
+                        <span>Add New Program</span>
                     </h1>
-                    <div class="text-gray-600 text-xs sm:text-sm">{{ now()->format('l, F d, Y') }} | Course Management</div>
+                    <div class="text-gray-600 text-xs sm:text-sm">{{ now()->format('l, F d, Y') }} | Progam Management</div>
                 </div>
 
                 @if(session('success'))
@@ -33,11 +33,11 @@
                         <!-- Course Name -->
                         <div>
                             <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
-                                Course Name <span class="text-red-500">*</span>
+                            Progam Name <span class="text-red-500">*</span>
                             </label>
                             <input type="text" name="name" id="name" value="{{ old('name') }}"
                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('name') border-red-500 @enderror"
-                                   placeholder="Enter course name" required>
+                                   placeholder="Enter Progam name" required>
                             @error('name')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
@@ -46,11 +46,11 @@
                         <!-- Course Code -->
                         <div>
                             <label for="code" class="block text-sm font-medium text-gray-700 mb-2">
-                                Course Code <span class="text-red-500">*</span>
+                            Progam Code <span class="text-red-500">*</span>
                             </label>
                             <input type="text" name="code" id="code" value="{{ old('code') }}"
                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('code') border-red-500 @enderror"
-                                   placeholder="Enter course code" required>
+                                   placeholder="Enter Progam code" required>
                             @error('code')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
@@ -64,7 +64,7 @@
                         </label>
                         <textarea name="description" id="description" rows="4"
                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('description') border-red-500 @enderror"
-                                  placeholder="Enter course description">{{ old('description') }}</textarea>
+                                  placeholder="Enter Progam description">{{ old('description') }}</textarea>
                         @error('description')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
@@ -83,7 +83,7 @@
                     <!-- Form Actions -->
                     <div class="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200">
                         <button type="submit" class="px-6 py-3 bg-[#FFD700] text-[#1E3A8A] font-semibold rounded-lg hover:bg-[#FFE44D] transition-colors">
-                            Create Course
+                            Create Progam
                         </button>
                         <a href="{{ route('courses.index') }}" class="px-6 py-3 bg-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-400 transition-colors text-center">
                             Cancel
