@@ -1,9 +1,8 @@
-# Course Management Toggle Implementation
+# TODO: Redesign Welcome Page
 
-## Tasks
-- [x] Modify CourseController: Replace destroy method with toggle method
-- [x] Update routes: Change destroy route to toggle route
-- [x] Update view: Replace Delete button with Toggle Active/Inactive button
+## Tasks to Complete
+- [x] Redesign resources/views/welcome.blade.php: Reverted to original design as per user request.
 
-## Testing
-- [x] Testing skipped by user request
+## Progress Tracking
+- Started: Now
+- Completed: Now
