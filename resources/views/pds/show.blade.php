@@ -110,20 +110,42 @@
 
                         <div class="grid grid-cols-3 gap-x-4 mb-2">
                             <div>
-                                <label>Course/Track:</label>
-                                <input type="text" name="course" value="{{ old('course', $pds->course) }}" class="border-b border-gray-700 w-full">
+                                <label>Course/Track: @if(!empty($pds->course) || !empty(Auth::user()->course_id))<span class="text-xs text-gray-500">(Auto-filled from profile)</span>@endif</label>
+                                @php
+                                    $courseValue = $pds->course ?: (Auth::user()->course->name ?? '');
+                                    $isCourseReadonly = !empty($pds->course) || !empty(Auth::user()->course_id);
+                                @endphp
+                                @if($isCourseReadonly)
+                                    <div class="border-b border-gray-400 bg-gray-100 w-full text-gray-600 py-1 px-1 cursor-not-allowed select-none">
+                                        {{ $courseValue }}
+                                    </div>
+                                    <input type="hidden" name="course" value="{{ $courseValue }}">
+                                @else
+                                    <input type="text" name="course" value="{{ old('course', $courseValue) }}" class="border-b border-gray-700 w-full">
+                                @endif
                             </div>
                             <div>
                                 <label>Major/Strand:</label>
                                 <input type="text" name="major" value="{{ old('major', $pds->major) }}" class="border-b border-gray-700 w-full">
                             </div>
                             <div>
-                                <label>Grade/Year Level:</label>
-                                <input type="text" name="year_level" value="{{ old('year_level', $pds->year_level) }}" class="border-b border-gray-700 w-full">
+                                <label>Grade/Year Level: @if(!empty($pds->year_level) || !empty(Auth::user()->year_level))<span class="text-xs text-gray-500">(Auto-filled from profile)</span>@endif</label>
+                                @php
+                                    $yearLevelValue = $pds->year_level ?: (Auth::user()->year_level ?? '');
+                                    $isYearLevelReadonly = !empty($pds->year_level) || !empty(Auth::user()->year_level);
+                                @endphp
+                                @if($isYearLevelReadonly)
+                                    <div class="border-b border-gray-400 bg-gray-100 w-full text-gray-600 py-1 px-1 cursor-not-allowed select-none">
+                                        {{ $yearLevelValue }}
+                                    </div>
+                                    <input type="hidden" name="year_level" value="{{ $yearLevelValue }}">
+                                @else
+                                    <input type="text" name="year_level" value="{{ old('year_level', $yearLevelValue) }}" class="border-b border-gray-700 w-full">
+                                @endif
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-x-4 mb-2">
+                        <div class="grid grid-cols-3 gap-x-4 mb-2">
                             <div>
                                 <label>First Name: @if(!empty($pds->first_name) || !empty(Auth::user()->first_name))<span class="text-xs text-gray-500">(Auto-filled from profile)</span>@endif</label>
                                 @php
@@ -140,19 +162,19 @@
                                 @endif
                             </div>
                             <div>
-                                <label>Gender:</label>
-                                <input type="text" name="sex" value="{{ old('sex', $pds->sex) }}" class="border-b border-gray-700 w-full">
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-4 gap-x-4 mb-2">
-                            <div>
-                                <label>Date of Birth:</label>
-                                <input type="date" name="birth_date" value="{{ old('birth_date', optional($pds->birth_date)->format('Y-m-d')) }}" class="border-b border-gray-700 w-full">
-                            </div>
-                            <div>
-                                <label>Age:</label>
-                                <input type="text" name="age" value="{{ old('age', $pds->age) }}" class="border-b border-gray-700 w-full">
+                                <label>Middle Name: @if(!empty($pds->middle_name) || !empty(Auth::user()->middle_name))<span class="text-xs text-gray-500">(Auto-filled from profile)</span>@endif</label>
+                                @php
+                                    $middleNameValue = $pds->middle_name ?: Auth::user()->middle_name;
+                                    $isMiddleNameReadonly = !empty($pds->middle_name) || !empty(Auth::user()->middle_name);
+                                @endphp
+                                @if($isMiddleNameReadonly)
+                                    <div class="border-b border-gray-400 bg-gray-100 w-full text-gray-600 py-1 px-1 cursor-not-allowed select-none">
+                                        {{ $middleNameValue }}
+                                    </div>
+                                    <input type="hidden" name="middle_name" value="{{ $middleNameValue }}">
+                                @else
+                                    <input type="text" name="middle_name" value="{{ old('middle_name', $middleNameValue) }}" class="border-b border-gray-700 w-full">
+                                @endif
                             </div>
                             <div>
                                 <label>Last Name: @if(!empty($pds->last_name) || !empty(Auth::user()->last_name))<span class="text-xs text-gray-500">(Auto-filled from profile)</span>@endif</label>
@@ -169,20 +191,20 @@
                                     <input type="text" name="last_name" value="{{ old('last_name', $lastNameValue) }}" class="border-b border-gray-700 w-full">
                                 @endif
                             </div>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-x-4 mb-2">
                             <div>
-                                <label>Middle Name: @if(!empty($pds->middle_name) || !empty(Auth::user()->middle_name))<span class="text-xs text-gray-500">(Auto-filled from profile)</span>@endif</label>
-                                @php
-                                    $middleNameValue = $pds->middle_name ?: Auth::user()->middle_name;
-                                    $isMiddleNameReadonly = !empty($pds->middle_name) || !empty(Auth::user()->middle_name);
-                                @endphp
-                                @if($isMiddleNameReadonly)
-                                    <div class="border-b border-gray-400 bg-gray-100 w-full text-gray-600 py-1 px-1 cursor-not-allowed select-none">
-                                        {{ $middleNameValue }}
-                                    </div>
-                                    <input type="hidden" name="middle_name" value="{{ $middleNameValue }}">
-                                @else
-                                    <input type="text" name="middle_name" value="{{ old('middle_name', $middleNameValue) }}" class="border-b border-gray-700 w-full">
-                                @endif
+                                <label>Date of Birth:</label>
+                                <input type="date" name="birth_date" value="{{ old('birth_date', optional($pds->birth_date)->format('Y-m-d')) }}" class="border-b border-gray-700 w-full">
+                            </div>
+                            <div>
+                                <label>Age:</label>
+                                <input type="text" name="age" value="{{ old('age', $pds->age) }}" class="border-b border-gray-700 w-full">
+                            </div>
+                            <div>
+                                <label>Gender:</label>
+                                <input type="text" name="sex" value="{{ old('sex', $pds->sex) }}" class="border-b border-gray-700 w-full">
                             </div>
                         </div>
 

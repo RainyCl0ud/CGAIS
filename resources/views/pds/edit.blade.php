@@ -50,6 +50,9 @@
             </div>
         @endif
         <input type="file" id="photoInput" name="photo" accept="image/*" class="hidden" form="pdsForm" onchange="previewImage(event)">
+        @error('photo')
+            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+        @enderror
     </div>
 </div>
 
@@ -94,6 +97,17 @@
                         </p>
                     </div>
 
+                    @if ($errors->any())
+                        <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+                            <strong>Whoops! Something went wrong.</strong>
+                            <ul class="mt-2">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
                     <form method="POST" action="{{ route('pds.update') }}" id="pdsForm" enctype="multipart/form-data">
                         @csrf
                         @method('PATCH')
@@ -105,16 +119,38 @@
 
                         <div class="grid grid-cols-3 gap-x-4 mb-2">
                             <div>
-                                <label>Course/Track:</label>
-                                <input type="text" name="course" value="{{ old('course', $pds->course) }}" class="border-b border-gray-700 w-full">
+                                <label>Course/Track: @if(!empty($pds->course) || !empty(Auth::user()->course_id))<span class="text-xs text-gray-500">(Auto-filled from profile)</span>@endif</label>
+                                @php
+                                    $courseValue = $pds->course ?: (Auth::user()->course->name ?? '');
+                                    $isCourseReadonly = !empty($pds->course) || !empty(Auth::user()->course_id);
+                                @endphp
+                                @if($isCourseReadonly)
+                                    <div class="readonly-display">
+                                        {{ $courseValue }}
+                                    </div>
+                                    <input type="hidden" name="course" value="{{ $courseValue }}">
+                                @else
+                                    <input type="text" name="course" value="{{ old('course', $courseValue) }}" class="border-b border-gray-700 w-full">
+                                @endif
                             </div>
                             <div>
                                 <label>Major/Strand:</label>
                                 <input type="text" name="major" value="{{ old('major', $pds->major) }}" class="border-b border-gray-700 w-full">
                             </div>
                             <div>
-                                <label>Grade/Year Level:</label>
-                                <input type="text" name="year_level" value="{{ old('year_level', $pds->year_level) }}" class="border-b border-gray-700 w-full">
+                                <label>Grade/Year Level: @if(!empty($pds->year_level) || !empty(Auth::user()->year_level))<span class="text-xs text-gray-500">(Auto-filled from profile)</span>@endif</label>
+                                @php
+                                    $yearLevelValue = $pds->year_level ?: (Auth::user()->year_level ?? '');
+                                    $isYearLevelReadonly = !empty($pds->year_level) || !empty(Auth::user()->year_level);
+                                @endphp
+                                @if($isYearLevelReadonly)
+                                    <div class="readonly-display">
+                                        {{ $yearLevelValue }}
+                                    </div>
+                                    <input type="hidden" name="year_level" value="{{ $yearLevelValue }}">
+                                @else
+                                    <input type="text" name="year_level" value="{{ old('year_level', $yearLevelValue) }}" class="border-b border-gray-700 w-full">
+                                @endif
                             </div>
                         </div>
 
@@ -136,7 +172,14 @@
                             </div>
                             <div>
                                 <label>Gender:</label>
-                                <input type="text" name="sex" value="{{ old('sex', $pds->sex) }}" class="border-b border-gray-700 w-full">
+                                <select name="sex" class="border-b border-gray-700 w-full @error('sex') border-red-500 @enderror">
+                                    <option value="">Select Gender</option>
+                                    <option value="male" {{ old('sex', $pds->sex) == 'male' ? 'selected' : '' }}>Male</option>
+                                    <option value="female" {{ old('sex', $pds->sex) == 'female' ? 'selected' : '' }}>Female</option>
+                                </select>
+                                @error('sex')
+                                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
                         </div>
 
@@ -189,7 +232,17 @@
                         <div class="grid grid-cols-3 gap-x-4 mb-2">
                             <div>
                                 <label>Civil Status:</label>
-                                <input type="text" name="civil_status" value="{{ old('civil_status', $pds->civil_status) }}" class="border-b border-gray-700 w-full">
+                                <select name="civil_status" class="border-b border-gray-700 w-full @error('civil_status') border-red-500 @enderror">
+                                    <option value="">Select Civil Status</option>
+                                    <option value="single" {{ old('civil_status', $pds->civil_status) == 'single' ? 'selected' : '' }}>Single</option>
+                                    <option value="married" {{ old('civil_status', $pds->civil_status) == 'married' ? 'selected' : '' }}>Married</option>
+                                    <option value="widowed" {{ old('civil_status', $pds->civil_status) == 'widowed' ? 'selected' : '' }}>Widowed</option>
+                                    <option value="separated" {{ old('civil_status', $pds->civil_status) == 'separated' ? 'selected' : '' }}>Separated</option>
+                                    <option value="divorced" {{ old('civil_status', $pds->civil_status) == 'divorced' ? 'selected' : '' }}>Divorced</option>
+                                </select>
+                                @error('civil_status')
+                                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
                             <div>
                                 <label>Religion:</label>

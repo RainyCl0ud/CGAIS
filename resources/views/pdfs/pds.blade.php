@@ -57,8 +57,23 @@
 
     <h2 style="text-align:center; margin-top:10px; font-weight:700;">STUDENT'S PERSONAL DATA SHEET</h2>
 
+    <!-- CONFIDENTIALITY STATEMENT -->
+    <div class="section" style="margin-top:15px; padding:10px; background:#f9f9f9;">
+        <div style="font-size:10px; line-height:1.4;">
+            <strong>The Guidance and Counseling Services (GCS)</strong> observes <strong>STRICT CONFIDENTIALITY</strong> on the personal information shared in this form according to the ethical principles of confidentiality and in compliance with the Data Privacy Act. However, please take note that the information will be disclosed under the following circumstances:
+            <br><br>
+            <strong>Threat on the life of the client (e.g. attempt to commit suicide, victim of abuse)</strong>
+            <br>
+            <strong>The client can cause danger to the lives and health of other people.</strong>
+            <br><br>
+            Moreover, information may also be given to agencies (e.g. DSWD, Police, Women and Children Protection Unit, Rehabilitation Unit Hospitals and other health providers) that can facilitate or address client's need and situation.
+            <br><br>
+            <strong>Instruction:</strong> Please provide honest response to the information needed. Rest assured that data gathered will be treated with utmost confidentiality in accordance with the Data Privacy Act.
+        </div>
+    </div>
+
     <div style="position:relative;">
-        <div style="position:absolute; left:50%; transform:translateX(-50%); text-align:center;">
+        <div style="position:absolute; left:50%; transform:translateX(-50%); text-align:center; padding-top: 30;">
             <div style="font-weight:700; font-size:13px;">{{ $student->getFullNameAttribute() }}</div>
             <div class="muted">Student ID: {{ $student->student_id ?? 'N/A' }}</div>
             <div class="muted">
@@ -90,8 +105,18 @@
             </tr>
             <tr>
                 <td><div class="label">First Name:</div><div class="field">{{ $pds->first_name ?: $student->first_name ?: '' }}</div></td>
-                <td><div class="label">Gender:</div><div class="field">{{ $pds->sex ?: '' }}</div></td>
-                <td><div class="label">Date of Birth:</div><div class="field">{{ $pds->birth_date ? $pds->birth_date->format('Y-m-d') : '' }}</div></td>
+                <td><div class="label">Last Name:</div><div class="field">{{ $pds->last_name ?: $student->last_name ?: '' }}</div></td>
+                <td><div class="label">Middle Name:</div><div class="field">{{ $pds->middle_name ?: $student->middle_name ?: '' }}</div></td>
+            </tr>
+            <tr>
+               <td><div class="label">Gender:</div><div class="field">{{ $pds->sex ?: '' }}</div></td>
+               <td><div class="label">Date of Birth:</div><div class="field">{{ $pds->birth_date ? $pds->birth_date->format('m/d/Y') : '' }}</div></td>
+               <td><div class="label">Age:</div><div class="field">{{ $pds->age ?? '' }}</div></td>
+              </tr>
+            <tr>
+                <td><div class="label">Place of Birth:</div><div class="field">{{ $pds->birth_place ?? '' }}</div></td>
+                <td><div class="label">Civil Status:</div><div class="field">{{ $pds->civil_status ?: '' }}</div></td>
+                <td><div class="label">Religion:</div><div class="field">{{ $pds->religion ?? '' }}</div></td>
             </tr>
             <tr>
                 <td><div class="label">Contact Number:</div><div class="field">{{ $pds->contact_number ?? $student->phone_number ?? '' }}</div></td>
@@ -103,6 +128,11 @@
             <tr>
                 <td colspan="3"><div class="label">Present Address:</div><div class="field">{{ $pds->present_address ?? '' }}</div></td>
             </tr>
+            <tr>
+                <td><div class="label">School Last Attended:</div><div class="field">{{ $pds->last_school ?? '' }}</div></td>
+                <td><div class="label">Location of School:</div><div class="field">{{ $pds->school_location ?? '' }}</div></td>
+                <td><div class="label">Previous Course/Grade:</div><div class="field">{{ $pds->previous_course ?? '' }}</div></td>
+            </tr>
         </table>
     </div>
 
@@ -111,17 +141,189 @@
         <div class="section-title">FAMILY BACKGROUND</div>
         <table>
             <tr>
-                <td style="width:50%;"><div class="label">Father's Name:</div><div class="field">{{ $pds->father_name ?? '' }}</div></td>
-                <td style="width:50%;"><div class="label">Mother's Name:</div><div class="field">{{ $pds->mother_name ?? '' }}</div></td>
+                <td style="width:50%;"><div class="label">Name of Father:</div><div class="field">{{ $pds->father_name ?? '' }}</div></td>
+                <td style="width:50%;"><div class="label">Age:</div><div class="field">{{ $pds->father_age ?? '' }}</div></td>
             </tr>
             <tr>
-                <td><div class="label">Parents' Address:</div><div class="field">{{ $pds->parents_address ?? '' }}</div></td>
-                <td><div class="label">Guardian:</div><div class="field">{{ $pds->guardian_name ?? '' }}</div></td>
+                <td><div class="label">Contact No:</div><div class="field">{{ $pds->father_contact ?? '' }}</div></td>
+                <td><div class="label">Occupation:</div><div class="field">{{ $pds->father_occupation ?? '' }}</div></td>
+            </tr>
+            <tr>
+                <td colspan="2"><div class="label">Educational Attainment:</div><div class="field">{{ $pds->father_education ?? '' }}</div></td>
+            </tr>
+            <tr>
+                <td style="width:50%;"><div class="label">Name of Mother:</div><div class="field">{{ $pds->mother_name ?? '' }}</div></td>
+                <td style="width:50%;"><div class="label">Age:</div><div class="field">{{ $pds->mother_age ?? '' }}</div></td>
+            </tr>
+            <tr>
+                <td><div class="label">Contact No:</div><div class="field">{{ $pds->mother_contact ?? '' }}</div></td>
+                <td><div class="label">Occupation:</div><div class="field">{{ $pds->mother_occupation ?? '' }}</div></td>
+            </tr>
+            <tr>
+                <td colspan="2"><div class="label">Educational Attainment:</div><div class="field">{{ $pds->mother_education ?? '' }}</div></td>
+            </tr>
+            <tr>
+                <td colspan="3"><div class="label">Parents' Permanent Address:</div><div class="field">{{ $pds->parents_address ?? '' }}</div></td>
+            </tr>
+            <tr>
+                <td style="width:50%;"><div class="label">Husband/Wife (If Married):</div><div class="field">{{ $pds->spouse_name ?? '' }}</div></td>
+                <td style="width:50%;"><div class="label">Contact No:</div><div class="field">{{ $pds->spouse_contact ?? '' }}</div></td>
+            </tr>
+            <tr>
+                <td><div class="label">Occupation:</div><div class="field">{{ $pds->spouse_occupation ?? '' }}</div></td>
+                <td><div class="label">Educational Attainment:</div><div class="field">{{ $pds->spouse_education ?? '' }}</div></td>
+            </tr>
+            <tr>
+                <td style="width:50%;"><div class="label">Name of Guardian (if applicable):</div><div class="field">{{ $pds->guardian_name ?? '' }}</div></td>
+                <td style="width:50%;"><div class="label">Age:</div><div class="field">{{ $pds->guardian_age ?? '' }}</div></td>
+            </tr>
+            <tr>
+                <td><div class="label">Contact No:</div><div class="field">{{ $pds->guardian_contact ?? '' }}</div></td>
+                <td><div class="label">Occupation:</div><div class="field">{{ $pds->guardian_occupation ?? '' }}</div></td>
             </tr>
         </table>
+        <div style="margin-top:8px; font-size:11px;">Pls. continue on the back page</div>
+    </div>
+
+    <!-- OTHER INFORMATION -->
+    <div class="section">
+            <br>
+        <div class="section-title">OTHER INFORMATION</div>
+
+        <div style="margin-bottom:10px;">
+            <div class="label">1. Why did you choose this course/program?</div>
+            <div class="field" style="min-height:40px;">{{ $pds->reason_for_course ?? '' }}</div>
+        </div>
+
+        <div style="margin-bottom:10px;">
+            <div class="label">2. How would you describe your family? Please put a check (/) mark on the space provided.</div>
+            <table style="margin-top:5px;">
+                <tr>
+                    <td style="width:5%;"><div class="field" style="text-align:center;">{{ $pds->family_description == 'harmonious' ? '/' : '' }}</div></td>
+                    <td>a family with harmonious relationship among family members</td>
+                </tr>
+                <tr>
+                    <td><div class="field" style="text-align:center;">{{ $pds->family_description == 'conflict' ? '/' : '' }}</div></td>
+                    <td>a family having conflict with some family members</td>
+                </tr>
+                <tr>
+                    <td><div class="field" style="text-align:center;">{{ $pds->family_description == 'separated' ? '/' : '' }}</div></td>
+                    <td>a family with separated parents</td>
+                </tr>
+                <tr>
+                    <td><div class="field" style="text-align:center;">{{ $pds->family_description == 'abroad' ? '/' : '' }}</div></td>
+                    <td>a family with parents working abroad</td>
+                </tr>
+                <tr>
+                    <td><div class="field" style="text-align:center;">{{ $pds->family_description == 'other' ? '/' : '' }}</div></td>
+                    <td>others, pls. specify:<br><div class="field" style="width:200px;">{{ $pds->family_description_other ?? '' }}</div></td>
+                </tr>
+            </table>
+        </div>
+
+        <div style="margin-bottom:10px;">
+            <div class="label">3. Where do you live right now? Please put a check (/) mark on the space provided.</div>
+            <table style="margin-top:5px;">
+                <tr>
+                    <td style="width:5%;"><div class="field" style="text-align:center;">{{ $pds->living_situation == 'home' ? '/' : '' }}</div></td>
+                    <td>at home</td>
+                    <td style="width:5%;"><div class="field" style="text-align:center;">{{ $pds->living_situation == 'boarding' ? '/' : '' }}</div></td>
+                    <td>boarding house</td>
+                </tr>
+                <tr>
+                    <td><div class="field" style="text-align:center;">{{ $pds->living_situation == 'relatives' ? '/' : '' }}</div></td>
+                    <td>relatives</td>
+                    <td><div class="field" style="text-align:center;">{{ $pds->living_situation == 'friends' ? '/' : '' }}</div></td>
+                    <td>friends</td>
+                </tr>
+                <tr>
+                    <td><div class="field" style="text-align:center;">{{ $pds->living_situation == 'other' ? '/' : '' }}</div></td>
+                    <td colspan="3">others, pls. specify:<br><div class="field" style="width:200px;">{{ $pds->living_situation_other ?? '' }}</div></td>
+                </tr>
+            </table>
+        </div>
+
+        <div style="margin-bottom:10px;">
+            <div class="label">4. Describe your living condition. Please put a check (/) mark on the space provided.</div>
+            <table style="margin-top:5px;">
+                <tr>
+                    <td style="width:5%;"><div class="field" style="text-align:center;">{{ $pds->living_condition == 'good' ? '/' : '' }}</div></td>
+                    <td>good environment for learning</td>
+                </tr>
+                <tr>
+                    <td><div class="field" style="text-align:center;">{{ $pds->living_condition == 'not_good' ? '/' : '' }}</div></td>
+                    <td>not-so-good environment for learning</td>
+                </tr>
+            </table>
+        </div>
+
+        <div style="margin-bottom:10px;">
+            <div class="label">5. Do you have any physical/health condition/s?</div>
+            <table style="margin-top:5px;">
+                <tr>
+                    <td style="width:5%;"><div class="field" style="text-align:center;">{{ $pds->health_condition == 'no' ? '/' : '' }}</div></td>
+                    <td>No</td>
+                </tr>
+                <tr>
+                    <td><div class="field" style="text-align:center;">{{ $pds->health_condition == 'yes' ? '/' : '' }}</div></td>
+                    <td>Yes, pls. specify: <br> <div class="field" style="display:inline-block; width:300px;">{{ $pds->health_condition_specify ?? '' }}</div></td>
+                </tr>
+            </table>
+        </div>
+
+        <div style="margin-bottom:10px;">
+            <div class="label">6. Have you undergone intervention/treatment with a psychologist/psychiatrist?</div>
+            <table style="margin-top:5px;">
+                <tr>
+                    <td style="width:5%;"><div class="field" style="text-align:center;">{{ $pds->intervention_treatment == 0 ? '/' : '' }}</div></td>
+                    <td>No</td>
+                </tr>
+                <tr>
+                    <td><div class="field" style="text-align:center;">{{ $pds->intervention_treatment == 1 ? '/' : '' }}</div></td>
+                    <td>Yes</td>
+                </tr>
+            </table>
+        </div>
+
+        <div style="margin-bottom:10px;">
+            <div class="label">CHECK THE SEMINARS/ACTIVITIES YOU WANT TO AVAIL FROM THE GUIDANCE SERVICES UNIT</div>
+            <table style="margin-top:5px;">
+                <tr>
+                    <td style="width:5%;"><div class="field" style="text-align:center;">{{ in_array('adjustment', $pds->intervention_types ?? []) ? '/' : '' }}</div></td>
+                    <td>Adjustment (dealing with people, handling pressures, environment, class schedules, etc.)</td>
+                </tr>
+                <tr>
+                    <td><div class="field" style="text-align:center;">{{ in_array('self_confidence', $pds->intervention_types ?? []) ? '/' : '' }}</div></td>
+                    <td>Building Self-Confidence</td>
+                </tr>
+                <tr>
+                    <td><div class="field" style="text-align:center;">{{ in_array('communication', $pds->intervention_types ?? []) ? '/' : '' }}</div></td>
+                    <td>Developing Communication Skills</td>
+                </tr>
+                <tr>
+                    <td><div class="field" style="text-align:center;">{{ in_array('study_habits', $pds->intervention_types ?? []) ? '/' : '' }}</div></td>
+                    <td>Study Habits</td>
+                </tr>
+                <tr>
+                    <td><div class="field" style="text-align:center;">{{ in_array('time_management', $pds->intervention_types ?? []) ? '/' : '' }}</div></td>
+                    <td>Time Management</td>
+                </tr>
+                <tr>
+                    <td><div class="field" style="text-align:center;">{{ in_array('tutorial', $pds->intervention_types ?? []) ? '/' : '' }}</div></td>
+                    <td>Tutorial with Peers (Please specify the subject/s): <br> <div class="field" style="display:inline-block; width:200px;">{{ $pds->tutorial_subjects ?? '' }}</div></td>
+                </tr>
+                <tr>
+                    <td><div class="field" style="text-align:center;">{{ in_array('other', $pds->intervention_types ?? []) ? '/' : '' }}</div></td>
+                    <td>others, pls. specify:<br><div class="field" style="width:200px;">{{ $pds->intervention_other ?? '' }}</div></td>
+                </tr>
+            </table>
+        </div>
     </div>
 
     <!-- AWARDS AND RECOGNITION -->
+     <br>
+     <br>
+     <br>
     <div class="section">
         <div class="section-title">AWARDS AND RECOGNITION</div>
 
@@ -137,8 +339,8 @@
                 $award = $pds->awards[$i] ?? [];
             @endphp
             <tr>
-                <td><div class="field">{{ $award['title'] ?? '' }}</div></td>
-                <td><div class="field">{{ $award['organization'] ?? '' }}</div></td>
+                <td><div class="field">{{ $award['award'] ?? '' }}</div></td>
+                <td><div class="field">{{ $award['school'] ?? '' }}</div></td>
                 <td><div class="field">{{ $award['year'] ?? '' }}</div></td>
             </tr>
             @endfor
