@@ -166,15 +166,6 @@
                                 <input type="hidden" name="confirm_intent" value="1">
                                 <input type="hidden" name="final_confirm" value="1">
 
-                                <div class="mb-4">
-                                    <label for="confirm_text" class="block text-sm font-medium text-gray-700 mb-2">
-                                        Type "SET UNAVAILABLE" to confirm:
-                                    </label>
-                                    <input type="text" id="confirm_text" name="confirm_text"
-                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                                           placeholder="SET UNAVAILABLE" required>
-                                </div>
-
                                 <div class="flex justify-end space-x-3">
                                     <button type="button" onclick="closeUnavailableModal()"
                                             class="px-4 py-2 bg-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500">

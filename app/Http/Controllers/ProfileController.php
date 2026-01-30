@@ -134,7 +134,6 @@ class ProfileController extends Controller
         try {
             $request->validate([
                 'confirm_intent' => 'required|boolean',
-                'confirm_text' => 'sometimes|string',
                 'final_confirm' => 'required|boolean',
             ]);
 
@@ -147,14 +146,7 @@ class ProfileController extends Controller
             }
 
             if ($authUser->isAvailable()) {
-                // Setting to unavailable: requires text confirmation
-                $expectedText = 'SET UNAVAILABLE';
-                if (strtoupper($request->confirm_text) !== $expectedText) {
-                    throw ValidationException::withMessages([
-                        'confirm_text' => 'Confirmation text does not match.',
-                    ])->errorBag('counselor_toggle');
-                }
-
+                // Setting to unavailable
                 $authUser->availability_status = 'UNAVAILABLE';
                 $authUser->save();
                 return Redirect::route('profile.edit')->with('status', 'counselor-unavailable');

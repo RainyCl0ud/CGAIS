@@ -1,10 +1,6 @@
-# PDS PDF Enhancement Task
+# Task: Remove confirmation message for SET UNAVAILABLE
 
-## Tasks
-- [x] Add confidentiality statement to PDF view
-- [x] Expand personal background section with all fields (last name, middle name, age, religion, etc.)
-- [x] Add education background section
-- [x] Add health and medical information section
-- [x] Add emergency contact section
-- [x] Add interests and goals section
-- [x] Test PDF generation to ensure all fields display correctly
+## Steps to Complete:
+- [ ] Remove confirm_text validation and check in ProfileController.php for setting counselor to unavailable
+- [ ] Remove confirm_text input field from the unavailable modal in profile/edit.blade.php
+- [ ] Verify that unavailable hours remain visible but cannot be booked (already implemented)
