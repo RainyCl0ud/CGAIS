@@ -1,4 +1,6 @@
+@if(!request('pdf'))
 <x-app-layout>
+@endif
     <div class="py-12 page-1">
         <div class="max-w-5xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white border border-gray-300 shadow-md">
@@ -635,7 +637,11 @@
     </script>
 
     <style>
-        @media print {
+        @media print, (max-width: 0) {
+            /* Hide app layout elements */
+            nav, header, aside, .sidebar, .navbar, .app-layout, .layout, .main-layout, .app-header, .app-sidebar {
+                display: none !important;
+            }
             button, .bg-blue-600, .hover\:bg-blue-700 {
                 display: none !important;
             }
@@ -644,9 +650,9 @@
                 border: 1px solid black !important;
                 padding: 2px !important;
             }
-            body {
-                margin: 0;
-                padding: 0;
+            body, html {
+                margin: 0 !important;
+                padding: 0 !important;
             }
             .page-1 {
                 page-break-after: always;
@@ -659,13 +665,18 @@
                 max-width: none !important;
                 width: 100% !important;
             }
-            .px-10 {
-                padding-left: 1rem !important;
-                padding-right: 1rem !important;
+            .px-10, .py-8 {
+                padding: 0 !important;
             }
-            .py-8 {
-                padding-top: 1rem !important;
-                padding-bottom: 1rem !important;
+            .sm\:px-6, .lg\:px-8 {
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+            }
+            .bg-white {
+                width: 100% !important;
+                margin: 0 !important;
+                border: none !important;
+                box-shadow: none !important;
             }
             .text-[13px] {
                 font-size: 13px !important;
@@ -696,6 +707,46 @@
             }
 
         }
+
+        /* PDF mode styles */
+        @if(request('pdf'))
+        body, html {
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        nav, header, aside, .sidebar, .navbar, .app-layout, .layout, .main-layout, .app-header, .app-sidebar {
+            display: none !important;
+        }
+        .py-12 {
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+        }
+        .max-w-5xl {
+            max-width: none !important;
+            width: 100% !important;
+        }
+        .px-10, .py-8 {
+            padding: 0 !important;
+        }
+        .sm\:px-6, .lg\:px-8 {
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+        }
+        .bg-white {
+            width: 100% !important;
+            margin: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+        button, .bg-blue-600, .hover\:bg-blue-700 {
+            display: none !important;
+        }
+        input, textarea {
+            background: white !important;
+            border: 1px solid black !important;
+            padding: 2px !important;
+        }
+        @endif
         .document-code-box {
 width: 150px;
 transform: scale(0.85);
@@ -768,4 +819,6 @@ box-shadow: 0 0 3px rgba(0, 0, 0, 0.15);
             }
         }
     </script>
+@if(!request('pdf'))
 </x-app-layout>
+@endif

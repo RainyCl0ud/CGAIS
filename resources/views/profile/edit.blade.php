@@ -122,9 +122,15 @@
                 @endif
 
                 <div class="mb-4">
+                    @if(auth()->user()->isAvailable())
                     <p class="text-sm text-gray-600 mb-4">
-                        Mark yourself as inactive to prevent new appointment bookings. This action is permanent until reactivated, and students will see you as unavailable.
+                        Mark yourself as unavailable to prevent new appointment bookings. This action is permanent until reactivated, and students will see you as unavailable.
                     </p>
+                    @else
+                    <p class="text-sm text-gray-600 mb-4">
+                        Mark yourself as available for new appointment bookings. This action is permanent until reactivated, and students will see you as available.
+                    </p>
+                    @endif
 
                     <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                         <div>
@@ -143,7 +149,7 @@
                             <!-- Reactivate - Requires Confirmation -->
                             <button type="button" onclick="openReactivateModal()" class="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
                                 Reactivate
-                            </button>
+                            </button>   
                         @endif
                     </div>
 

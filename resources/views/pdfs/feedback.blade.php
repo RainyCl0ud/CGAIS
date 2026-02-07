@@ -4,9 +4,9 @@
     <meta charset="utf-8">
     <title>FeedBack</title>
     <style>
-        body { font-family: DejaVu Sans, Arial, Helvetica, sans-serif; color:#111; font-size:12px; margin: 30px; }
+        body { font-family: DejaVu Sans, Arial, Helvetica, sans-serif; color:#111; font-size:12px; margin: 120px 30px 50px 30px; }
         .container { max-width: 900px; margin: auto; }
-        .header { text-align:center; margin-bottom:8px; }
+        .header { position: fixed; top: 0; left: 0; right: 0; background: white; z-index: 1000; text-align:center; padding:6px; }
         .logo { width:85px; height:auto; display:block; margin:0 auto 4px; }
         .title { font-weight:700; font-size:14px; text-transform:uppercase; font-family: serif; }
         .subtitle { font-size:10px; text-transform:uppercase; }
@@ -22,6 +22,8 @@
         .emoji { font-size: 16px; display: block; margin-bottom: 2px; }
         .footer { margin-top: 15px; }
         .thank-you { text-align: center; font-weight: bold; margin-top: 20px; }
+        .footer { position: fixed; bottom: 0; left: 0; right: 0; background: white; z-index: 1000; padding: 6px; text-align: center; border-top: 1px solid #000; }
+        .page-number::after { content: "Page " counter(page) " of " counter(pages); }
     </style>
 </head>
 <body>
@@ -70,7 +72,7 @@
                     <div style="flex:1; border-right:1px solid #000; padding:1px;">{{ $documentCode->revision_no ?? '00' }}</div>
                     <div style="flex:1; padding:1px;">{{ $documentCode->effective_date ?? '07.01.23' }}</div>
                 </div>
-                <div style="border-top:1px solid #000; padding:2px; font-size:6px; font-weight:700;">Page No. 1 of 1</div>
+                <div style="border-top:1px solid #000; padding:2px; font-size:6px; font-weight:700;"><span class="page-number"></span></div>
             </div>
         </div>
     </div>
@@ -195,6 +197,10 @@
 
     <div class="thank-you">THANK YOU!</div>
 
+</div>
+
+<div class="footer">
+    <p style="font-size:10px; color:#666;">Confidential - For authorized personnel only <span class="page-number"></span></p>
 </div>
 
 </body>

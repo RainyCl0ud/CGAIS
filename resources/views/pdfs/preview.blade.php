@@ -5,8 +5,8 @@
     <title>PDS Preview</title>
     <style>
         /* Keep CSS simple for DOMPDF compatibility */
-        body { font-family: DejaVu Sans, Helvetica, Arial, sans-serif; font-size:12px; color:#222; }
-        .header { text-align:center; margin-bottom:10px; }
+        body { font-family: DejaVu Sans, Helvetica, Arial, sans-serif; font-size:12px; color:#222; margin-top: 120px; margin-bottom: 50px; }
+        .header { position: fixed; top: 0; left: 0; right: 0; background: white; z-index: 1000; text-align:center; padding:6px; }
         .logo { width:80px; height:auto; }
         .seal { width:60px; height:auto; }
         .section { margin-bottom:12px; }
@@ -14,6 +14,8 @@
         td, th { padding:6px; border:1px solid #ddd; vertical-align:top; }
         .small { font-size:11px; color:#555; }
         img.embedded { max-width:200px; max-height:160px; display:block; }
+        .footer { position: fixed; bottom: 0; left: 0; right: 0; background: white; z-index: 1000; padding: 6px; text-align: center; border-top: 1px solid #000; }
+        .page-number::after { content: "Page " counter(page) " of " counter(pages); }
     </style>
 </head>
 <body>
@@ -82,6 +84,10 @@
 
     <div class="small" style="position:fixed; bottom:10px; left:10px;">
         Generated on {{ \Carbon\Carbon::now()->toDateTimeString() }}
+    </div>
+
+    <div class="footer">
+        <p style="font-size:10px; color:#666;">Confidential - For authorized personnel only <span class="page-number" style="margin-right:10px"></span></p>
     </div>
 </body>
 </html>
