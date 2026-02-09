@@ -5,7 +5,7 @@
     <title>Personal Data Sheet</title>
     <style>
 body { font-family: DejaVu Sans, Arial, Helvetica, sans-serif; color:#111; font-size:12px; margin-top: 120px; margin-bottom: 50px; }
-.header { position: fixed; top: 0; left: 0; right: 0; background: white; z-index: 1000; text-align:center; padding:6px; }
+.header { position: fixed; top: 0; left: 0; right: 0; background: white; z-index: 1000; text-align:center; padding:1px; }
         .logo { width:85px; height:auto; display:block; margin:0 auto 4px; }
         .title { font-weight:700; font-size:14px; text-transform:uppercase; }
         .subtitle { font-size:10px; text-transform:uppercase; }
@@ -21,13 +21,13 @@ body { font-family: DejaVu Sans, Arial, Helvetica, sans-serif; color:#111; font-
         .section-title { font-weight:700; background:#000; color:#fff; padding:6px; font-size:12px; margin-top:10px; }
 .note { font-size:11px; }
 .footer { position: fixed; bottom: 0; left: 0; right: 0; background: white; z-index: 1000; padding: 6px; text-align: center; border-top: 1px solid #000; }
-.page-number::after { content: "Page " counter(page) " of " counter(pages); }
+.page-number::after { content: "Page " counter(page) " of 4"; }
     </style>
 </head>
 <body>
 <div class="container">
 
-    <div class="header" style="display: flex; flex-direction: column; align-items: center; padding-top:6px; position:relative;">
+    <div class="header" style="display: flex; flex-direction: column; align-items: center; padding-top:1px;">
         @if(!empty($logos['logo']))
             <img class="logo" src="{{ $logos['logo'] }}" alt="logo" style="margin-bottom: 4px;">
         @endif
@@ -49,10 +49,10 @@ body { font-family: DejaVu Sans, Arial, Helvetica, sans-serif; color:#111; font-
                     <div style="flex:1; padding:1px;">Effective Date</div>
                 </div>
                 <div style="display:flex; font-size:6px; border-top:1px solid #000;">
-                    <div style="flex:1; border-right:1px solid #000; padding:1px;">{{ $documentCode->revision_no ?? '00' }}</div>
+                    <!-- <div style="flex:1; border-right:1px solid #000; padding:1px;">{{ $documentCode->revision_no ?? '00' }}</div> -->
                     <div style="flex:1; padding:1px;">{{ $documentCode->effective_date ?? '03.17.25' }}</div>
                 </div>
-                <div style="border-top:1px solid #000; padding:2px; font-size:6px; font-weight:700;"></div>
+                <!-- <div style="border-top:1px solid #000; padding:2px; font-size:6px; font-weight:700;"></div> -->
             </div>
         </div>
     </div>
