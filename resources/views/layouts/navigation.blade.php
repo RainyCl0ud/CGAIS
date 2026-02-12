@@ -15,7 +15,9 @@
             <!-- Right side - User Profile -->
             <div class="flex items-center space-x-4">
                           @if(Auth::check() && Auth::user()->isCounselor() && Auth::user()->isTemporarilyUnavailable())
-                    <span class="ml-2 text-red-500 text-xs font-medium">Inactive</span>
+                    <span class="ml-2 text-red-500 text-xs font-medium">Unavailable</span>
+                    @else
+                    <span class="ml-2 text-green-500 text-xs font-medium">Available</span>
                 @endif
                 <!-- PDF Print Button (only visible on PDS show page for students) -->
                 @if(Auth::check() && Auth::user()->role === 'student' && Route::currentRouteName() === 'pds.show')

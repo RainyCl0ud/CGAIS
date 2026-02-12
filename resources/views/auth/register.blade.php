@@ -147,7 +147,7 @@
                         <option value="">Select Program</option>
                         @foreach(\App\Models\Course::active()->get() as $course)
                             <option value="{{ $course->id }}" {{ old('course_id') == $course->id ? 'selected' : '' }}>
-                                {{ $course->description }} ({{ $course->name }})
+                                {{ $course->description }} ({{ $course->name }} {{$course->code}})
                             </option>
                         @endforeach
                     </select>
