@@ -356,7 +356,7 @@ body { font-family: DejaVu Sans, Arial, Helvetica, sans-serif; color:#111; font-
         <div style="text-align:center; margin-top:14px;">
             <div style="display:inline-block; text-align:center; margin-right:40px;">
                 <div class="field" style="text-align:center; font-weight:600; width:200px;">
-                    {{ $student->getFullNameAttribute() }}
+                    {{ $pds->signature }}
                 </div>
                 <div style="font-size:10px; margin-top:2px;">SIGNATURE OVER PRINTED NAME</div>
             </div>

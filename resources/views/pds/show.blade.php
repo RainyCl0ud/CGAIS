@@ -6,41 +6,41 @@
             <div class="bg-white border border-gray-300 shadow-md">
                 <div class="px-10 py-8 text-gray-900 text-[13px] leading-tight tracking-tight relative">
 
-                   <!-- HEADER LAYOUT -->
-<div class="relative flex flex-col items-center">
-    <!-- USTP Logo and Titles -->
-    <div class="text-center w-full">
-        <img src="/storage/ustp.png" alt="USTP Logo" class="mx-auto mb-1 w-[85px] h-auto">
-        <h1 class="font-serif font-bold text-[14px] uppercase tracking-tight">
-            UNIVERSITY OF SCIENCE AND TECHNOLOGY OF SOUTHERN PHILIPPINES
-        </h1>
-        <p class="text-[10px] uppercase tracking-tight">
-            Alubijid | Balubal | Cagayan de Oro | Claveria | Jasaan | Oroquieta | Villanueva
-        </p>
-        <p class="font-semibold text-[10.5px] uppercase mt-1 tracking-wide">
-            GUIDANCE AND COUNSELING SERVICES
-        </p>
-    </div>
+                    <!-- HEADER LAYOUT -->
+                    <div class="relative flex flex-col items-center">
+                        <!-- USTP Logo and Titles -->
+                        <div class="text-center w-full">
+                            <img src="/storage/ustp.png" alt="USTP Logo" class="mx-auto mb-1 w-[85px] h-auto">
+                            <h1 class="font-serif font-bold text-[14px] uppercase tracking-tight">
+                                UNIVERSITY OF SCIENCE AND TECHNOLOGY OF SOUTHERN PHILIPPINES
+                            </h1>
+                            <p class="text-[10px] uppercase tracking-tight">
+                                Alubijid | Balubal | Cagayan de Oro | Claveria | Jasaan | Oroquieta | Villanueva
+                            </p>
+                            <p class="font-semibold text-[10.5px] uppercase mt-1 tracking-wide">
+                                GUIDANCE AND COUNSELING SERVICES
+                            </p>
+                        </div>
 
-    <!-- Document Code Box -->
-    <div class="document-code-box absolute top-0 right-0 bg-white text-center border border-black leading-tight">
-        <div class="bg-[#1b2a6b] text-white font-semibold py-[2px] text-[9px]">
-            Document Code No.
-        </div>
-        <div class="py-[2px] font-bold text-[7px]">{{ $documentCode->document_code_no ?? 'FM-USTP-GCS-02' }}</div>
-        <div class="grid grid-cols-2 border-t border-black text-[7px]">
-            <div class="border-r border-black py-[1px] font-semibold text-[7px]">Rev. No.</div>
-            <div class="py-[1px] font-semibold text-[7px]">Effective Date</div>
-        </div>
-        <div class="grid grid-cols-2 border-t border-black text-[7px]">
-            <div class="border-r border-black py-[1px] text-[7px]">{{ $documentCode->revision_no ?? '00' }}</div>
-            <div class="py-[1px] text-[7px]">{{ $documentCode->effective_date ?? '03.17.25' }}</div>
-        </div>
-        <div class="border-t border-black py-[2px] text-[7px] font-semibold">
-            Page No. 1 of 2
-        </div>
-
-</div>
+                        <!-- Document Code Box -->
+                        <div class="document-code-box absolute top-0 right-0 bg-white text-center border border-black leading-tight">
+                            <div class="bg-[#1b2a6b] text-white font-semibold py-[2px] text-[9px]">
+                                Document Code No.
+                            </div>
+                            <div class="py-[2px] font-bold text-[7px]">{{ $documentCode->document_code_no ?? 'FM-USTP-GCS-02' }}</div>
+                            <div class="grid grid-cols-2 border-t border-black text-[7px]">
+                                <div class="border-r border-black py-[1px] font-semibold text-[7px]">Rev. No.</div>
+                                <div class="py-[1px] font-semibold text-[7px]">Effective Date</div>
+                            </div>
+                            <div class="grid grid-cols-2 border-t border-black text-[7px]">
+                                <div class="border-r border-black py-[1px] text-[7px]">{{ $documentCode->revision_no ?? '00' }}</div>
+                                <div class="py-[1px] text-[7px]">{{ $documentCode->effective_date ?? '03.17.25' }}</div>
+                            </div>
+                            <div class="border-t border-black py-[2px] text-[7px] font-semibold">
+                                Page No. 1 of 2
+                            </div>
+                        </div>
+                    </div>
 
 
                     <!-- Title -->
@@ -93,13 +93,6 @@
                         will be treated with utmost confidentiality in accordance with the Data Privacy Act.
                     </p>
 
-                    <div class="bg-blue-50 border border-blue-200 rounded-md p-3 mb-4">
-                        <p class="text-sm text-blue-800">
-                            <strong>Note:</strong> Fields marked with "(Auto-filled from profile)" are read-only and can only be edited in your 
-                            <a href="{{ route('profile.edit') }}" class="underline font-medium">Profile Settings</a>. 
-                            This ensures consistency across your account information.
-                        </p>
-                    </div>
 
                     <!-- Personal Background -->
                     <div class="font-bold bg-black text-white px-2 py-1 mb-3 uppercase text-[12px] tracking-wide">
@@ -112,87 +105,34 @@
 
                         <div class="grid grid-cols-3 gap-x-4 mb-2">
                             <div>
-                                <label>Course/Track: @if(!empty($pds->course) || !empty(Auth::user()->course_id))<span class="text-xs text-gray-500">(Auto-filled from profile)</span>@endif</label>
-                                @php
-                                    $courseValue = $pds->course ?: (Auth::user()->course->name ?? '');
-                                    $isCourseReadonly = !empty($pds->course) || !empty(Auth::user()->course_id);
-                                @endphp
-                                @if($isCourseReadonly)
-                                    <div class="border-b border-gray-400 bg-gray-100 w-full text-gray-600 py-1 px-1 cursor-not-allowed select-none">
-                                        {{ $courseValue }}
-                                    </div>
-                                    <input type="hidden" name="course" value="{{ $courseValue }}">
-                                @else
-                                    <input type="text" name="course" value="{{ old('course', $courseValue) }}" class="border-b border-gray-700 w-full">
-                                @endif
+                                <label>Course/Track:</label>
+                                <input type="text" name="course" value="{{ old('course', $pds->course ?? '') }}" class="border-b border-gray-700 w-full">
                             </div>
                             <div>
                                 <label>Major/Strand:</label>
                                 <input type="text" name="major" value="{{ old('major', $pds->major) }}" class="border-b border-gray-700 w-full">
                             </div>
                             <div>
-                                <label>Grade/Year Level: @if(!empty($pds->year_level) || !empty(Auth::user()->year_level))<span class="text-xs text-gray-500">(Auto-filled from profile)</span>@endif</label>
-                                @php
-                                    $yearLevelValue = $pds->year_level ?: (Auth::user()->year_level ?? '');
-                                    $isYearLevelReadonly = !empty($pds->year_level) || !empty(Auth::user()->year_level);
-                                @endphp
-                                @if($isYearLevelReadonly)
-                                    <div class="border-b border-gray-400 bg-gray-100 w-full text-gray-600 py-1 px-1 cursor-not-allowed select-none">
-                                        {{ $yearLevelValue }}
-                                    </div>
-                                    <input type="hidden" name="year_level" value="{{ $yearLevelValue }}">
-                                @else
-                                    <input type="text" name="year_level" value="{{ old('year_level', $yearLevelValue) }}" class="border-b border-gray-700 w-full">
-                                @endif
+                                <label>Grade/Year Level:</label>
+                                <input type="text" name="year_level" value="{{ old('year_level', $pds->year_level ?? '') }}" class="border-b border-gray-700 w-full">
                             </div>
                         </div>
 
                         <div class="grid grid-cols-3 gap-x-4 mb-2">
                             <div>
-                                <label>First Name: @if(!empty($pds->first_name) || !empty(Auth::user()->first_name))<span class="text-xs text-gray-500">(Auto-filled from profile)</span>@endif</label>
-                                @php
-                                    $firstNameValue = $pds->first_name ?: Auth::user()->first_name;
-                                    $isFirstNameReadonly = !empty($pds->first_name) || !empty(Auth::user()->first_name);
-                                @endphp
-                                @if($isFirstNameReadonly)
-                                    <div class="border-b border-gray-400 bg-gray-100 w-full text-gray-600 py-1 px-1 cursor-not-allowed select-none">
-                                        {{ $firstNameValue }}
-                                    </div>
-                                    <input type="hidden" name="first_name" value="{{ $firstNameValue }}">
-                                @else
-                                    <input type="text" name="first_name" value="{{ old('first_name', $firstNameValue) }}" class="border-b border-gray-700 w-full">
-                                @endif
+                                <label>First Name:</label>
+                                <input type="text" name="first_name" value="{{ old('first_name', $pds->first_name ?? '') }}" class="border-b border-gray-700 w-full">
                             </div>
-                            <div>
-                                <label>Middle Name: @if(!empty($pds->middle_name) || !empty(Auth::user()->middle_name))<span class="text-xs text-gray-500">(Auto-filled from profile)</span>@endif</label>
-                                @php
-                                    $middleNameValue = $pds->middle_name ?: Auth::user()->middle_name;
-                                    $isMiddleNameReadonly = !empty($pds->middle_name) || !empty(Auth::user()->middle_name);
-                                @endphp
-                                @if($isMiddleNameReadonly)
-                                    <div class="border-b border-gray-400 bg-gray-100 w-full text-gray-600 py-1 px-1 cursor-not-allowed select-none">
-                                        {{ $middleNameValue }}
-                                    </div>
-                                    <input type="hidden" name="middle_name" value="{{ $middleNameValue }}">
-                                @else
-                                    <input type="text" name="middle_name" value="{{ old('middle_name', $middleNameValue) }}" class="border-b border-gray-700 w-full">
-                                @endif
-                            </div>
-                            <div>
-                                <label>Last Name: @if(!empty($pds->last_name) || !empty(Auth::user()->last_name))<span class="text-xs text-gray-500">(Auto-filled from profile)</span>@endif</label>
-                                @php
-                                    $lastNameValue = $pds->last_name ?: Auth::user()->last_name;
-                                    $isLastNameReadonly = !empty($pds->last_name) || !empty(Auth::user()->last_name);
-                                @endphp
-                                @if($isLastNameReadonly)
-                                    <div class="border-b border-gray-400 bg-gray-100 w-full text-gray-600 py-1 px-1 cursor-not-allowed select-none">
-                                        {{ $lastNameValue }}
-                                    </div>
-                                    <input type="hidden" name="last_name" value="{{ $lastNameValue }}">
-                                @else
-                                    <input type="text" name="last_name" value="{{ old('last_name', $lastNameValue) }}" class="border-b border-gray-700 w-full">
-                                @endif
-                            </div>
+                           <div>
+    <label>Middle Name:</label>
+    <input type="text" name="middle_name" value="{{ old('middle_name', $pds->middle_name ?? '') }}" class="border-b border-gray-700 w-full">
+</div>
+
+                           <div>
+    <label>Last Name:</label>
+    <input type="text" name="last_name" value="{{ old('last_name', $pds->last_name ?? '') }}" class="border-b border-gray-700 w-full">
+</div>
+
                         </div>
 
                         <div class="grid grid-cols-3 gap-x-4 mb-2">
@@ -224,39 +164,19 @@
                                 <label>Religion:</label>
                                 <input type="text" name="religion" value="{{ old('religion', $pds->religion) }}" class="border-b border-gray-700 w-full">
                             </div>
-                            <div>
-                                <label>Contact Number: @if(!empty($pds->contact_number) || !empty(Auth::user()->phone_number))<span class="text-xs text-gray-500">(Auto-filled from profile)</span>@endif</label>
-                                @php
-                                    $contactNumberValue = $pds->contact_number ?: (Auth::user()->phone_number ?? '');
-                                    $isContactNumberReadonly = !empty($pds->contact_number) || !empty(Auth::user()->phone_number);
-                                @endphp
-                                @if($isContactNumberReadonly)
-                                    <div class="border-b border-gray-400 bg-gray-100 w-full text-gray-600 py-1 px-1 cursor-not-allowed select-none">
-                                        {{ $contactNumberValue }}
-                                    </div>
-                                    <input type="hidden" name="contact_number" value="{{ $contactNumberValue }}">
-                                @else
-                                    <input type="text" name="contact_number" value="{{ old('contact_number', $contactNumberValue) }}" class="border-b border-gray-700 w-full">
-                                @endif
-                            </div>
+                          <div>
+    <label>Contact Number:</label>
+    <input type="text" name="contact_number" value="{{ old('contact_number', $pds->contact_number ?? '') }}" class="border-b border-gray-700 w-full">
+</div>
+
                         </div>
 
                         <div class="grid grid-cols-2 gap-x-4 mb-2">
-                            <div>
-                                <label>Email Address: @if(!empty($pds->email) || !empty(Auth::user()->email))<span class="text-xs text-gray-500">(Auto-filled from profile)</span>@endif</label>
-                                @php
-                                    $emailValue = $pds->email ?: (Auth::user()->email ?? '');
-                                    $isEmailReadonly = !empty($pds->email) || !empty(Auth::user()->email);
-                                @endphp
-                                @if($isEmailReadonly)
-                                    <div class="border-b border-gray-400 bg-gray-100 w-full text-gray-600 py-1 px-1 cursor-not-allowed select-none">
-                                        {{ $emailValue }}
-                                    </div>
-                                    <input type="hidden" name="email" value="{{ $emailValue }}">
-                                @else
-                                    <input type="email" name="email" value="{{ old('email', $emailValue) }}" class="border-b border-gray-700 w-full">
-                                @endif
-                            </div>
+                           <div>
+    <label>Email Address:</label>
+    <input type="email" name="email" value="{{ old('email', $pds->email ?? '') }}" class="border-b border-gray-700 w-full">
+</div>
+
                             <div>
                                 <label>Permanent Address:</label>
                                 <input type="text" name="permanent_address" value="{{ old('permanent_address', $pds->permanent_address) }}" class="border-b border-gray-700 w-full">
@@ -522,22 +442,11 @@
 
                             <div class="mt-6 flex justify-between px-10">
                                 <div></div>
-                                <div class="text-center">
-                                    @php
-                                        $signatureValue = $pds->signature ?: (Auth::user()->first_name . ' ' . (Auth::user()->middle_name ?? '') . ' ' . Auth::user()->last_name);
-                                        $isSignatureReadonly = !empty($pds->signature) || !empty(Auth::user()->first_name);
-                                        $signatureValue = trim(preg_replace('/\s+/', ' ', $signatureValue)); // Remove extra spaces
-                                    @endphp
-                                    @if($isSignatureReadonly)
-                                        <div class="border-b border-gray-400 bg-gray-100 w-[250px] text-center text-gray-600 py-1 px-1 cursor-not-allowed select-none">
-                                            {{ $signatureValue }}
-                                        </div>
-                                        <input type="hidden" name="signature" value="{{ $signatureValue }}">
-                                    @else
-                                        <input type="text" name="signature" value="{{ old('signature', $signatureValue) }}" placeholder="E-signature or Name" class="border-b border-gray-800 w-[250px] text-center">
-                                    @endif
-                                    <p class="text-[12px] mt-1">SIGNATURE OVER PRINTED NAME</p>
-                                </div>
+                               <div class="text-center">
+    <input type="text" name="signature" value="{{ old('signature', $pds->signature ?? '') }}" placeholder="Full Name" class="border-b border-gray-800 w-[250px] text-center">
+    <p class="text-[12px] mt-1">SIGNATURE OVER PRINTED NAME</p>
+</div>
+
                                 <div class="text-center">
                                     <input type="date" name="signature_date" value="{{ old('signature_date', $pds->signature_date ? $pds->signature_date->format('Y-m-d') : \Carbon\Carbon::now('Asia/Manila')->format('Y-m-d')) }}" class="border-b border-gray-800 w-[150px] text-center">
                                     <p class="text-[12px] mt-1">DATE</p>
