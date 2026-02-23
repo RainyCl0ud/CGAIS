@@ -313,44 +313,45 @@
 
                         <!-- HEADER (Same as Page 1) -->
                         <div class="relative flex flex-col items-center">
-                            <div class="text-center w-full">
-                                <img src="/storage/ustp.png" alt="USTP Logo" class="mx-auto mb-1 w-[85px] h-auto">
-                                <h1 class="font-serif font-bold text-[14px] uppercase tracking-tight">
-                                    UNIVERSITY OF SCIENCE AND TECHNOLOGY OF SOUTHERN PHILIPPINES
-                                </h1>
-                                <p class="text-[10px] uppercase tracking-tight">
-                                    Alubijid | Balubal | Cagayan de Oro | Claveria | Jasaan | Oroquieta | Villanueva
-                                </p>
-                                <p class="font-semibold text-[10.5px] uppercase mt-1 tracking-wide">
-                                    GUIDANCE AND COUNSELING SERVICES
-                                </p>
-                            </div>
-
-                            <!-- Document Code Box -->
-                            <div class="document-code-box absolute top-0 right-0 bg-white text-center border border-black leading-tight">
-                                <div class="bg-[#1b2a6b] text-white font-semibold py-[2px] text-[9px]">
-                                    Document Code No.
-                                </div>
-                                <div class="py-[2px] font-bold text-[9px]">{{ $documentCode->document_code_no ?? 'FM-USTP-GCS-02' }}</div>
-                                <div class="grid grid-cols-2 border-t border-black text-[9px]">
-                                    <div class="border-r border-black py-[1px] font-semibold">Rev. No.</div>
-                                    <div class="py-[1px] font-semibold">Effective Date</div>
-                                </div>
-                                <div class="grid grid-cols-2 border-t border-black text-[9px]">
-                                    <div class="border-r border-black py-[1px]">{{ $documentCode->revision_no ?? '00' }}</div>
-                                    <div class="py-[1px]">{{ $documentCode->effective_date ?? '03.17.25' }}</div>
-                                </div>
-                                <!-- <div class="border-t border-black py-[2px] text-[9px] font-semibold">
-                                    Page No. {{ $documentCode->page_no ?? '2 of 2' }}
-                                </div> -->
-                            </div>
+                        <!-- USTP Logo and Titles -->
+                        <div class="text-center w-full">
+                            <img src="/storage/ustp.png" alt="USTP Logo" class="mx-auto mb-1 w-[85px] h-auto">
+                            <h1 class="font-serif font-bold text-[14px] uppercase tracking-tight">
+                                UNIVERSITY OF SCIENCE AND TECHNOLOGY OF SOUTHERN PHILIPPINES
+                            </h1>
+                            <p class="text-[10px] uppercase tracking-tight">
+                                Alubijid | Balubal | Cagayan de Oro | Claveria | Jasaan | Oroquieta | Villanueva
+                            </p>
+                            <p class="font-semibold text-[10.5px] uppercase mt-1 tracking-wide">
+                                GUIDANCE AND COUNSELING SERVICES
+                            </p>
                         </div>
 
+                        <!-- Document Code Box -->
+                        <div class="document-code-box absolute top-0 right-0 bg-white text-center border border-black leading-tight">
+                            <div class="bg-[#1b2a6b] text-white font-semibold py-[2px] text-[9px]">
+                                Document Code No.
+                            </div>
+                            <div class="py-[2px] font-bold text-[7px]">{{ $documentCode->document_code_no ?? 'FM-USTP-GCS-02' }}</div>
+                            <div class="grid grid-cols-2 border-t border-black text-[7px]">
+                                <div class="border-r border-black py-[1px] font-semibold text-[7px]">Rev. No.</div>
+                                <div class="py-[1px] font-semibold text-[7px]">Effective Date</div>
+                            </div>
+                            <div class="grid grid-cols-2 border-t border-black text-[7px]">
+                                <div class="border-r border-black py-[1px] text-[7px]">{{ $documentCode->revision_no ?? '00' }}</div>
+                                <div class="py-[1px] text-[7px]">{{ $documentCode->effective_date ?? '03.17.25' }}</div>
+                            </div>
+                            <!-- <div class="border-t border-black py-[2px] text-[7px] font-semibold">
+                                Page No. 1 of 2
+                            </div> -->
+                        </div>
+                    </div>
+
                         <!-- Subheader Line -->
-                        <p class="text-center text-[11px] mt-2 leading-tight">
+                        <!-- <p class="text-center text-[11px] mt-2 leading-tight">
                             C.M. Recto Avenue, Lapasan, Cagayan de Oro City 9000 Philippines <br>
                             Tel Nos. +63 (88) 856 1738; Telefax +63 (88) 856 4696 | http://www.ustp.edu.ph
-                        </p>
+                        </p> -->
 
                         <!-- SECTION HEADER -->
                         <div class="font-bold bg-black text-white px-2 py-1 mb-3 uppercase text-[12px] text-center tracking-wide mt-6">
