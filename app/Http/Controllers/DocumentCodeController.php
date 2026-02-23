@@ -61,7 +61,6 @@ class DocumentCodeController extends Controller
             'document_code_no' => 'required|string|max:255',
             'revision_no' => 'required|string|max:255',
             'effective_date' => 'required|string|max:255',
-            'page_no' => 'required|string|max:255',
         ]);
 
         $documentCode = DocumentCode::where('type', $request->type)->first();
@@ -74,7 +73,6 @@ class DocumentCodeController extends Controller
             'document_code_no',
             'revision_no',
             'effective_date',
-            'page_no',
         ]));
 
         $typeName = $request->type === 'pds' ? 'PDS' : 'Feedback Form';

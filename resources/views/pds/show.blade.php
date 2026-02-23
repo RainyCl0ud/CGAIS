@@ -124,14 +124,14 @@
                                 <input type="text" name="first_name" value="{{ old('first_name', $pds->first_name ?? '') }}" class="border-b border-gray-700 w-full">
                             </div>
                            <div>
-    <label>Middle Name:</label>
-    <input type="text" name="middle_name" value="{{ old('middle_name', $pds->middle_name ?? '') }}" class="border-b border-gray-700 w-full">
-</div>
+                                <label>Middle Name:</label>
+                                <input type="text" name="middle_name" value="{{ old('middle_name', $pds->middle_name ?? '') }}" class="border-b border-gray-700 w-full">
+                            </div>
 
-                           <div>
-    <label>Last Name:</label>
-    <input type="text" name="last_name" value="{{ old('last_name', $pds->last_name ?? '') }}" class="border-b border-gray-700 w-full">
-</div>
+                            <div>
+                                 <label>Last Name:</label>
+                                 <input type="text" name="last_name" value="{{ old('last_name', $pds->last_name ?? '') }}" class="border-b border-gray-700 w-full">
+                            </div>
 
                         </div>
 
@@ -146,7 +146,11 @@
                             </div>
                             <div>
                                 <label>Gender:</label>
-                                <input type="text" name="sex" value="{{ old('sex', $pds->sex) }}" class="border-b border-gray-700 w-full">
+                                <select name="sex" class="border-b border-gray-700 w-full">
+                                    <option value="">Select Gender</option>
+                                    <option value="male" {{ old('sex', $pds->sex) == 'male' ? 'selected' : '' }}>Male</option>
+                                    <option value="female" {{ old('sex', $pds->sex) == 'female' ? 'selected' : '' }}>Female</option>
+                                </select>
                             </div>
                         </div>
 
@@ -158,7 +162,14 @@
                         <div class="grid grid-cols-3 gap-x-4 mb-2">
                             <div>
                                 <label>Civil Status:</label>
-                                <input type="text" name="civil_status" value="{{ old('civil_status', $pds->civil_status) }}" class="border-b border-gray-700 w-full">
+                                <select name="civil_status" class="border-b border-gray-700 w-full">
+                                    <option value="">Select Civil Status</option>
+                                    <option value="single" {{ old('civil_status', $pds->civil_status) == 'single' ? 'selected' : '' }}>Single</option>
+                                    <option value="married" {{ old('civil_status', $pds->civil_status) == 'married' ? 'selected' : '' }}>Married</option>
+                                    <option value="widowed" {{ old('civil_status', $pds->civil_status) == 'widowed' ? 'selected' : '' }}>Widowed</option>
+                                    <option value="separated" {{ old('civil_status', $pds->civil_status) == 'separated' ? 'selected' : '' }}>Separated</option>
+                                    <option value="divorced" {{ old('civil_status', $pds->civil_status) == 'divorced' ? 'selected' : '' }}>Divorced</option>
+                                </select>
                             </div>
                             <div>
                                 <label>Religion:</label>
@@ -208,7 +219,7 @@
                             FAMILY BACKGROUND
                         </div>
 
-                        <div class="grid grid-cols-2 gap-x-4 mb-2">
+                        <div class="grid grid-cols-2 gap-x-4 mb-2"> 
                             <div>
                                 <label>Name of Father:</label>
                                 <input type="text" name="father_name" value="{{ old('father_name', $pds->father_name) }}" class="border-b border-gray-700 w-full">
@@ -329,9 +340,9 @@
                                     <div class="border-r border-black py-[1px]">{{ $documentCode->revision_no ?? '00' }}</div>
                                     <div class="py-[1px]">{{ $documentCode->effective_date ?? '03.17.25' }}</div>
                                 </div>
-                                <div class="border-t border-black py-[2px] text-[9px] font-semibold">
+                                <!-- <div class="border-t border-black py-[2px] text-[9px] font-semibold">
                                     Page No. {{ $documentCode->page_no ?? '2 of 2' }}
-                                </div>
+                                </div> -->
                             </div>
                         </div>
 
