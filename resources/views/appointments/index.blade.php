@@ -84,12 +84,12 @@
                                 </select>
                             </div>
                             <div>
-                                <label for="type" class="block text-sm font-medium text-gray-700 mb-1">Type</label>
-                                <select name="type" id="type" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                    <option value="all" {{ request('type') === 'all' ? 'selected' : '' }}>All Types</option>
-                                    <option value="regular" {{ request('type') === 'regular' ? 'selected' : '' }}>Regular</option>
-                                    <option value="urgent" {{ request('type') === 'urgent' ? 'selected' : '' }}>Urgent</option>
-                                    <option value="follow_up" {{ request('type') === 'follow_up' ? 'selected' : '' }}>Follow-up</option>
+                                <label for="category" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                                <select name="category" id="category" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="all" {{ request('category') === 'all' ? 'selected' : '' }}>All Categories</option>
+                                    @foreach($services as $service)
+                                        <option value="{{ $service->slug }}" {{ request('category') === $service->slug ? 'selected' : '' }}>{{ $service->name }}</option>
+                                    @endforeach
                                 </select>
                             </div>
                             <div class="flex items-end">
@@ -113,10 +113,7 @@
                                             @else
                                                 <th class="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Counselor</th>
                                             @endif
-                                            <th class="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                                        @if(!auth()->user()->isCounselor() && !auth()->user()->isAssistant())
                                             <th class="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                                        @endif
                                             <th class="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
 
                                         </tr>
@@ -135,17 +132,10 @@
                                                     @endif
                                                 </td>
                                                 <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap">
-                                                    <span class="px-2 py-1 text-xs font-semibold rounded-full {{ $appointment->getTypeBadgeClass() }}">
-                                                        {{ ucfirst($appointment->type) }}
-                                                    </span>
-                                                </td>
-                                            @if(!auth()->user()->isCounselor() && !auth()->user()->isAssistant())
-                                                <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap">
                                                     <span class="px-2 py-1 text-xs font-semibold rounded-full {{ $appointment->getCounselingCategoryBadgeClass() }}">
                                                         {{ $appointment->getCounselingCategoryLabel() }}
                                                     </span>
                                                 </td>
-                                            @endif
                                                 <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap">
                                                     <span class="px-2 py-1 text-xs font-semibold rounded-full {{ $appointment->getStatusBadgeClass() }}">
                                                         {{ ucfirst($appointment->status) }}
@@ -197,4 +187,4 @@
                 </div>
             </div>
     </div>
-</x-app-layout> 
+</x-app-layout>

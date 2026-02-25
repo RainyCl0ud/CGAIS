@@ -26,6 +26,9 @@ class AppointmentController extends Controller
         $user = $request->user();
         $appointments = collect();
 
+        // Get active services (counseling categories created by counselors)
+        $services = Service::where('is_active', true)->orderBy('name')->get();
+
         if ($user->isCounselor() || $user->isAssistant()) {
             // Assistants and Counselors see all appointments system-wide
             $query = Appointment::with(['user', 'counselor']);
@@ -53,7 +56,7 @@ class AppointmentController extends Controller
                 ->paginate(10);
         }
 
-        return view('appointments.index', compact('appointments'));
+        return view('appointments.index', compact('appointments', 'services'));
     }
 
     public function create(Request $request): View|RedirectResponse
@@ -873,11 +876,10 @@ class AppointmentController extends Controller
 
     public function reject(Request $request, Appointment $appointment): RedirectResponse
     {
-      if (!Auth::check() || !Auth::user()->canApproveAppointments()) {
-    return redirect()->route('appointments.index')
-        ->with('error', 'You do not have permission to reject appointments.');
-}
-
+        if (!Auth::check() || !Auth::user()->canApproveAppointments()) {
+            return redirect()->route('appointments.index')
+                ->with('error', 'You do not have permission to reject appointments.');
+        }
 
         $request->validate(['rejection_reason' => 'required|string|max:500']);
 

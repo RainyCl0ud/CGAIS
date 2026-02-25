@@ -27,6 +27,9 @@ class StudentAppointmentController extends Controller
             abort(403, 'Access denied. This page is for students, faculty, and Non-Teaching Staff only.');
         }
 
+        // Get active services (counseling categories created by counselors)
+        $services = Service::where('is_active', true)->orderBy('name')->get();
+
         // Start with base query for user's appointments
         $query = $user->appointments()
             ->orderByRaw("CASE WHEN type = 'urgent' THEN 0 ELSE 1 END") // Urgent first
@@ -38,14 +41,14 @@ class StudentAppointmentController extends Controller
             $query->where('status', $request->status);
         }
 
-        // Apply type filter
-        if ($request->filled('type') && $request->type !== 'all') {
-            $query->where('type', $request->type);
+        // Apply category filter (filtering by counseling_category instead of type)
+        if ($request->filled('category') && $request->category !== 'all') {
+            $query->where('counseling_category', $request->category);
         }
 
         $appointments = $query->paginate(10)->withQueryString();
 
-        return view('student.appointments.index', compact('appointments'));
+        return view('student.appointments.index', compact('appointments', 'services'));
     }
 
     public function create(Request $request): View

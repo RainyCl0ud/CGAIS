@@ -225,10 +225,12 @@
                                class="px-3 sm:px-6 py-2 sm:py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors text-sm">
                                 Request Referral Appointment
                             </a>
+                            {{-- Commented out: Submit Feedback button for Faculty
                             <a href="{{ route('feedback.index') }}"
                                class="px-3 sm:px-6 py-2 sm:py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors text-sm">
                                 Submit Feedback
                             </a>
+                            --}}
                         </div>
                     </div>
 
