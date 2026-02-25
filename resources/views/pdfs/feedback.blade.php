@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>FeedBack</title>
+    <title>FeedBack</title> 
     <style>
-        body { font-family: DejaVu Sans, Arial, Helvetica, sans-serif; color:#111; font-size:12px; margin: 120px 30px 50px 30px; }
+        body { font-family: DejaVu Sans, Arial, Helvetica, sans-serif; color:#111; font-size:10px; margin: 130px 30px 50px 30px; }
         .container { max-width: 900px; margin: auto; }
         .header { position: fixed; top: 0; left: 0; right: 0; background: white; z-index: 1000; text-align:center; padding:6px; }
         .logo { width:85px; height:auto; display:block; margin:0 auto 4px; }
@@ -31,48 +31,32 @@
 <div class="container">
 
     <!-- HEADER -->
-    <div class="header" style="position:relative; padding-top:6px;">
-        <!-- Control Number - Top Left -->
-        <div style="position:absolute; left:0; top:0; width:120px;">
-            <div style="border:1px solid #000; padding:4px; font-size:8px; text-align:center; background:#fff;">
-                <div style="font-weight:700; margin-bottom:2px;">Control No.</div>
-                <div style="border-bottom:1px solid #000; height:16px;"></div>
+    <div class="header" style="display: flex; flex-direction: column; align-items: center; padding-top:1px;">
+        @if(!empty($logos['logo']))
+            <img class="logo" src="{{ $logos['logo'] }}" alt="logo" style="margin-bottom: 4px;">
+        @endif
+
+        <div style="text-align:center;">
+            <div class="title" style="font-family: serif;">University of Science and Technology of Southern Philippines</div>
+            <div class="subtitle" style="margin-top:4px;">
+                Alubijid | Balubal | Cagayan de Oro | Claveria | Jasaan | Oroquieta | Panaon | Villanueva
             </div>
+            <div class="subtitle" style="font-weight:700; margin-top:6px;">GUIDANCE AND COUNSELING SERVICES</div>
         </div>
 
-        <!-- Centered Content: Logo + University Info -->
-        <div style="display:flex; justify-content:center; align-items:flex-start; gap:15px;">
-            <!-- Logo -->
-            <div style="flex-shrink:0;">
-                @if(!empty($logos['logo']))
-                    <img class="logo" src="{{ $logos['logo'] }}" alt="logo">
-                @endif
-            </div>
-
-            <!-- University Info -->
-            <div style="text-align:center;">
-                <div class="title">University of Science and Technology of Southern Philippines</div>
-                <div class="subtitle" style="margin-top:4px;">
-                    Alubijid | Balubal | Cagayan de Oro | Claveria | Jasaan | Oroquieta | Panaon | Villanueva
-                </div>
-                <div class="subtitle" style="font-weight:700; margin-top:6px;">GUIDANCE AND COUNSELING SERVICES</div>
-            </div>
-        </div>
-
-        <!-- Document Code - Top Right -->
         <div style="position:absolute; right:0; top:0; width:100px;">
             <div style="border:1px solid #000; padding:1px; font-size:5px; text-align:center; background:#fff;">
                 <div style="background:#1b2a6b; color:#fff; font-weight:700; padding:1px;">Document Code No.</div>
-                <div style="font-weight:700; font-size:6px; padding:2px 0;">{{ $documentCode->document_code_no ?? 'FM-USTP-GCS-01' }}</div>
+                <div style="font-weight:700; font-size:6px; padding:2px 0;">{{ $documentCode->document_code_no ?? 'FM-USTP-GCS-02' }}</div>
                 <div style="display:flex; font-size:6px; border-top:1px solid #000;">
                     <div style="flex:1; border-right:1px solid #000; padding:1px;">Rev. No.</div>
                     <div style="flex:1; padding:1px;">Effective Date</div>
                 </div>
                 <div style="display:flex; font-size:6px; border-top:1px solid #000;">
-                    <div style="flex:1; border-right:1px solid #000; padding:1px;">{{ $documentCode->revision_no ?? '00' }}</div>
-                    <div style="flex:1; padding:1px;">{{ $documentCode->effective_date ?? '07.01.23' }}</div>
+                    <!-- <div style="flex:1; border-right:1px solid #000; padding:1px;">{{ $documentCode->revision_no ?? '00' }}</div> -->
+                    <div style="flex:1; padding:1px;">{{ $documentCode->effective_date ?? '03.17.25' }}</div>
                 </div>
-                <div style="border-top:1px solid #000; padding:2px; font-size:6px; font-weight:700;"><span class="page-number"></span></div>
+                <!-- <div style="border-top:1px solid #000; padding:2px; font-size:6px; font-weight:700;"></div> -->
             </div>
         </div>
     </div>
