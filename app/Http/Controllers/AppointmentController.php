@@ -17,6 +17,7 @@ use Illuminate\Http\RedirectResponse;
 use App\Notifications\AppointmentStatusNotification;
 use App\Notifications\AssistantAppointmentNotification;
 use App\Notifications\AppointmentReminder;
+use App\Notifications\CounselorAppointmentReminder;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class AppointmentController extends Controller
@@ -256,12 +257,26 @@ class AppointmentController extends Controller
             $hoursUntilAppointment = now()->diffInHours($appointmentDateTime, false);
 
             if ($hoursUntilAppointment <= 24) {
-                // Send immediately
+                // Send immediately to student
                 $appointment->user->notify(new AppointmentReminder($appointment, 'soon'));
             } else {
                 // Schedule for 24 hours before
                 $sendAt = $appointmentDateTime->subDay();
                 $appointment->user->notify((new AppointmentReminder($appointment, 'tomorrow'))->delay($sendAt));
+            }
+
+            // Also schedule reminder for counselor
+            try {
+                if ($hoursUntilAppointment <= 24) {
+                    // Send immediately to counselor
+                    $appointment->counselor->notify(new CounselorAppointmentReminder($appointment, 'soon'));
+                } else {
+                    // Schedule for 24 hours before
+                    $sendAt = $appointmentDateTime->subDay();
+                    $appointment->counselor->notify((new CounselorAppointmentReminder($appointment, 'tomorrow'))->delay($sendAt));
+                }
+            } catch (\Throwable $e) {
+                Log::error('Failed to schedule counselor appointment reminder', ['appointment_id' => $appointment->id, 'error' => $e->getMessage()]);
             }
         } catch (\Throwable $e) {
             Log::error('Failed to schedule appointment reminder', ['appointment_id' => $appointment->id, 'error' => $e->getMessage()]);
@@ -841,6 +856,23 @@ class AppointmentController extends Controller
                 'is_read' => false,
                 'read_at' => null,
             ]);
+        }
+
+        // Schedule reminder for counselor when appointment is approved
+        try {
+            $appointmentDateTime = $appointment->getAppointmentDateTime();
+            $hoursUntilAppointment = now()->diffInHours($appointmentDateTime, false);
+
+            if ($hoursUntilAppointment <= 24) {
+                // Send immediately to counselor
+                $appointment->counselor->notify(new CounselorAppointmentReminder($appointment, 'soon'));
+            } else {
+                // Schedule for 24 hours before
+                $sendAt = $appointmentDateTime->subDay();
+                $appointment->counselor->notify((new CounselorAppointmentReminder($appointment, 'tomorrow'))->delay($sendAt));
+            }
+        } catch (\Throwable $e) {
+            Log::error('Failed to schedule counselor reminder on appointment approval', ['appointment_id' => $appointment->id, 'error' => $e->getMessage()]);
         }
 
         // Cancel all other pending appointments for the same counselor and date

@@ -11,6 +11,7 @@ use Carbon\Carbon;
 use App\Notifications\AppointmentStatusNotification;
 use App\Notifications\AssistantAppointmentNotification;
 use App\Notifications\AppointmentReminder;
+use App\Notifications\CounselorAppointmentReminder;
 use App\Models\Service;
 
 class AppointmentManager extends Component
@@ -380,12 +381,26 @@ class AppointmentManager extends Component
             $hoursUntilAppointment = now()->diffInHours($appointmentDateTime, false);
 
             if ($hoursUntilAppointment <= 24) {
-                // Send immediately
+                // Send immediately to student
                 $appointment->user->notify(new AppointmentReminder($appointment, 'soon'));
             } else {
                 // Schedule for 24 hours before
                 $sendAt = $appointmentDateTime->subDay();
                 $appointment->user->notify((new AppointmentReminder($appointment, 'tomorrow'))->delay($sendAt));
+            }
+
+            // Also schedule reminder for counselor
+            try {
+                if ($hoursUntilAppointment <= 24) {
+                    // Send immediately to counselor
+                    $appointment->counselor->notify(new CounselorAppointmentReminder($appointment, 'soon'));
+                } else {
+                    // Schedule for 24 hours before
+                    $sendAt = $appointmentDateTime->subDay();
+                    $appointment->counselor->notify((new CounselorAppointmentReminder($appointment, 'tomorrow'))->delay($sendAt));
+                }
+            } catch (\Throwable $e) {
+                \Log::error('Failed to schedule counselor reminder (livewire)', ['appointment_id' => $appointment->id, 'error' => $e->getMessage()]);
             }
         } catch (\Throwable $e) {
             \Log::error('Failed to schedule appointment reminder (livewire)', ['appointment_id' => $appointment->id, 'error' => $e->getMessage()]);
@@ -489,6 +504,23 @@ class AppointmentManager extends Component
 
         // Send email notification to student (counselor is approving, so student receives email)
         $this->selectedAppointment->user->notify(new AppointmentStatusNotification($this->selectedAppointment, 'approved'));
+
+        // Schedule reminder for counselor when appointment is approved
+        try {
+            $appointmentDateTime = $this->selectedAppointment->getAppointmentDateTime();
+            $hoursUntilAppointment = now()->diffInHours($appointmentDateTime, false);
+
+            if ($hoursUntilAppointment <= 24) {
+                // Send immediately to counselor
+                $this->selectedAppointment->counselor->notify(new CounselorAppointmentReminder($this->selectedAppointment, 'soon'));
+            } else {
+                // Schedule for 24 hours before
+                $sendAt = $appointmentDateTime->subDay();
+                $this->selectedAppointment->counselor->notify((new CounselorAppointmentReminder($this->selectedAppointment, 'tomorrow'))->delay($sendAt));
+            }
+        } catch (\Throwable $e) {
+            \Log::error('Failed to schedule counselor reminder on approval (livewire)', ['appointment_id' => $this->selectedAppointment->id, 'error' => $e->getMessage()]);
+        }
 
         session()->flash('success', 'Appointment approved successfully.');
         $this->closeModals();

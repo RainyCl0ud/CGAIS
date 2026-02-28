@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Appointment;
 use App\Notifications\AppointmentReminder;
+use App\Notifications\CounselorAppointmentReminder;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 
@@ -64,10 +65,10 @@ class SendAppointmentReminders extends Command
             }
 
             try {
-                // Send email notification
+                // Send email notification to student
                 $appointment->user->notify(new AppointmentReminder($appointment, 'tomorrow'));
 
-                // Create in-app notification
+                // Create in-app notification for student
                 $appointment->user->notifications()->create([
                     'appointment_id' => $appointment->id,
                     'title' => 'Appointment Reminder - Tomorrow',
@@ -78,7 +79,38 @@ class SendAppointmentReminders extends Command
                 ]);
 
                 $remindersSent++;
-                $this->line("Sent reminder for appointment ID {$appointment->id} to {$appointment->user->email}");
+                $this->line("Sent reminder for appointment ID {$appointment->id} to student: {$appointment->user->email}");
+
+                // Send reminder to counselor as well
+                try {
+                    // Check if we already sent a reminder to the counselor for this appointment
+                    $existingCounselorReminder = $appointment->counselor->notifications()
+                        ->where('type', 'appointment_reminder')
+                        ->where('appointment_id', $appointment->id)
+                        ->where('message', 'like', '%tomorrow%')
+                        ->first();
+
+                    if (!$existingCounselorReminder) {
+                        // Send email notification to counselor
+                        $appointment->counselor->notify(new CounselorAppointmentReminder($appointment, 'tomorrow'));
+
+                        // Create in-app notification for counselor
+                        $appointment->counselor->notifications()->create([
+                            'appointment_id' => $appointment->id,
+                            'title' => 'Appointment Reminder - Tomorrow',
+                            'message' => "You have an appointment with " . ($appointment->user->full_name ?? 'student') . " scheduled for tomorrow at {$appointment->start_time->format('g:i A')}.",
+                            'type' => 'appointment_reminder',
+                            'is_read' => false,
+                            'read_at' => null,
+                        ]);
+
+                        $this->line("Sent reminder for appointment ID {$appointment->id} to counselor: {$appointment->counselor->email}");
+                    } else {
+                        $this->line("Skipping counselor reminder for appointment ID {$appointment->id} - already sent.");
+                    }
+                } catch (\Exception $e) {
+                    $this->error("Failed to send counselor reminder for appointment ID {$appointment->id}: " . $e->getMessage());
+                }
 
             } catch (\Exception $e) {
                 $this->error("Failed to send reminder for appointment ID {$appointment->id}: " . $e->getMessage());
