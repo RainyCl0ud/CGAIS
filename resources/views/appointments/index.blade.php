@@ -88,7 +88,9 @@
                                 <select name="category" id="category" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                                     <option value="all" {{ request('category') === 'all' ? 'selected' : '' }}>All Categories</option>
                                     @foreach($services as $service)
-                                        <option value="{{ $service->slug }}" {{ request('category') === $service->slug ? 'selected' : '' }}>{{ $service->name }}</option>
+                                        <option value="{{ $service->slug }}" {{ request('category') === $service->slug ? 'selected' : '' }} title="{{ $service->description }}">
+                                            {{ $service->name }}@if($service->description) - {{ Str::limit($service->description, 40) }}@endif
+                                        </option>
                                     @endforeach
                                 </select>
                             </div>

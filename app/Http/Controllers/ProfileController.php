@@ -47,22 +47,31 @@ class ProfileController extends Controller
 
         // Handle email changes separately
         $emailChanged = false;
+        $emailChangePending = false;
         $newEmail = $request->get('email');
         
         if ($targetUser->email !== $newEmail) {
             $emailChanged = true;
             
-            // Generate pending email change
-            $token = $targetUser->generatePendingEmailChange($newEmail);
-            
-            // Send verification email to the new email address
-            $verificationUrl = route('pending-email.verify', $token);
-            $targetUser->notify(new \App\Notifications\PendingEmailChangeNotification($newEmail, $verificationUrl));
+            // Check if user has already verified their email
+            if ($targetUser->hasVerifiedEmail()) {
+                // User has already verified their email - update directly without sending verification link
+                $targetUser->email = $newEmail;
+                $targetUser->save();
+            } else {
+                // User hasn't verified their email yet - send verification link to new email
+                $emailChangePending = true;
+                $token = $targetUser->generatePendingEmailChange($newEmail);
+                
+                // Send verification email to the new email address
+                $verificationUrl = route('pending-email.verify', $token);
+                $targetUser->notify(new \App\Notifications\PendingEmailChangeNotification($newEmail, $verificationUrl));
+            }
         }
 
         // Update other profile information (excluding email if it was changed)
         $profileData = $request->validated();
-        if ($emailChanged) {
+        if ($emailChangePending) {
             unset($profileData['email']); // Don't update email yet, wait for verification
         }
         $targetUser->fill($profileData);
@@ -72,8 +81,12 @@ class ProfileController extends Controller
         // Clear cache to ensure changes are visible immediately
         CacheServiceProvider::clearRelatedCaches('User', $targetUser->id);
 
-        if ($emailChanged) {
+        if ($emailChangePending) {
             return Redirect::route('profile.edit')->with('status', 'email-change-pending');
+        }
+
+        if ($emailChanged) {
+            return Redirect::route('profile.edit')->with('status', 'email-updated');
         }
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');

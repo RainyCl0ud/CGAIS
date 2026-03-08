@@ -31,7 +31,7 @@ class FeedbackFormPolicy
      */
     public function create(User $user): bool
     {
-        return $user->role === 'student';
+        return in_array($user->role, ['student', 'faculty', 'staff']);
     }
 
     /**
@@ -47,7 +47,7 @@ class FeedbackFormPolicy
      */
     public function delete(User $user, FeedbackForm $feedbackForm): bool
     {
-        return $user->id === $feedbackForm->user_id && $user->role === 'student';
+        return $user->id === $feedbackForm->user_id && in_array($user->role, ['student', 'faculty', 'staff']);
     }
 
     /**

@@ -4,7 +4,7 @@
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                 {{ __('Feedback Forms') }}
             </h2>
-            @if(auth()->user()->role === 'student')
+            @if(in_array(auth()->user()->role, ['student', 'faculty', 'staff']))
             <a href="{{ route('feedback.download.pdf') }}" target="_blank" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
@@ -51,7 +51,7 @@
                                                     {{ $feedback->getRecommendationLabel() }}
                                                 </span>
                                             </td>
-                                            @if(auth()->user()->role === 'student')
+                                            @if(in_array(auth()->user()->role, ['student', 'faculty', 'staff']))
                                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium" onclick="event.stopPropagation()">
                                                 <div class="flex space-x-2">
                                                     <a href="{{ route('feedback.edit', $feedback) }}" class="text-blue-600 hover:text-blue-900">Edit</a>
@@ -81,7 +81,7 @@
                             </svg>
                             <h3 class="mt-2 text-sm font-medium text-gray-900">No feedback forms</h3>
                             <p class="mt-1 text-sm text-gray-500">Download the feedback form to get started.</p>
-                            @if(auth()->user()->role === 'student')
+                            @if(in_array(auth()->user()->role, ['student', 'faculty', 'staff']))
                             <div class="mt-6">
                                 <a href="{{ route('feedback.download.pdf') }}" target="_blank" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

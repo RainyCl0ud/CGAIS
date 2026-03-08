@@ -181,6 +181,7 @@ Route::middleware(['auth','verified'])->group(function () {
         Route::get('/pds/edit', [PersonalDataSheetController::class, 'edit'])->name('pds.edit');
         Route::patch('/pds', [PersonalDataSheetController::class, 'update'])->name('pds.update');
         Route::post('/pds/auto-save', [PersonalDataSheetController::class, 'autoSave'])->name('pds.auto-save');
+        Route::get('/pds/download-template', [PersonalDataSheetController::class, 'downloadTemplate'])->name('pds.download-template');
     });
     
     // PDF preview for authenticated users (server-side DOMPDF)
@@ -188,6 +189,7 @@ Route::middleware(['auth','verified'])->group(function () {
     // Feedback Forms (Students, Faculty, and Staff)
     Route::middleware('feedback_access')->group(function () {
         Route::resource('feedback', FeedbackFormController::class)->except(['create']);
+        Route::get('/feedback/create', [FeedbackFormController::class, 'create'])->name('feedback.create');
         Route::get('/feedback/download/pdf', [FeedbackFormController::class, 'downloadPdf'])->name('feedback.download.pdf');
     });
 });

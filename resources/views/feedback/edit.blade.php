@@ -23,7 +23,7 @@
                                         <option value="">Choose an appointment</option>
                                         @foreach($appointments as $appointment)
                                             <option value="{{ $appointment->id }}" {{ old('appointment_id', $feedbackForm->appointment_id) == $appointment->id ? 'selected' : '' }}>
-                                                {{ $appointment->getFormattedDateTime() }} - {{ $appointment->counselor->full_name }}
+                                                {{ $appointment->getFormattedDateTime() }} - {{ $appointment->counselor->full_name }} (@if($appointment->counseling_category){{ $appointment->getCounselingCategoryLabel() }}@else{{ ucfirst($appointment->type) }}@endif)
                                             </option>
                                         @endforeach
                                     </select>

@@ -117,7 +117,9 @@
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm">
                             <option value="">Select counseling category</option>
                             @foreach($services as $service)
-                                <option value="{{ $service->slug }}" {{ old('counseling_category', $appointment->counseling_category) == $service->slug ? 'selected' : '' }}>{{ $service->name }}</option>
+                                <option value="{{ $service->slug }}" {{ old('counseling_category', $appointment->counseling_category) == $service->slug ? 'selected' : '' }} title="{{ $service->description }}">
+                                    {{ $service->name }}@if($service->description) - {{ Str::limit($service->description, 50) }}@endif
+                                </option>
                             @endforeach
                         </select>
                         @error('counseling_category')

@@ -365,4 +365,18 @@ class PersonalDataSheetController extends Controller
             return response()->json(['error' => 'PDF generation failed'], 500);
         }
     }
-} 
+
+    /**
+     * Download the PDS template PDF.
+     */
+    public function downloadTemplate()
+    {
+        $templatePath = 'pds/pds-template.pdf.pdf';
+        
+        if (!Storage::disk('public')->exists($templatePath)) {
+            return redirect()->back()->with('error', 'Template file not found.');
+        }
+
+        return response()->download(storage_path('app/public/' . $templatePath), 'PDS_Template.pdf');
+    }
+}
