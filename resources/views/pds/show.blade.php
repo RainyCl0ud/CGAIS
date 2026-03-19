@@ -353,9 +353,9 @@
                                 <div class="border-r border-black py-[1px] text-[7px]">{{ $documentCode->revision_no ?? '00' }}</div>
                                 <div class="py-[1px] text-[7px]">{{ $documentCode->effective_date ?? '03.17.25' }}</div>
                             </div>
-                            <!-- <div class="border-t border-black py-[2px] text-[7px] font-semibold">
-                                Page No. 1 of 2
-                            </div> -->
+                            <div class="border-t border-black py-[2px] text-[7px] font-semibold">
+                                Page No. 2 of 2
+                            </div>
                         </div>
                     </div>
 

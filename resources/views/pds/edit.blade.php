@@ -433,8 +433,8 @@
                                     <div class="border-r border-black py-[1px]">{{ $documentCode->revision_no ?? '00' }}</div>
                                     <div class="py-[1px]">{{ $documentCode->effective_date ?? '03.17.25' }}</div>
                                 </div>
-                                <div class="border-t border-black py-[2px] text-[9px] font-semibold">
-                                    Page No. {{ $documentCode->page_no ?? '2 of 2' }}
+                                <div class="border-t border-black py-[2px] text-[7px] font-semibold">
+                                    Page No. 1 of {{ explode(' of ', $documentCode->page_no ?? '2 of 2')[1] }}
                                 </div>
                             </div>
                         </div>

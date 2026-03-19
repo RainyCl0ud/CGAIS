@@ -371,12 +371,20 @@ class PersonalDataSheetController extends Controller
      */
     public function downloadTemplate()
     {
-        $templatePath = 'pds/pds-template.pdf.pdf';
+$templatePath = 'pds/pds-template.pdf';
         
         if (!Storage::disk('public')->exists($templatePath)) {
-            return redirect()->back()->with('error', 'Template file not found.');
+            return redirect()->back()->with('error', 'PDS template not available. Please contact administrator.');
         }
 
-        return response()->download(storage_path('app/public/' . $templatePath), 'PDS_Template.pdf');
+        $fullPath = storage_path('app/public/' . $templatePath);
+        if (!file_exists($fullPath) || filesize($fullPath) == 0) {
+            return redirect()->back()->with('error', 'PDS template file is invalid.');
+        }
+
+        return response()->download($fullPath, 'pds-template.pdf');
     }
 }
+
+
+
