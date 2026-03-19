@@ -249,4 +249,116 @@ class AuthorizedIdController extends Controller
 
         return response()->stream($callback, 200, $headers);
     }
+
+    /**
+     * Import authorized IDs from CSV file
+     */
+    public function import(Request $request)
+    {
+        $request->validate([
+            'csv_file' => 'required|file|mimes:csv,txt|max:2048', // 2MB max
+        ]);
+
+        $file = $request->file('csv_file');
+        $successCount = 0;
+        $errorRows = [];
+        $rowNumber = 0;
+
+        try {
+            if (($handle = fopen($file->getRealPath(), "r")) !== FALSE) {
+                // Skip header row
+                $header = fgetcsv($handle);
+                if (!$header || !in_array('id_number', $header) || !in_array('type', $header)) {
+                    fclose($handle);
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Invalid CSV format. Requires "id_number" and "type" columns.',
+                        'errors' => ['header' => 'Missing required columns: id_number, type']
+                    ], 422);
+                }
+
+                $validData = [];
+                while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
+                    $rowNumber++;
+                    if (empty(array_filter($data))) continue; // Skip empty rows
+
+                    $idNumber = trim(($data[0] ?? '') ?: '');
+                    $type = trim(strtolower(($data[1] ?? '') ?: ''));
+
+                    if (empty($idNumber) || empty($type)) {
+                        $errorRows[] = "Row $rowNumber: Missing id_number or type";
+                        continue;
+                    }
+
+                    // Validate type
+                    if (!in_array($type, ['student', 'faculty', 'staff'])) {
+                        $errorRows[] = "Row $rowNumber: Invalid type '$type'. Must be 'student', 'faculty', or 'staff'";
+                        continue;
+                    }
+
+                    if (strlen($idNumber) < 3 || strlen($idNumber) > 50) {
+                        $errorRows[] = "Row $rowNumber: ID number must be 3-50 characters";
+                        continue;
+                    }
+
+                    // Check if ID already exists
+                    $existingId = AuthorizedId::where('id_number', $idNumber)->first();
+                    if ($existingId) {
+                        $errorRows[] = "Row $rowNumber: ID '$idNumber' already exists";
+                        continue;
+                    }
+
+                    // Check if ID is assigned to existing user
+                    $existingUser = null;
+                    if ($type === 'student') {
+                        $existingUser = User::where('student_id', $idNumber)->first();
+                    } elseif ($type === 'faculty') {
+                        $existingUser = User::where('faculty_id', $idNumber)->first();
+                    } elseif ($type === 'staff') {
+                        $existingUser = User::where('staff_id', $idNumber)->first();
+                    }
+
+                    if ($existingUser) {
+                        $errorRows[] = "Row $rowNumber: ID '$idNumber' already assigned to user '{$existingUser->full_name}'";
+                        continue;
+                    }
+
+                    $validData[] = [
+                        'id_number' => $idNumber,
+                        'type' => $type,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+                }
+                fclose($handle);
+
+                // Bulk insert valid data
+                if (!empty($validData)) {
+                    AuthorizedId::insert($validData);
+                    $successCount = count($validData);
+                }
+
+                return response()->json([
+                    'success' => true,
+                    'message' => "Successfully imported $successCount IDs. " . (count($errorRows) ? count($errorRows) . " rows had errors." : ''),
+                    'success_count' => $successCount,
+                    'error_count' => count($errorRows),
+                    'errors' => $errorRows
+                ]);
+
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'File processing error: ' . $e->getMessage(),
+                'errors' => ['file' => 'Unable to process CSV file']
+            ], 500);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'No valid data found.',
+            'errors' => $errorRows
+        ], 422);
+    }
 }

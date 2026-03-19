@@ -173,19 +173,6 @@
     <!-- FOOTER -->
     <div class="footer">
         <p>Suggestions on how we can further improve our services (optional):</p>
-        <div class="line" style="height: 30px;"></div>
-        <div class="line" style="height: 30px;"></div>
-
-        <p>Email address (optional): <span class="line"></span></p>
-    </div>
-
-    <div class="thank-you">THANK YOU!</div>
-
 </div>
-
-<div class="footer">
-    <p style="font-size:10px; color:#666;">Confidential - For authorized personnel only <span class="page-number"></span></p>
-</div>
-
 </body>
 </html>

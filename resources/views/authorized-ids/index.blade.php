@@ -9,13 +9,13 @@
                         <p class="text-gray-600 text-xs sm:text-sm mt-1">Manage Student and Faculty ID numbers for registration</p>
                     </div>
                     <div class="flex flex-col sm:flex-row gap-2">
-                          <a href="" 
-                           class="inline-flex items-center px-4 py-2 bg-yellow-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-yellow-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                          <button id="import-btn" 
+                           class="inline-flex items-center px-4 py-2 bg-yellow-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-yellow-700 focus:bg-yellow-700 active:bg-yellow-900 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition ease-in-out duration-150">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                             </svg>
                             Import Student File
-                        </a>
+                        </button>
                         <a href="{{ route('authorized-ids.create') }}" 
                            class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -186,6 +186,52 @@
         <input type="hidden" name="ids" id="bulk-delete-ids">
     </form>
 
+    <!-- Import Modal -->
+    <div id="importModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Import Authorized IDs (CSV)</h3>
+                
+                <div class="bg-blue-50 border border-blue-200 rounded-md p-4 mb-6">
+                    <h4 class="font-semibold text-blue-900 mb-2">📋 File Format Requirements:</h4>
+                    <ul class="text-sm text-blue-800 space-y-1 ml-4">
+                        <li>• CSV file only (max 2MB)</li>
+                        <li>• <strong>Required columns (first row):</strong> <code>id_number,type</code></li>
+                        <li>• <code>id_number</code>: Student/Faculty/Staff ID (3-50 chars)</li>
+                        <li>• <code>type</code>: <code>student</code>, <code>faculty</code>, or <code>staff</code></li>
+                    </ul>
+                    <div class="mt-3 p-3 bg-gray-100 rounded border text-xs">
+                        <strong>Sample CSV:</strong><br>
+                        <code>id_number,type<br>20240001,student<br>20240002,student<br>F001,faculty</code>
+                    </div>
+                </div>
+
+                <form id="import-form" enctype="multipart/form-data" class="space-y-4">
+                    <div>
+                        <label for="csv_file" class="block text-sm font-medium text-gray-700 mb-2">Choose CSV File</label>
+                        <input type="file" name="csv_file" id="csv_file" accept=".csv" required
+                               class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                        <p class="mt-1 text-xs text-gray-500">Only CSV files are supported.</p>
+                    </div>
+                    
+                    <div class="flex justify-end space-x-3 pt-4">
+                        <button type="button" id="cancel-import" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400">
+                            Cancel
+                        </button>
+                        <button type="submit" id="import-submit" disabled class="px-6 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 font-semibold disabled:opacity-50">
+                            Import CSV
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Toast -->
+    <div id="import-toast" class="fixed top-4 right-4 z-50 hidden p-4 rounded-lg shadow-lg max-w-sm w-full mx-4">
+        <div id="toast-content"></div>
+    </div>
+
     <script>
         // Select all functionality
         document.getElementById('select-all').addEventListener('change', function() {
@@ -228,5 +274,100 @@
                 document.getElementById('bulk-delete-form').submit();
             }
         });
+
+        // Import functionality
+        const importBtn = document.getElementById('import-btn');
+        const importModal = document.getElementById('importModal');
+        const cancelImport = document.getElementById('cancel-import');
+        const importForm = document.getElementById('import-form');
+        const csvFile = document.getElementById('csv_file');
+        const importSubmit = document.getElementById('import-submit');
+        const toast = document.getElementById('import-toast');
+        const toastContent = document.getElementById('toast-content');
+
+        // Open modal
+        importBtn.addEventListener('click', () => {
+            importModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        });
+
+        // Close modal
+        cancelImport.addEventListener('click', closeImportModal);
+        importModal.addEventListener('click', (e) => {
+            if (e.target === importModal) closeImportModal();
+        });
+
+        function closeImportModal() {
+            importModal.classList.add('hidden');
+            document.body.style.overflow = '';
+            importForm.reset();
+            importSubmit.disabled = true;
+        }
+
+        // Enable/disable submit button
+        csvFile.addEventListener('change', () => {
+            importSubmit.disabled = !csvFile.files[0];
+        });
+
+        // Handle form submit
+        importForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(importForm);
+            importSubmit.disabled = true;
+            importSubmit.textContent = 'Importing...';
+
+            try {
+                const response = await fetch('{{ route("authorized-ids.import") }}', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast('success', result.message);
+                    closeImportModal();
+                    // Reload table data
+                    window.location.reload();
+                } else {
+                    showToast('error', result.message || 'Import failed', result.errors);
+                }
+            } catch (error) {
+                showToast('error', 'Network error. Please try again.');
+            } finally {
+                importSubmit.disabled = false;
+                importSubmit.textContent = 'Import CSV';
+            }
+        });
+
+        function showToast(type, message, errors = null) {
+            toastContent.innerHTML = `
+                <div class="flex">
+                    <div class="${type === 'success' ? 'text-green-600' : 'text-red-600'} mr-3">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                            ${type === 'success' ? 
+                                '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/>' : 
+                                '<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-2 0v4a1 1 0 102 0V5z"/>'}
+                        </svg>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium">${message}</p>
+                        ${errors && Array.isArray(errors) && errors.length ? 
+                            `<ul class="mt-1 text-xs max-h-32 overflow-y-auto">${errors.map(err => `<li>• ${err}</li>`).join('')}</ul>` : ''}
+                    </div>
+                    <button onclick="this.parentElement.parentElement.parentElement.classList.add('hidden')" 
+                            class="ml-2 text-gray-400 hover:text-gray-600">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/>
+                        </svg>
+                    </button>
+                </div>
+            `;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 10000);
+        }
     </script>
 </x-app-layout>
