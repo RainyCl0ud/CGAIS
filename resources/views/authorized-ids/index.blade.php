@@ -204,6 +204,15 @@
                         <strong>Sample CSV:</strong><br>
                         <code>id_number,type<br>20240001,student<br>20240002,student<br>F001,faculty</code>
                     </div>
+                    <div class="mt-2">
+                        <a href="/samples/authorized_ids_sample.csv" download 
+                           class="inline-flex items-center text-blue-600 hover:text-blue-800 text-sm font-medium">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            Download Sample CSV File
+                        </a>
+                    </div>
                 </div>
 
                 <form id="import-form" enctype="multipart/form-data" class="space-y-4">
@@ -344,9 +353,16 @@
         });
 
         function showToast(type, message, errors = null) {
+            // Set background and text colors based on type
+            if (type === 'success') {
+                toast.className = 'fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-sm w-full mx-4 bg-white border border-green-200';
+            } else {
+                toast.className = 'fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-sm w-full mx-4 bg-red-600 border border-red-700';
+            }
+            
             toastContent.innerHTML = `
                 <div class="flex">
-                    <div class="${type === 'success' ? 'text-green-600' : 'text-red-600'} mr-3">
+                    <div class="${type === 'success' ? 'text-green-600' : 'text-white'} mr-3">
                         <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                             ${type === 'success' ? 
                                 '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/>' : 
@@ -354,12 +370,12 @@
                         </svg>
                     </div>
                     <div class="flex-1">
-                        <p class="text-sm font-medium">${message}</p>
+                        <p class="text-sm font-medium ${type === 'success' ? 'text-gray-900' : 'text-white'}">${message}</p>
                         ${errors && Array.isArray(errors) && errors.length ? 
-                            `<ul class="mt-1 text-xs max-h-32 overflow-y-auto">${errors.map(err => `<li>• ${err}</li>`).join('')}</ul>` : ''}
+                            `<ul class="mt-1 text-xs max-h-32 overflow-y-auto ${type === 'success' ? 'text-gray-600' : 'text-red-100'}">${errors.map(err => `<li>• ${err}</li>`).join('')}</ul>` : ''}
                     </div>
                     <button onclick="this.parentElement.parentElement.parentElement.classList.add('hidden')" 
-                            class="ml-2 text-gray-400 hover:text-gray-600">
+                            class="ml-2 ${type === 'success' ? 'text-gray-400 hover:text-gray-600' : 'text-red-200 hover:text-white'}">
                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/>
                         </svg>
@@ -367,7 +383,7 @@
                 </div>
             `;
             toast.classList.remove('hidden');
-            setTimeout(() => toast.classList.add('hidden'), 10000);
+            setTimeout(() => toast.classList.add('hidden'), 20000);
         }
     </script>
 </x-app-layout>

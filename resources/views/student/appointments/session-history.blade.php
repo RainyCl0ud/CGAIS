@@ -106,7 +106,7 @@
                                                 </td>
                                                 <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap">
                                                     <span class="px-2 py-1 text-xs font-semibold rounded-full {{ $appointment->getTypeBadgeClass() }}">
-                                                        {{ ucfirst($appointment->type) }}
+                                                        {{ $appointment->getTypeLabel() }}
                                                     </span>
                                                 </td>
                                                 <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap">
@@ -121,9 +121,14 @@
                                                 </td>
                                             <td class="px-3 sm:px-6 py-2 sm:py-4 text-xs sm:text-sm text-gray-900">
                                                 <div class="max-w-xs">
-                                                    @if($appointment->type === 'urgent')
+                                                    @if($appointment->isUrgent())
                                                         <div class="mb-1">
                                                             <span class="font-medium text-red-600">Reason for urgency:</span>
+                                                            <p class="text-gray-700">{{ $appointment->reason ?: 'Not specified' }}</p>
+                                                        </div>
+                                                    @elseif($appointment->isReferral())
+                                                        <div class="mb-1">
+                                                            <span class="font-medium text-yellow-600">Reason for referral:</span>
                                                             <p class="text-gray-700">{{ $appointment->reason ?: 'Not specified' }}</p>
                                                         </div>
                                                     @endif

@@ -63,7 +63,7 @@ class AppointmentStatusNotification extends Notification
                     ->line("📅 **Date:** {$appointmentDate}")
                     ->line("🕐 **Time:** {$appointmentTime}")
                     ->line("👤 **Counselor:** " . ($this->appointment->counselor->full_name ?? 'Your Counselor'))
-                    ->line("🏥 **Type:** " . $this->appointment->getCounselingCategoryLabel())
+                    ->line("🏥 **Type:** " . $this->appointment->getTypeLabel())
                     ->line('')
                     ->line('Please make sure to be on time for your appointment.');
                 break;

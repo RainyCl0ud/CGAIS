@@ -194,10 +194,15 @@
     // Function to update appointment title based on type
     function updateAppointmentTitle(type) {
         const titleElement = document.getElementById('appointment-title');
-        // For students, always keep "Book Appointment" title
-        // Only faculty/staff get "Referral Appointment" title for urgent type
+
         @if(auth()->user()->isStudent())
-            titleElement.textContent = 'Urgent Appointment';
+            if (type === 'urgent') {
+                titleElement.textContent = 'Urgent Appointment';
+            } else if (type === 'follow_up') {
+                titleElement.textContent = 'Follow-up Appointment';
+            } else {
+                titleElement.textContent = 'Book Appointment';
+            }
         @else
             if (type === 'urgent') {
                 titleElement.textContent = 'Referral Appointment';

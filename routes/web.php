@@ -68,8 +68,8 @@ Route::middleware(['auth','verified'])->group(function () {
         Route::resource('users', UserManagementController::class);
 
         // Authorized IDs Management (Counselor and Assistant)
+        Route::get('authorized-ids/export', [AuthorizedIdController::class, 'export'])->name('authorized-ids.export');
         Route::resource('authorized-ids', AuthorizedIdController::class);
-        Route::get('/authorized-ids/export', [AuthorizedIdController::class, 'export'])->name('authorized-ids.export');
         Route::post('/authorized-ids/bulk-destroy', [AuthorizedIdController::class, 'bulkDestroy'])->name('authorized-ids.bulk-destroy');
         Route::post('/authorized-ids/import', [AuthorizedIdController::class, 'import'])->name('authorized-ids.import');
 

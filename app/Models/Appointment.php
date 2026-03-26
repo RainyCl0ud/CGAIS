@@ -271,7 +271,21 @@ class Appointment extends Model
 
     public function isUrgent(): bool
     {
-        return $this->type === 'urgent';
+        // A true urgent appointment is only for students.
+        if ($this->type !== 'urgent') {
+            return false;
+        }
+
+        if ($this->relationLoaded('user')) {
+            return $this->user && $this->user->isStudent();
+        }
+
+        return $this->user ? $this->user->isStudent() : false;
+    }
+
+    public function isReferral(): bool
+    {
+        return $this->type === 'urgent' && ($this->relationLoaded('user') ? ($this->user && ($this->user->isFaculty() || $this->user->isStaff())) : ($this->user ? ($this->user->isFaculty() || $this->user->isStaff()) : false));
     }
 
     public function getAppointmentDateTime(): Carbon
@@ -303,22 +317,37 @@ class Appointment extends Model
 
     public function getTypeBadgeClass(): string
     {
-        return match($this->type) {
-            'regular' => 'bg-blue-100 text-blue-800',
-            'urgent' => 'bg-red-100 text-red-800',
-            'follow_up' => 'bg-purple-100 text-purple-800',
-            default => 'bg-gray-100 text-gray-800',
-        };
+        if ($this->type === 'urgent') {
+            if ($this->isReferral()) {
+                return 'bg-yellow-100 text-yellow-800';
+            }
+            return 'bg-red-100 text-red-800';
+        }
+
+        if ($this->type === 'follow_up') {
+            return 'bg-purple-100 text-purple-800';
+        }
+
+        return 'bg-blue-100 text-blue-800';
     }
 
     public function getTypeLabel(): string
     {
-        return match($this->type) {
-            'regular' => 'Consultation',
-            'urgent' => 'Referral',
-            'follow_up' => 'Consultation',
-            default => ucfirst($this->type),
-        };
+        if ($this->type === 'regular') {
+            return ($this->relationLoaded('user') ? ($this->user && $this->user->isStudent()) : ($this->user ? $this->user->isStudent() : true))
+                ? 'Regular'
+                : 'Consultation';
+        }
+
+        if ($this->type === 'urgent') {
+            return $this->isReferral() ? 'Referral' : 'Urgent';
+        }
+
+        if ($this->type === 'follow_up') {
+            return 'Follow-up';
+        }
+
+        return ucfirst($this->type);
     }
 
     public function getCounselingCategoryLabel(): string

@@ -1183,16 +1183,21 @@ class AppointmentController extends Controller
         // Check if counselor has a custom schedule for this day
         $schedule = Schedule::where('counselor_id', $counselor->id)
             ->where('day_of_week', $dayName)
-            ->where('is_available', true)
             ->first();
 
         // If no custom schedule, use default working hours (9 AM - 5 PM)
         if (!$schedule) {
             $startTime = Carbon::createFromTime(9, 0, 0); // 9:00 AM
             $endTime = Carbon::createFromTime(17, 0, 0);   // 5:00 PM
-        } else {
+        } elseif ($schedule->is_available) {
             $startTime = Carbon::parse($schedule->start_time);
             $endTime = Carbon::parse($schedule->end_time);
+        } else {
+            // Schedule exists but not available
+            return response()->json([
+                'slots' => [],
+                'message' => 'Counselor is not available on this day.'
+            ]);
         }
 
         $slots = [];

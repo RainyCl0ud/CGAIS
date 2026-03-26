@@ -34,8 +34,12 @@ class AuthorizedId extends Model
     }
 
     /**
-     * Scope for available (unused) IDs
+     * Get the user who registered this ID
      */
+    public function registeredBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'registered_by');
+    }
     public function scopeAvailable($query)
     {
         return $query->where('is_used', false);

@@ -200,7 +200,7 @@
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap">
                                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $appointment->getTypeBadgeClasses() }}">
-                                                    {{ ucfirst($appointment->type) }}
+                                                    {{ $appointment->getTypeLabel() }}
                                                 </span>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">

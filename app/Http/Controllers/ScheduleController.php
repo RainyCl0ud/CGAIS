@@ -56,7 +56,7 @@ class ScheduleController extends Controller
 
         // Create schedule data for all weekdays
         $scheduleData = [];
-        $today = now();
+        $today = Carbon::today('Asia/Manila');
 
         // Get the Monday of the current week
         $monday = $today->copy()->startOfWeek(); // Monday of current week
@@ -235,7 +235,7 @@ class ScheduleController extends Controller
                 'counselor_id' => $counselorId,
                 'date' => $date,
                 'is_unavailable' => true,
-                'expires_at' => Carbon::parse($date, 'Asia/Manila')->addDay()->startOfDay(),
+                'expires_at' => Carbon::parse($date, 'Asia/Manila')->endOfDay(),
             ]);
             $status = 'unavailable';
         }
@@ -304,13 +304,23 @@ class ScheduleController extends Controller
     {
         $user = $request->user();
         
-        if (!$user->canManageSchedules() || $schedule->counselor_id !== $user->id) {
+        if (!$user->canManageSchedules()) {
+            abort(403);
+        }
+
+        // For assistants, check if they can manage this counselor's schedule
+        if ($user->isAssistant() && $schedule->counselor_id !== $request->get('counselor_id')) {
+            abort(403);
+        }
+
+        // For counselors, only allow deleting their own schedules
+        if ($user->isCounselor() && $schedule->counselor_id !== $user->id) {
             abort(403);
         }
 
         $schedule->delete();
 
-        return redirect()->route('schedules.index')
+        return redirect()->route('schedules.index', $user->isAssistant() ? ['counselor_id' => $schedule->counselor_id] : [])
             ->with('success', 'Schedule deleted successfully.');
     }
 }
