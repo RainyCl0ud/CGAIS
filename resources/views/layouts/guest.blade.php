@@ -18,17 +18,17 @@
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="font-sans text-gray-900 antialiased min-h-screen min-w-full bg-gradient-to-br from-yellow-100 via-white to-blue-100">
+    <body class="font-sans text-gray-900 antialiased min-h-screen min-w-full bg-gradient-to-br from-yellow-500 via-white to-blue-500">
         <div class="flex flex-col items-center justify-center min-h-screen w-full overflow-y-auto py-2">
             <div class="max-w-screen-xl mx-auto mx-4 lg:mx-16 xl:mx-32 flex flex-col md:flex-row box-border">
                 <!-- Left: Logo and System Description -->
-                <div class="md:w-[40%] flex flex-col items-center justify-center bg-gradient-to-br from-yellow-100 via-white to-blue-100 p-6 md:p-10">
+                <div class="md:w-[40%] flex flex-col items-center justify-center p-6 md:p-10">
                     <div class="text-center mb-6 sm:mb-8">
                         <span class="block text-3xl sm:text-4xl md:text-5xl font-serif text-blue-900 mb-1 sm:mb-2 tracking-tight">USTP Balubal</span>
                         <span class="block text-5xl sm:text-6xl md:text-7xl font-extrabold font-black bg-gradient-to-r from-[#FFD700] to-blue-700 bg-clip-text text-transparent leading-tight">CGAIS</span>
                     </div>
                     <div class="text-center text-gray-700 text-base md:text-lg">
-                        <p>Campus Guidance System (CGAIS) helps students and Non-Teaching Staff access guidance services, resources, and support efficiently. Register now to get started!</p>
+                        <p>Campus Guidance System (CGAIS) helps students, faculties and Non-Teaching Staff access guidance services, resources, and support efficiently. Register now to get started!</p>
                     </div>
                 </div>
                 <!-- Right: Registration Form -->

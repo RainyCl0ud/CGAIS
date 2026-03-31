@@ -38,6 +38,7 @@ Route::middleware(['auth','verified'])->group(function () {
         
         // Student Management - View only for assistants
         Route::get('/students', [StudentManagementController::class, 'index'])->name('students.index');
+        Route::get('/students/export', [StudentManagementController::class, 'export'])->name('students.export');
         Route::get('/students/{student}', [StudentManagementController::class, 'show'])->name('students.show');
         Route::get('/students/statistics', [StudentManagementController::class, 'getStatistics'])->name('students.statistics');
 
@@ -62,7 +63,6 @@ Route::middleware(['auth','verified'])->group(function () {
         // Export functionality (Counselor and Assistant)
         Route::get('/appointments/export-history', [AppointmentController::class, 'exportSessionHistory'])->name('appointments.export-history');
         Route::get('/activity-logs/export', [ActivityLogController::class, 'export'])->name('activity-logs.export');
-        Route::get('/students/export', [StudentManagementController::class, 'export'])->name('students.export');
 
         // User Management (Counselor and Assistant, but with restrictions)
         Route::resource('users', UserManagementController::class);

@@ -1,4 +1,5 @@
 <x-guest-layout>
+<div class="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4 p-6">
     <!-- Role Selection Modal -->
     <div id="roleSelectionModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
         <div class="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4 p-6">
@@ -297,37 +298,26 @@
                 <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden">
                     <div class="p-6">
                         <h3 class="text-xl font-semibold text-gray-900 mb-4 text-center">Terms and Conditions</h3>
-                        <div id="termsContent" class="max-h-80 overflow-y-auto text-sm text-gray-700 mb-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
-                            <p><strong>1. Acceptance of Terms</strong></p>
-                            <p>By registering for an account on this Counseling Guidance Appointment System (CGAS), you agree to be bound by these Terms and Conditions. If you do not agree to these terms, please do not proceed with registration.</p>
-
-                            <p><strong>2. User Eligibility</strong></p>
-                            <p>You must be a current student, faculty member, or Non-Teaching Staff of the University of Science and Technology of Southern Philippines (USTP) to register. You must provide a valid, pre-authorized ID number issued by the counseling office.</p>
-
-                            <p><strong>3. Account Security</strong></p>
-                            <p>You are responsible for maintaining the confidentiality of your account credentials. You agree to notify the counseling office immediately of any unauthorized use of your account.</p>
-
-                            <p><strong>4. Data Privacy</strong></p>
-                            <p>Your personal information will be handled in accordance with the Data Privacy Act of 2012. Information provided during registration and counseling sessions will be kept confidential and used solely for counseling purposes.</p>
-
-                            <p><strong>5. Appointment Scheduling</strong></p>
-                            <p>Appointments are scheduled based on counselor availability. You agree to attend scheduled appointments or cancel them at least 24 hours in advance. Repeated no-shows may result in suspension of your account.</p>
-
-                            <p><strong>6. Code of Conduct</strong></p>
-                            <p>You agree to use the system respectfully and appropriately. Harassment, abuse, or misuse of the system may result in account termination.</p>
-
-                            <p><strong>7. System Availability</strong></p>
-                            <p>While we strive to maintain system availability, we do not guarantee uninterrupted access. The counseling office reserves the right to perform maintenance or updates that may temporarily affect system availability.</p>
-
-                            <p><strong>8. Amendments</strong></p>
-                            <p>These terms may be updated at any time. Continued use of the system after changes constitutes acceptance of the new terms.</p>
-
-                            <p><strong>9. Contact Information</strong></p>
-                            <p>For questions about these terms or the system, please contact the counseling office at counseling@ustp.edu.ph.</p>
-
-                            <p><strong>10. Acknowledgment</strong></p>
-                            <p>By clicking "I Agree" below, you acknowledge that you have read, understood, and agree to be bound by these Terms and Conditions.</p>
-                        </div>
+<div id="termsContent" class="max-h-80 overflow-y-auto text-sm text-gray-700 mb-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
+    • <strong>Acceptance of Terms</strong><br>
+    By registering for an account on this Guidance and Counseling Appointment and Information System (CGAIS), you agree to be bound by these Terms and Conditions. If you do not agree to these terms, please do not proceed with registration.<br><br>
+    
+    • <strong>Agreement to Terms</strong><br>
+    By creating an account, you agree to comply with all policies, rules, and guidelines stated in this system.<br><br>
+    
+    • <strong>Authorized Users</strong><br>
+    Only officially enrolled students, faculty members, and non-teaching personnel are allowed to use the system. Users must provide valid and accurate identification details.<br><br>
+    
+    • <strong>Purpose of Use</strong><br>
+    The system is intended solely for scheduling counseling appointments and consultation requests. Any use beyond this purpose is not permitted.<br><br>
+    
+    • <strong>Account Responsibility</strong><br>
+    Users are responsible for maintaining the confidentiality of their login credentials. Any activity under the account will be considered the responsibility of the account owner.<br><br>
+    
+    • <strong>Appointment Policy</strong><br>
+    All appointment requests are subject to counselor approval and availability. Users are expected to attend their scheduled appointments or cancel them ahead of time.<br><br>
+    
+    • <strong>External Communication</strong><br>
                         <div class="flex items-center mb-4">
                             <input type="checkbox" id="agreeCheckbox" class="mr-2">
                             <label for="agreeCheckbox" class="text-sm text-gray-700">I have read and agree to the Terms and Conditions</label>
@@ -351,7 +341,7 @@
             </div>
         </form>
     </div>
-
+</div>
     <script>
     let selectedRole = 'student';
 

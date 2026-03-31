@@ -1,7 +1,7 @@
 <x-guest-layout>
     <!-- Session Status -->
     <x-auth-session-status class="mb-4" :status="session('status')" />
-
+    <div class="bg-white rounded-lg shadow-xl max-w-lg w-full p-5">
     <form method="POST" action="{{ route('login') }}">
         @csrf
 
@@ -56,6 +56,7 @@
             </x-primary-button>
         </div>
     </form>
+</div>
 <script>
 function togglePasswordVisibility(inputId, button) {
     const input = document.getElementById(inputId);

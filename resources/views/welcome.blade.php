@@ -11,7 +11,7 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="min-h-screen min-w-full bg-gradient-to-br from-yellow-100 via-white to-blue-100 overflow-hidden">
+<body class="min-h-screen min-w-full bg-gradient-to-br from-yellow-500 via-white to-blue-500 overflow-hidden">
     <div class="flex flex-col items-center justify-center min-h-screen w-full">
         <div class="w-full max-w-2xl mx-auto p-16 rounded-2xl shadow-2xl bg-white/90 border border-blue-100 animate-fade-in">
             <div class="flex flex-col items-center">
@@ -35,7 +35,7 @@
                 </div>
             </div>
         </div>
-        <footer class="mt-8 text-sm text-gray-400 text-center w-full">
+        <footer class="mt-8 text-sm text-gray-600 text-center w-full">
             &copy; {{ date('Y') }} USTP Balubal Campus - Guidance and Counsiling Services. All rights reserved.
         </footer>
     </div>

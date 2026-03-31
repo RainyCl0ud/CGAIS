@@ -397,7 +397,7 @@ ActivityLogService::log(
     public function export(Request $request)
     {
         $query = User::where('role', 'student')
-            ->with(['personalDataSheet', 'appointments']);
+            ->with(['personalDataSheet', 'course', 'appointments']);
 
         // Apply same filters as index method
         if ($request->filled('search')) {
@@ -425,6 +425,8 @@ ActivityLogService::log(
         }
 
         $students = $query->get();
+
+        Log::info("Students CSV export: {$students->count()} records exported", ['filters' => $request->all()]);
 
         $filename = 'student_directory_' . date('Y-m-d_H-i-s') . '.csv';
         $headers = [
