@@ -7,10 +7,10 @@
                         <div class="flex gap-2">
                             <form method="POST" action="{{ route('system.backup.create') }}" class="inline">
                                 @csrf
-                                <button type="submit" 
+                                {{-- <button type="submit" 
                                         class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                                     Create Manual Backup
-                                </button>
+                                </button> --}}
                             </form>
                             <a href="{{ route('system.backup.download') }}" 
                                class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
