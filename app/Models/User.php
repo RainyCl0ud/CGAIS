@@ -309,12 +309,24 @@ class User extends Authenticatable implements MustVerifyEmail
     public function verifyPendingEmailChange($token)
     {
         if ($this->pending_email_token === $token && $this->pending_email) {
+            $oldEmail = $this->email;
+            $newEmail = $this->pending_email;
+            
             // Update the email with the pending email
             $this->email = $this->pending_email;
             $this->pending_email = null;
             $this->pending_email_token = null;
             $this->markEmailAsVerified();
             $this->save();
+
+            // Create system notification confirming the email change
+            $this->notifications()->create([
+                'title' => 'Email Address Updated',
+                'message' => "Your email address has been successfully changed from {$oldEmail} to {$newEmail}.",
+                'type' => 'general',
+                'is_read' => false,
+            ]);
+
             return true;
         }
         return false;

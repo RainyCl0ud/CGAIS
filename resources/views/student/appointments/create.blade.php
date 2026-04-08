@@ -104,7 +104,13 @@
                             <select id="start_time" name="start_time" required 
                                     class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm">
                                 <option value="">Select a time</option>
-                                <!-- Time slots will be populated via JavaScript -->
+                                <option value="09:00" data-end-time="10:00">9AM-10AM</option>
+                                <option value="10:00" data-end-time="11:00">10AM-11AM</option>
+                                <option value="11:00" data-end-time="12:00">11AM-12PM</option>
+                                <option value="13:00" data-end-time="14:00">1PM-2PM</option>
+                                <option value="14:00" data-end-time="15:00">2PM-3PM</option>
+                                <option value="15:00" data-end-time="16:00">3PM-4PM</option>
+                                <option value="16:00" data-end-time="17:00">4PM-5PM</option>
                             </select>
                             <input type="hidden" id="end_time" name="end_time" value="">
                             @error('start_time')
@@ -169,9 +175,7 @@
 
     // Load slots when counselor or date changes
     counselorSelect.addEventListener('change', function() {
-        if (counselorSelect.value && dateInput.value) {
-            loadAvailableTimeSlots(counselorSelect.value, dateInput.value);
-        }
+        // Removed dynamic loading
     });
 
     dateInput.addEventListener('change', function() {
@@ -185,10 +189,6 @@
         }
 
         timeSelect.disabled = false;
-
-        if (counselorSelect.value && date) {
-            loadAvailableTimeSlots(counselorSelect.value, date);
-        }
     });
 
     // Function to update appointment title based on type
@@ -224,10 +224,6 @@
             urgencyDiv.classList.add('hidden');
             reasonField.required = false;
         }
-
-        if (counselorSelect.value && dateInput.value) {
-            loadAvailableTimeSlots(counselorSelect.value, dateInput.value);
-        }
     });
 
     // Initialize form state based on URL parameters
@@ -246,60 +242,7 @@
             updateAppointmentTitle('regular');
             typeSelect.dispatchEvent(new Event('change'));
         }
-
-        if (counselorSelect.value && dateInput.value) {
-            loadAvailableTimeSlots(counselorSelect.value, dateInput.value);
-        }
     });
-
-    function loadAvailableTimeSlots(counselorId, date) {
-        const isUrgent = typeSelect.value === 'urgent';
-        timeSelect.innerHTML = '<option value="">Loading available times...</option>';
-
-        fetch(`/api/student/counselors/${counselorId}/available-slots?date=${date}&urgent=${isUrgent}`)
-            .then(response => response.json())
-            .then(data => {
-                    timeSelect.innerHTML = '<option value="">Select a time</option>';
-
-                if (data.slots && data.slots.length > 0) {
-                    data.slots.forEach(slot => {
-                        const option = document.createElement('option');
-                        option.value = slot.time;
-                        option.textContent = slot.formatted_time + slot.conflict_message;
-                        option.setAttribute('data-end-time', slot.end_time);
-
-                        if (slot.is_conflict) {
-                            option.style.color = '#dc2626';
-                            option.style.fontWeight = 'bold';
-                        }
-
-                        timeSelect.appendChild(option);
-                    });
-
-                    if (isUrgent && data.slots.some(slot => slot.is_conflict)) {
-                        const warningDiv = document.createElement('div');
-                        warningDiv.className = 'mt-2 p-2 bg-yellow-100 border border-yellow-400 text-yellow-800 rounded text-xs';
-                        warningDiv.innerHTML = '⚠️ <strong>Urgent Booking Notice:</strong> Some slots conflict with existing appointments. Your urgent request will be reviewed by the counselor.';
-
-                        const existingWarning = timeSelect.parentElement.querySelector('.bg-yellow-100');
-                        if (existingWarning) existingWarning.remove();
-
-                        timeSelect.parentElement.appendChild(warningDiv);
-                    }
-                } else {
-                    let message = 'No available times for this date.';
-                    // If the API provided a message, surface it (e.g. counselor on leave/unavailable)
-                    if (data.message) {
-                        message = data.message;
-                    }
-                    timeSelect.innerHTML = `<option value="">${message}</option>`;
-                }
-            })
-            .catch(error => {
-                console.error('Error loading time slots:', error);
-                timeSelect.innerHTML = '<option value="">Error loading times</option>';
-            });
-    }
 
     // Set hidden end_time when time is selected
     timeSelect.addEventListener('change', function() {

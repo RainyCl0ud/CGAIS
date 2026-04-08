@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -65,7 +66,7 @@ class ProfileController extends Controller
                 
                 // Send verification email to the new email address
                 $verificationUrl = route('pending-email.verify', $token);
-                $targetUser->notify(new \App\Notifications\PendingEmailChangeNotification($newEmail, $verificationUrl));
+                Mail::to($newEmail)->send(new \App\Notifications\PendingEmailChangeNotification($newEmail, $verificationUrl, $targetUser));
             }
         }
 

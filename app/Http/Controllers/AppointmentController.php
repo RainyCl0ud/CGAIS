@@ -87,7 +87,7 @@ class AppointmentController extends Controller
         $validationRules = [
             'counselor_id' => 'required|exists:users,id',
             'appointment_date' => 'required|date|after_or_equal:today',
-            'start_time' => 'required|date_format:H:i',
+            'start_time' => 'required|date_format:H:i|in:09:00,10:00,11:00,13:00,14:00,15:00,16:00',
             'end_time' => 'required|date_format:H:i',
             'reason' => 'required|string|max:1000',
         ];
@@ -109,6 +109,20 @@ class AppointmentController extends Controller
             $validatedData = $request->validate($validationRules);
             if ($request->start_time >= $request->end_time) {
                 return back()->withErrors(['end_time' => 'End time must be after start time.'])->withInput();
+            }
+
+            // Validate that end_time matches the expected for start_time
+            $allowedTimes = [
+                '09:00' => '10:00',
+                '10:00' => '11:00',
+                '11:00' => '12:00',
+                '13:00' => '14:00',
+                '14:00' => '15:00',
+                '15:00' => '16:00',
+                '16:00' => '17:00',
+            ];
+            if (!isset($allowedTimes[$request->start_time]) || $request->end_time !== $allowedTimes[$request->start_time]) {
+                return back()->withErrors(['start_time' => 'Invalid time slot selected.'])->withInput();
             }
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('Appointment validation failed', [
@@ -357,7 +371,7 @@ class AppointmentController extends Controller
         $request->validate([
             'counselor_id' => 'required|exists:users,id',
             'appointment_date' => 'required|date|after_or_equal:today',
-            'start_time' => 'required|date_format:H:i',
+            'start_time' => 'required|date_format:H:i|in:09:00,10:00,11:00,13:00,14:00,15:00,16:00',
             'end_time' => 'required|date_format:H:i|after:start_time',
         ]);
 
@@ -382,6 +396,20 @@ class AppointmentController extends Controller
             'notes' => 'nullable|string|max:1000',
             'reschedule_reason' => 'required|string|max:1000',
         ]);
+
+        // Validate that end_time matches the expected for start_time
+        $allowedTimes = [
+            '09:00' => '10:00',
+            '10:00' => '11:00',
+            '11:00' => '12:00',
+            '13:00' => '14:00',
+            '14:00' => '15:00',
+            '15:00' => '16:00',
+            '16:00' => '17:00',
+        ];
+        if (!isset($allowedTimes[$request->start_time]) || $request->end_time !== $allowedTimes[$request->start_time]) {
+            return back()->withErrors(['start_time' => 'Invalid time slot selected.'])->withInput();
+        }
 
         $appointmentDate = Carbon::parse($request->appointment_date);
         $dayOfWeek = $appointmentDate->dayOfWeek;

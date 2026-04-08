@@ -85,7 +85,7 @@ class StudentAppointmentController extends Controller
         $validationRules = [
             'counselor_id' => 'required|exists:users,id',
             'appointment_date' => 'required|date|after_or_equal:today',
-            'start_time' => 'required|date_format:H:i',
+            'start_time' => 'required|date_format:H:i|in:09:00,10:00,11:00,13:00,14:00,15:00,16:00',
             'end_time' => 'required|date_format:H:i',
         ];
 
@@ -115,6 +115,20 @@ $validationRules['notes'] = 'nullable|string|max:1000';
             // Manual validation for end_time after start_time
             if ($request->start_time >= $request->end_time) {
                 return back()->withErrors(['end_time' => 'End time must be after start time.'])->withInput();
+            }
+
+            // Validate that end_time matches the expected for start_time
+            $allowedTimes = [
+                '09:00' => '10:00',
+                '10:00' => '11:00',
+                '11:00' => '12:00',
+                '13:00' => '14:00',
+                '14:00' => '15:00',
+                '15:00' => '16:00',
+                '16:00' => '17:00',
+            ];
+            if (!isset($allowedTimes[$request->start_time]) || $request->end_time !== $allowedTimes[$request->start_time]) {
+                return back()->withErrors(['start_time' => 'Invalid time slot selected.'])->withInput();
             }
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('Appointment validation failed', [
@@ -399,7 +413,7 @@ $validationRules['notes'] = 'nullable|string|max:1000';
 
         $validationRules = [
             'appointment_date' => 'required|date|after_or_equal:today',
-            'start_time' => 'required|date_format:H:i',
+            'start_time' => 'required|date_format:H:i|in:09:00,10:00,11:00,13:00,14:00,15:00,16:00',
             'end_time' => 'required|date_format:H:i|after:start_time',
             'reschedule_reason' => 'required|string|max:1000',
         ];
@@ -452,6 +466,20 @@ $validationRules['notes'] = 'nullable|string|max:1000';
             if (!$user->isStudent()) {
                 $resolvedCategory = 'consultation';
             }
+        }
+
+        // Validate that end_time matches the expected for start_time
+        $allowedTimes = [
+            '09:00' => '10:00',
+            '10:00' => '11:00',
+            '11:00' => '12:00',
+            '13:00' => '14:00',
+            '14:00' => '15:00',
+            '15:00' => '16:00',
+            '16:00' => '17:00',
+        ];
+        if (!isset($allowedTimes[$request->start_time]) || $request->end_time !== $allowedTimes[$request->start_time]) {
+            return back()->withErrors(['start_time' => 'Invalid time slot selected.'])->withInput();
         }
 
         // Check if the new date is on a weekday (Monday through Friday)

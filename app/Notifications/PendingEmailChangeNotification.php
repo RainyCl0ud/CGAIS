@@ -12,7 +12,8 @@ class PendingEmailChangeNotification extends Notification
 
     public function __construct(
         public string $newEmail,
-        public string $verificationUrl
+        public string $verificationUrl,
+        public ?object $user = null
     ) {}
 
     public function via(object $notifiable): array
@@ -22,10 +23,12 @@ class PendingEmailChangeNotification extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
+        $user = $this->user ?? $notifiable;
+        
         return (new MailMessage)
             ->subject('Verify Your New Email Address')
-            ->greeting('Hello ' . $notifiable->first_name . '!')
-            ->line('You have requested to change your email address from "' . $notifiable->email . '" to "' . $this->newEmail . '".')
+            ->greeting('Hello ' . $user->first_name . '!')
+            ->line('You have requested to change your email address from "' . $user->email . '" to "' . $this->newEmail . '".')
             ->line('Please click the button below to verify your new email address:')
             ->action('Verify New Email', $this->verificationUrl)
             ->line('If you did not request this email change, please ignore this message.')

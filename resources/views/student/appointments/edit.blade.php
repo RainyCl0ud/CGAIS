@@ -77,7 +77,13 @@
                         <select id="start_time" name="start_time" required 
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm">
                             <option value="">Select a time</option>
-                            <!-- Time slots will be populated via JavaScript -->
+                            <option value="09:00" data-end-time="10:00">9AM-10AM</option>
+                            <option value="10:00" data-end-time="11:00">10AM-11AM</option>
+                            <option value="11:00" data-end-time="12:00">11AM-12PM</option>
+                            <option value="13:00" data-end-time="14:00">1PM-2PM</option>
+                            <option value="14:00" data-end-time="15:00">2PM-3PM</option>
+                            <option value="15:00" data-end-time="16:00">3PM-4PM</option>
+                            <option value="16:00" data-end-time="17:00">4PM-5PM</option>
                         </select>
                         <input type="hidden" id="end_time" name="end_time" value="{{ $appointment->end_time->format('H:i') }}">
                         @error('start_time')
@@ -173,7 +179,6 @@
         // JavaScript for dynamic time slot loading (counselor is fixed, no change event needed)
 
         document.getElementById('appointment_date').addEventListener('change', function() {
-            const counselorId = document.getElementById('counselor_id').value;
             const date = this.value;
             
             // Check if selected date is Monday or Friday
@@ -190,16 +195,10 @@
             // Re-enable time select if it was disabled
             const timeSelect = document.getElementById('start_time');
             timeSelect.disabled = false;
-            
-            if (counselorId && date) {
-                loadAvailableTimeSlots(counselorId, date);
-            }
         });
 
-        // Add event listener for appointment type to reload time slots and handle urgent form
+        // Add event listener for appointment type to handle urgent form
         document.getElementById('type').addEventListener('change', function() {
-            const counselorId = {{ $appointment->counselor_id }};
-            const date = document.getElementById('appointment_date').value;
             const urgencyDiv = document.getElementById('urgency_reason_div');
             const reasonField = document.getElementById('reason');
 
@@ -211,52 +210,7 @@
                 urgencyDiv.classList.add('hidden');
                 reasonField.required = false;
             }
-
-            if (counselorId && date) {
-                loadAvailableTimeSlots(counselorId, date);
-            }
         });
-
-        function loadAvailableTimeSlots(counselorId, date) {
-            const timeSelect = document.getElementById('start_time');
-            const appointmentType = document.getElementById('type').value;
-            const isUrgent = appointmentType === 'urgent';
-            
-            timeSelect.innerHTML = '<option value="">Loading available times...</option>';
-            
-            fetch(`/api/student/counselors/${counselorId}/available-slots?date=${date}&urgent=${isUrgent}`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    timeSelect.innerHTML = '<option value="">Select a time</option>';
-                    
-                    if (data.slots && data.slots.length > 0) {
-                        data.slots.forEach(slot => {
-                            const option = document.createElement('option');
-                            option.value = slot.time;
-                            option.textContent = slot.formatted_time + slot.conflict_message;
-                            option.setAttribute('data-end-time', slot.end_time);
-                            
-                            // Add visual indication for conflicts
-                            if (slot.is_conflict) {
-                                option.style.color = '#dc2626'; // Red color for conflicts
-                            }
-                            
-                            timeSelect.appendChild(option);
-                        });
-                    } else {
-                        timeSelect.innerHTML = '<option value="">No available time slots</option>';
-                    }
-                })
-                .catch(error => {
-                    console.error('Error loading time slots:', error);
-                    timeSelect.innerHTML = '<option value="">Error loading time slots</option>';
-                });
-        }
 
         // Update end time when start time is selected
         document.getElementById('start_time').addEventListener('change', function() {
