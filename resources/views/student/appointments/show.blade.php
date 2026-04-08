@@ -60,7 +60,7 @@
                                     </div>
                                     @if($appointment->counseling_category)
                                     <div>
-                                        <span class="font-medium text-gray-700">Counseling Category:</span>
+                                        <span class="font-medium text-gray-700">Guidance Services:</span>
                                         <span class="px-2 py-1 text-xs font-semibold rounded-full {{ $appointment->getCounselingCategoryBadgeClass() }}">
                                             {{ $appointment->getCounselingCategoryLabel() }}
                                         </span>

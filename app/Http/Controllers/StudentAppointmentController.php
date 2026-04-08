@@ -163,7 +163,7 @@ $validationRules['notes'] = 'nullable|string|max:1000';
                 if ($service) {
                     $resolvedCategory = $service->slug;
                 } else {
-                    return back()->withErrors(['counseling_category' => 'Selected counseling category is invalid.'])->withInput();
+                    return back()->withErrors(['counseling_category' => 'Selected guidance services is invalid.'])->withInput();
                 }
             } else {
                 $service = Service::where('slug', $rawCategory)->first();
@@ -174,7 +174,7 @@ $validationRules['notes'] = 'nullable|string|max:1000';
                     if (in_array($rawCategory, ['consultation','conduct_intake_interview','information_services','internal_referral_services','counseling_services','conduct_exit_interview'])) {
                         $resolvedCategory = $rawCategory;
                     } else {
-                        return back()->withErrors(['counseling_category' => 'Selected counseling category is invalid.'])->withInput();
+                        return back()->withErrors(['counseling_category' => 'Selected guidance services is invalid.'])->withInput();
                     }
                 }
             }
@@ -448,7 +448,7 @@ $validationRules['notes'] = 'nullable|string|max:1000';
                 if ($service) {
                     $resolvedCategory = $service->slug;
                 } else {
-                    return back()->withErrors(['counseling_category' => 'Selected counseling category is invalid.'])->withInput();
+                    return back()->withErrors(['counseling_category' => 'Selected guidance services is invalid.'])->withInput();
                 }
             } else {
                 $service = Service::where('slug', $rawCategory)->first();
@@ -458,7 +458,7 @@ $validationRules['notes'] = 'nullable|string|max:1000';
                     if (in_array($rawCategory, ['consultation','conduct_intake_interview','information_services','internal_referral_services','counseling_services','conduct_exit_interview'])) {
                         $resolvedCategory = $rawCategory;
                     } else {
-                        return back()->withErrors(['counseling_category' => 'Selected counseling category is invalid.'])->withInput();
+                        return back()->withErrors(['counseling_category' => 'Selected guidance services is invalid.'])->withInput();
                     }
                 }
             }

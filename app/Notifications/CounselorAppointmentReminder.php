@@ -95,7 +95,7 @@ class CounselorAppointmentReminder extends Notification implements ShouldQueue
             ->line("👤 **Student:** {$studentName}")
             ->line("📧 **Student Email:** {$studentEmail}")
             ->line("🏥 **Type:** {$this->appointment->getTypeLabel()}")
-            ->line("📋 **Category:** {$this->appointment->getCounselingCategoryLabel()}");
+            ->line("📋 **Guidance Services:** {$this->appointment->getCounselingCategoryLabel()}");
 
         if ($this->appointment->reason) {
             $message->line("📝 **Reason:** {$this->appointment->reason}");

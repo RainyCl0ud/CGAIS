@@ -328,19 +328,19 @@ class AppointmentManager extends Component
                 if ($service) {
                     $this->counseling_category = $service->slug;
                 } else {
-                    $this->addError('counseling_category', 'Selected counseling category is invalid.');
+                    $this->addError('counseling_category', 'Selected guidance services is invalid.');
                     return;
                 }
             } else {
                 $service = Service::where('slug', $this->counseling_category)->first();
                 if (!$service && !in_array($this->counseling_category, ['consultation','conduct_intake_interview','information_services','internal_referral_services','counseling_services','conduct_exit_interview'])) {
-                    $this->addError('counseling_category', 'Selected counseling category is invalid.');
+                    $this->addError('counseling_category', 'Selected guidance services is invalid.');
                     return;
                 }
             }
         } else {
             if ($this->type === 'regular') {
-                $this->addError('counseling_category', 'The counseling category field is required for regular appointments.');
+                $this->addError('counseling_category', 'The guidance services field is required for regular appointments.');
                 return;
             }
         }
@@ -440,19 +440,19 @@ class AppointmentManager extends Component
                 if ($service) {
                     $this->counseling_category = $service->slug;
                 } else {
-                    $this->addError('counseling_category', 'Selected counseling category is invalid.');
+                    $this->addError('counseling_category', 'Selected guidance services is invalid.');
                     return;
                 }
             } else {
                 $service = Service::where('slug', $this->counseling_category)->first();
                 if (!$service && !in_array($this->counseling_category, ['consultation','conduct_intake_interview','information_services','internal_referral_services','counseling_services','conduct_exit_interview'])) {
-                    $this->addError('counseling_category', 'Selected counseling category is invalid.');
+                    $this->addError('counseling_category', 'Selected guidance services is invalid.');
                     return;
                 }
             }
         } else {
             if ($this->type === 'regular') {
-                $this->addError('counseling_category', 'The counseling category field is required for regular appointments.');
+                $this->addError('counseling_category', 'The guidance services field is required for regular appointments.');
                 return;
             }
         }

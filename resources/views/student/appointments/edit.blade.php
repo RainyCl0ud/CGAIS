@@ -115,13 +115,13 @@
                         @enderror
                     </div>
 
-                    <!-- Counseling Category (Students only) -->
+                    <!-- Guidance Services (Students only) -->
                     @if(auth()->user()->isStudent())
                     <div>
-                        <label for="counseling_category" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Counseling Category</label>
+                        <label for="counseling_category" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Guidance Services</label>
                         <select id="counseling_category" name="counseling_category" required 
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm">
-                            <option value="">Select counseling category</option>
+                            <option value="">Select guidance services</option>
                             @foreach($services as $service)
                                 <option value="{{ $service->slug }}" {{ old('counseling_category', $appointment->counseling_category) == $service->slug ? 'selected' : '' }} title="{{ $service->description }}">
                                     {{ $service->name }}@if($service->description) - {{ Str::limit($service->description, 50) }}@endif

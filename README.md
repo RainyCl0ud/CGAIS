@@ -185,7 +185,7 @@ php artisan serve
 - **Date Range Filtering**: Filter by custom date ranges
 - **Status-based Filtering**: Filter by appointment status
 - **Type-based Filtering**: Filter by appointment type
-- **Category Filtering**: Filter by counseling category
+- **Category Filtering**: Filter by guidance services
 
 ## 🔧 Configuration
 
