@@ -164,6 +164,8 @@ class PersonalDataSheetController extends Controller
             'intervention_other' => 'nullable|string|max:1000',
             'signature' => 'nullable|string|max:255',
             'signature_date' => 'nullable|date',
+            'signature_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'signature_data' => 'nullable|string',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
@@ -189,6 +191,44 @@ class PersonalDataSheetController extends Controller
             Log::info('Photo path added to validated data: ' . $validated['photo']);
         } else {
             Log::info('No photo file in request');
+        }
+
+        // Handle signature image upload
+        if ($request->hasFile('signature_image')) {
+            Log::info('Signature image file detected in request');
+            // Delete old signature image if exists
+            if ($pds->signature_image && Storage::disk('public')->exists($pds->signature_image)) {
+                Storage::disk('public')->delete($pds->signature_image);
+            }
+
+            // Store new signature image
+            $signatureImagePath = $request->file('signature_image')->store('pds-signatures', 'public');
+            Log::info('Signature image stored at path: ' . $signatureImagePath);
+            $validated['signature_image'] = $signatureImagePath;
+            Log::info('Signature image path added to validated data: ' . $validated['signature_image']);
+        } elseif ($request->filled('signature_data')) {
+            Log::info('Signature data detected in request');
+            // Delete old signature image if exists
+            if ($pds->signature_image && Storage::disk('public')->exists($pds->signature_image)) {
+                Storage::disk('public')->delete($pds->signature_image);
+            }
+
+            // Convert base64 to file
+            $signatureData = $request->input('signature_data');
+            if (preg_match('/^data:image\/(\w+);base64,/', $signatureData, $matches)) {
+                $imageType = $matches[1];
+                $imageData = substr($signatureData, strpos($signatureData, ',') + 1);
+                $imageData = base64_decode($imageData);
+
+                $filename = 'signature_' . time() . '.' . $imageType;
+                $path = 'pds-signatures/' . $filename;
+                Storage::disk('public')->put($path, $imageData);
+
+                $validated['signature_image'] = $path;
+                Log::info('Signature image from base64 stored at path: ' . $path);
+            }
+        } else {
+            Log::info('No signature image or data in request');
         }
 
         Log::info('Validated data before fill: ' . json_encode($validated));
@@ -337,10 +377,24 @@ class PersonalDataSheetController extends Controller
             $photoData = null;
             if ($pds && ! empty($pds->photo)) {
                 $storagePath = storage_path('app/public/' . ltrim($pds->photo, '/'));
-                if (file_exists($storagePath)) {
+                if (is_file($storagePath) && file_exists($storagePath)) {
                     $contents = file_get_contents($storagePath);
-                    $mime = (new \finfo(FILEINFO_MIME_TYPE))->buffer($contents);
-                    $photoData = 'data:' . ($mime ?: 'image/jpeg') . ';base64,' . base64_encode($contents);
+                    if ($contents !== false) {
+                        $mime = (new \finfo(FILEINFO_MIME_TYPE))->buffer($contents);
+                        $photoData = 'data:' . ($mime ?: 'image/jpeg') . ';base64,' . base64_encode($contents);
+                    }
+                }
+            }
+
+            $signatureData = null;
+            if ($pds && ! empty($pds->signature_image)) {
+                $storagePath = storage_path('app/public/' . ltrim($pds->signature_image, '/'));
+                if (is_file($storagePath) && file_exists($storagePath)) {
+                    $contents = file_get_contents($storagePath);
+                    if ($contents !== false) {
+                        $mime = (new \finfo(FILEINFO_MIME_TYPE))->buffer($contents);
+                        $signatureData = 'data:' . ($mime ?: 'image/png') . ';base64,' . base64_encode($contents);
+                    }
                 }
             }
 
@@ -350,6 +404,7 @@ class PersonalDataSheetController extends Controller
                 'documentCode' => $documentCode,
                 'logos' => $logos,
                 'photoData' => $photoData,
+                'signatureData' => $signatureData,
             ];
 
             $pdf = Pdf::loadView('pdfs.pds', $data)->setPaper('A4', 'portrait');

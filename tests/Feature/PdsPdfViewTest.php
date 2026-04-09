@@ -9,26 +9,48 @@ class PdsPdfViewTest extends TestCase
 {
     public function test_pds_pdf_view_renders_with_sample_data()
     {
-        $student = (object) [
-            'getFullNameAttribute' => 'Sample Student',
-            'student_id' => 'S12345',
-            'course_category' => 'BSCS',
-            'year_level' => '3'
-        ];
+        $student = new class {
+            public $student_id = 'S12345';
+            public $course_category = 'BSCS';
+            public $year_level = '3';
+            public $first_name = 'Sample';
+            public $last_name = 'Student';
+            public $middle_name = '';
+            public $phone_number = '09123456789';
+            public $email = 'sample@student.edu';
+            
+            public function getFullNameAttribute() {
+                return 'Sample Student';
+            }
+        };
 
-        $pds = (object) [
-            'course' => 'BSCS',
-            'major' => 'Computer Science',
-            'year_level' => '3',
-            'first_name' => 'Sample',
-            'middle_name' => '',
-            'last_name' => 'Student',
-            'birth_date' => null,
-            'contact_number' => null,
-            'email' => null,
-            'permanent_address' => null,
-            'present_address' => null,
-        ];
+        $pds = new class {
+            public $course = 'BSCS';
+            public $major = 'Computer Science';
+            public $year_level = '3';
+            public $first_name = 'Sample';
+            public $middle_name = '';
+            public $last_name = 'Student';
+            public $birth_date = null;
+            public $age = null;
+            public $birth_place = null;
+            public $sex = 'Male';
+            public $civil_status = null;
+            public $religion = null;
+            public $contact_number = null;
+            public $email = null;
+            public $permanent_address = null;
+            public $present_address = null;
+            public $last_school = null;
+            public $school_location = null;
+            public $family_description = null;
+            public $living_situation = null;
+            public $living_condition = null;
+            public $health_condition = null;
+            public $signature = 'Sample Student';
+            public $signature_date = null;
+            public $signature_image = null;
+        };
 
         $logos = ['logo' => null];
         $photoData = null;

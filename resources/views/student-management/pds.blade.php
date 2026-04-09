@@ -568,8 +568,12 @@
                             <div class="mt-6 flex justify-between px-10">
                                 <div></div>
                                 <div class="text-center">
-                                    <div class="border-b border-gray-800 w-[250px] text-center pb-1">
-                                        {{ $student->personalDataSheet->signature ?: ($student->first_name . ' ' . $student->middle_name . ' ' . $student->last_name) }}
+                                    <div class="border-b border-gray-800 w-[250px] text-center pb-1 min-h-[30px] flex items-end justify-center">
+                                        @if($student->personalDataSheet->signature_image)
+                                            <img src="{{ asset('storage/' . $student->personalDataSheet->signature_image) }}" alt="Signature" class="max-w-full max-h-[25px] object-contain">
+                                        @else
+                                            {{ $student->personalDataSheet->signature ?: ($student->first_name . ' ' . $student->middle_name . ' ' . $student->last_name) }}
+                                        @endif
                                     </div>
                                     <p class="text-[12px] mt-1">SIGNATURE OVER PRINTED NAME</p>
                                 </div>

@@ -93,6 +93,7 @@ class PersonalDataSheet extends Model
         'intervention_other',
         'signature',
         'signature_date',
+        'signature_image',
         'photo',
     ];
 

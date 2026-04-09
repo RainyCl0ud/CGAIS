@@ -327,6 +327,20 @@
     All appointment requests are subject to counselor approval and availability. Users are expected to attend their scheduled appointments or cancel them ahead of time.<br><br>
     
     • <strong>External Communication</strong><br>
+    All counseling-related communication will be conducted outside the system through approved channels such as SMS, email, or messaging applications.<br><br>
+    
+    • <strong>Data Privacy</strong><br>
+    All personal and counseling information collected will be kept confidential and used strictly for system operation and counseling purposes, in accordance with applicable data privacy regulations.<br><br>
+    
+    • <strong>System Access</strong><br>
+    The system may experience temporary interruptions due to maintenance, updates, or technical issues. Continuous access is not guaranteed.<br><br>
+    
+    • <strong>Changes to Terms</strong><br>
+    The system administrators reserve the right to modify or update these Terms and Conditions at any time. Continued use of the system signifies acceptance of any changes.<br><br>
+    
+    • <strong>User Confirmation</strong><br>
+    By selecting "I Agree", you confirm that you have read, understood, and accepted all the Terms and Conditions stated above.
+</div>
                         <div class="flex items-center mb-4">
                             <input type="checkbox" id="agreeCheckbox" class="mr-2">
                             <label for="agreeCheckbox" class="text-sm text-gray-700">I have read and agree to the Terms and Conditions</label>

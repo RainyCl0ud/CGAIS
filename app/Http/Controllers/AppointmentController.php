@@ -265,6 +265,13 @@ class AppointmentController extends Controller
             $assistant->notify(new AssistantAppointmentNotification($appointment, 'booked'));
         }
 
+        // Send email notification to the assigned counselor about the new appointment
+        try {
+            $appointment->counselor->notify(new AssistantAppointmentNotification($appointment, 'booked'));
+        } catch (\Throwable $e) {
+            Log::error('Failed to send counselor booking notification', ['appointment_id' => $appointment->id, 'error' => $e->getMessage()]);
+        }
+
         // Schedule reminder: send immediately if within 24 hours, or 24 hours before if further away
         try {
             $appointmentDateTime = $appointment->getAppointmentDateTime();
@@ -523,6 +530,13 @@ class AppointmentController extends Controller
             $assistant->notify(new AssistantAppointmentNotification($appointment, 'rescheduled', 'Rescheduled by user'));
         }
 
+        // Send email notification to the counselor about the rescheduled appointment
+        try {
+            $appointment->counselor->notify(new AssistantAppointmentNotification($appointment, 'rescheduled', 'Rescheduled by user'));
+        } catch (\Throwable $e) {
+            Log::error('Failed to send counselor reschedule notification', ['appointment_id' => $appointment->id, 'error' => $e->getMessage()]);
+        }
+
         return redirect()->route('appointments.index')->with('success', 'Appointment rescheduled successfully. Please wait for counselor confirmation.');
     }
 
@@ -560,6 +574,23 @@ class AppointmentController extends Controller
 
         // Send email notification to student (counselor is cancelling)
         $appointment->user->notify(new AppointmentStatusNotification($appointment, 'cancelled', 'Cancelled by counselor'));
+
+        // Send email notifications to all assistants about the cancellation
+        $assistants = User::where('role', 'assistant')->get();
+        foreach ($assistants as $assistant) {
+            // Send system notification
+            $assistant->notifications()->create([
+                'appointment_id' => $appointment->id,
+                'title' => 'Appointment Cancelled by Counselor',
+                'message' => "Appointment with {$appointment->user->full_name} on {$appointment->appointment_date->format('M d, Y')} has been cancelled.",
+                'type' => 'appointment_cancelled',
+                'is_read' => false,
+                'read_at' => null,
+            ]);
+            
+            // Send email notification
+            $assistant->notify(new AssistantAppointmentNotification($appointment, 'cancelled', 'Cancelled by counselor'));
+        }
 
         // Mark related notifications as read for the counselor
         Notification::where('user_id', Auth::id())

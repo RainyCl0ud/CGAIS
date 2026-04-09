@@ -323,6 +323,16 @@ ActivityLogService::log(
                 }
             }
 
+            $signatureData = null;
+            if ($pds && ! empty($pds->signature_image)) {
+                $storagePath = storage_path('app/public/' . ltrim($pds->signature_image, '/'));
+                if (file_exists($storagePath)) {
+                    $contents = file_get_contents($storagePath);
+                    $mime = (new \finfo(FILEINFO_MIME_TYPE))->buffer($contents);
+                    $signatureData = 'data:' . ($mime ?: 'image/png') . ';base64,' . base64_encode($contents);
+                }
+            }
+
             // Get document code
             $documentCode = DocumentCode::where('type', 'pds')->first();
 
@@ -331,6 +341,7 @@ ActivityLogService::log(
                 'pds' => $pds,
                 'logos' => $logos,
                 'photoData' => $photoData,
+                'signatureData' => $signatureData,
                 'documentCode' => $documentCode,
             ];
 

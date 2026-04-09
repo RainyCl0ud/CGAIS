@@ -467,9 +467,28 @@
                             <div class="mt-6 flex justify-between px-10">
                                 <div></div>
                                <div class="text-center">
-    <input type="text" name="signature" value="{{ old('signature', $pds->signature ?? '') }}" placeholder="Full Name" class="border-b border-gray-800 w-[250px] text-center">
-    <p class="text-[12px] mt-1">SIGNATURE OVER PRINTED NAME</p>
-</div>
+                                    <div class="signature-container">
+                                        <canvas id="signatureCanvas" width="250" height="80" class="border border-gray-300 bg-white" style="cursor: crosshair; {{ $pds->signature_image ? 'display: none;' : 'display: block;' }}"></canvas>
+                                        @if($pds->signature_image)
+                                            <img src="{{ asset('storage/' . $pds->signature_image) }}" alt="Signature" class="signature-display border border-gray-300" style="width: 250px; height: 80px; display: block;">
+                                            <button type="button" onclick="clearSignature()" class="mt-2 bg-red-500 hover:bg-red-700 text-white text-xs py-1 px-2 rounded">Clear & Redraw</button>
+                                        @else
+                                            <div class="mt-1">
+                                                <button type="button" onclick="clearSignature()" class="bg-red-500 hover:bg-red-700 text-white text-xs py-1 px-2 rounded mr-1">Clear</button>
+                                                <button type="button" onclick="saveSignature()" class="bg-green-500 hover:bg-green-700 text-white text-xs py-1 px-2 rounded">Save Signature</button>
+                                            </div>
+                                        @endif
+                                        <input type="file" id="signatureImageInput" name="signature_image" accept="image/*" class="hidden">
+                                        <input type="hidden" id="signatureDataInput" name="signature_data" value="">
+                                        <!-- Textbox for typed signature -->
+                                        <div class="mt-2">
+                                            <input type="text" name="signature" value="{{ old('signature', $pds->signature ?? '') }}" 
+                                                   class="border border-gray-300 px-2 py-1 text-center w-full max-w-xs" 
+                                                   placeholder="Type your name here">
+                                        </div>
+                                    </div>
+                                    <p class="text-[12px] mt-1">SIGNATURE OVER PRINTED NAME</p>
+                                </div>
 
                                 <div class="text-center">
                                     <input type="date" name="signature_date" value="{{ old('signature_date', $pds->signature_date ? $pds->signature_date->format('Y-m-d') : \Carbon\Carbon::now('Asia/Manila')->format('Y-m-d')) }}" class="border-b border-gray-800 w-[150px] text-center">
@@ -750,6 +769,165 @@ box-shadow: 0 0 3px rgba(0, 0, 0, 0.15);
                 };
                 reader.readAsDataURL(file);
             }
+        }
+
+        // Signature Canvas Functionality
+        let canvas = document.getElementById('signatureCanvas');
+        let ctx = canvas ? canvas.getContext('2d') : null;
+        let drawing = false;
+
+        if (canvas && ctx) {
+            // Set canvas background to white
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Set drawing properties
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            // Mouse events
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseout', stopDrawing);
+
+            // Touch events for mobile
+            canvas.addEventListener('touchstart', startDrawingTouch);
+            canvas.addEventListener('touchmove', drawTouch);
+            canvas.addEventListener('touchend', stopDrawing);
+        }
+
+        function startDrawing(e) {
+            drawing = true;
+            ctx.beginPath();
+            ctx.moveTo(e.offsetX, e.offsetY);
+        }
+
+        function draw(e) {
+            if (!drawing) return;
+            ctx.lineTo(e.offsetX, e.offsetY);
+            ctx.stroke();
+        }
+
+        function stopDrawing() {
+            drawing = false;
+        }
+
+        function startDrawingTouch(e) {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const x = e.touches[0].clientX - rect.left;
+            const y = e.touches[0].clientY - rect.top;
+            drawing = true;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+        }
+
+        function drawTouch(e) {
+            e.preventDefault();
+            if (!drawing) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = e.touches[0].clientX - rect.left;
+            const y = e.touches[0].clientY - rect.top;
+            ctx.lineTo(x, y);
+            ctx.stroke();
+        }
+
+        function clearSignature() {
+            if (ctx) {
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+            // Clear the signature data input
+            document.getElementById('signatureDataInput').value = '';
+
+            // Hide signature display and show canvas
+            const signatureDisplay = document.querySelector('.signature-display');
+            if (signatureDisplay) {
+                signatureDisplay.style.display = 'none';
+            }
+            if (canvas) {
+                canvas.style.display = 'block';
+            }
+            // Show the drawing buttons
+            const buttonContainer = document.querySelector('.signature-container .mt-1');
+            if (buttonContainer) {
+                buttonContainer.style.display = 'block';
+            } else {
+                // Create buttons if they don't exist
+                const container = document.querySelector('.signature-container');
+                if (container && !container.querySelector('.mt-1')) {
+                    const buttonDiv = document.createElement('div');
+                    buttonDiv.className = 'mt-1';
+                    buttonDiv.innerHTML = `
+                        <button type="button" onclick="clearSignature()" class="bg-red-500 hover:bg-red-700 text-white text-xs py-1 px-2 rounded mr-1">Clear</button>
+                        <button type="button" onclick="saveSignature()" class="bg-green-500 hover:bg-green-700 text-white text-xs py-1 px-2 rounded">Save Signature</button>
+                    `;
+                    container.appendChild(buttonDiv);
+                }
+            }
+            // Hide the "Clear & Redraw" button
+            const redrawBtn = document.querySelector('.signature-container button:not(.mt-1 button)');
+            if (redrawBtn) {
+                redrawBtn.style.display = 'none';
+            }
+        }
+
+        function saveSignature() {
+            if (!canvas) return;
+
+            // Check if canvas has any drawing
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            let hasDrawing = false;
+            for (let i = 0; i < imageData.data.length; i += 4) {
+                if (imageData.data[i + 3] > 0) { // Check alpha channel
+                    hasDrawing = true;
+                    break;
+                }
+            }
+
+            if (!hasDrawing) {
+                alert('Please draw your signature first.');
+                return;
+            }
+
+            // Convert canvas to base64 and store in hidden input
+            const signatureData = canvas.toDataURL('image/png');
+            document.getElementById('signatureDataInput').value = signatureData;
+
+            // Hide canvas and buttons, show saved signature
+            canvas.style.display = 'none';
+            const buttonContainer = document.querySelector('.signature-container .mt-1');
+            if (buttonContainer) {
+                buttonContainer.style.display = 'none';
+            }
+
+            // Create or update preview image
+            let img = document.querySelector('.signature-display');
+            if (!img) {
+                img = document.createElement('img');
+                img.className = 'signature-display border border-gray-300';
+                img.style.width = '250px';
+                img.style.height = '80px';
+                img.style.display = 'block';
+                document.querySelector('.signature-container').insertBefore(img, canvas);
+            }
+            img.src = signatureData;
+            img.style.display = 'block';
+
+            // Add "Clear & Redraw" button
+            let redrawBtn = document.querySelector('.signature-container button:not(.mt-1 button)');
+            if (!redrawBtn) {
+                redrawBtn = document.createElement('button');
+                redrawBtn.type = 'button';
+                redrawBtn.onclick = clearSignature;
+                redrawBtn.className = 'mt-2 bg-red-500 hover:bg-red-700 text-white text-xs py-1 px-2 rounded';
+                redrawBtn.textContent = 'Clear & Redraw';
+                document.querySelector('.signature-container').appendChild(redrawBtn);
+            }
+            redrawBtn.style.display = 'inline-block';
         }
     </script>
 @if(!request('pdf'))

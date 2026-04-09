@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use App\Notifications\AppointmentReminder;
+use App\Notifications\AssistantAppointmentNotification;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class StudentAppointmentController extends Controller
@@ -331,6 +332,13 @@ $validationRules['notes'] = 'nullable|string|max:1000';
             'read_at' => null,
         ]);
 
+        // Send email notification to counselor about the new appointment
+        try {
+            $counselor->notify(new AssistantAppointmentNotification($appointment, 'booked'));
+        } catch (\Throwable $e) {
+            Log::error('Failed to send email to counselor', ['appointment_id' => $appointment->id, 'error' => $e->getMessage()]);
+        }
+
         // Notify assistant(s) as well
         $assistants = User::where('role', 'assistant')->get();
         foreach ($assistants as $assistant) {
@@ -342,6 +350,13 @@ $validationRules['notes'] = 'nullable|string|max:1000';
                 'is_read' => false,
                 'read_at' => null,
             ]);
+
+            // Send email notification to assistant about the new appointment
+            try {
+                $assistant->notify(new AssistantAppointmentNotification($appointment, 'booked'));
+            } catch (\Throwable $e) {
+                Log::error('Failed to send email to assistant', ['appointment_id' => $appointment->id, 'assistant_id' => $assistant->id, 'error' => $e->getMessage()]);
+            }
         }
 
         $successMessage = 'Appointment requested successfully. Please wait for confirmation.';

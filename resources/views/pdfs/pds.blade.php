@@ -355,15 +355,27 @@ body { font-family: DejaVu Sans, Arial, Helvetica, sans-serif; color:#111; font-
 
         <div style="text-align:center; margin-top:14px;">
             <div style="display:inline-block; text-align:center; margin-right:40px;">
-                <div class="field" style="text-align:center; font-weight:600; width:200px;">
-                    {{ $pds->signature }}
+                @php
+                    $signatureText = trim($pds->signature ?? '');
+                    $printedName = trim(implode(' ', array_filter([$pds->first_name ?? '', $pds->middle_name ?? '', $pds->last_name ?? ''])));
+                @endphp
+                <div class="field" style="text-align:center; font-weight:600; width:200px; min-height:60px;">
+                    @if($signatureData)
+                        <img src="{{ $signatureData }}" alt="Signature" style="max-width:200px; max-height:60px; border-bottom:1px solid #000;">
+                    @endif
+                    @if($signatureText)
+                        <div style="margin-top:4px; font-size:11px; font-weight:600;">{{ $signatureText }}</div>
+                    @endif
+                    @if($printedName && (! $signatureText || $printedName !== $signatureText))
+                        <div style="margin-top:4px; font-size:11px; font-weight:600;">{{ $printedName }}</div>
+                    @endif
                 </div>
                 <div style="font-size:10px; margin-top:2px;">SIGNATURE OVER PRINTED NAME</div>
             </div>
 
             <div style="display:inline-block; text-align:center;">
                 <div class="field" style="text-align:center; width:100px;">
-                    {{ $pds->signed_at ?? \Carbon\Carbon::now()->format('m/d/Y') }}
+                    {{ $pds->signature_date ? $pds->signature_date->format('m/d/Y') : \Carbon\Carbon::now()->format('m/d/Y') }}
                 </div>
                 <div style="font-size:10px; margin-top:2px;">DATE</div>
             </div>
