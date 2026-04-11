@@ -196,13 +196,8 @@ class AppointmentController extends Controller
             })
             ->first();
 
-        if ($existingAppointment && $request->type !== 'urgent') {
+        if ($existingAppointment) {
             return back()->withErrors(['start_time' => 'This time slot is already booked.']);
-        }
-
-        $conflictNote = '';
-        if ($existingAppointment && $request->type === 'urgent') {
-            $conflictNote = "URGENT: This appointment conflicts with existing booking (ID: {$existingAppointment->id}) for {$existingAppointment->user->full_name}. Counselor review required.";
         }
 
         $appointmentData = [
@@ -251,10 +246,6 @@ class AppointmentController extends Controller
             }
         } else {
             $appointmentData['counseling_category'] = 'consultation';
-        }
-
-        if ($request->type === 'urgent' && !empty($conflictNote)) {
-            $appointmentData['counselor_notes'] = $conflictNote;
         }
 
         $appointment = Appointment::create($appointmentData);
@@ -1212,6 +1203,7 @@ class AppointmentController extends Controller
     {
         $date = $request->get('date');
         $isUrgent = $request->get('urgent', false);
+        $excludeAppointmentId = $request->integer('exclude_appointment_id');
         $dayOfWeek = Carbon::parse($date)->dayOfWeek;
 
         if ($dayOfWeek === 0 || $dayOfWeek === 6) {
@@ -1277,6 +1269,9 @@ class AppointmentController extends Controller
             $existingAppointment = Appointment::where('counselor_id', $counselor->id)
                 ->where('appointment_date', $date)
                 ->where('status', '!=', 'cancelled')
+                ->when($excludeAppointmentId, function ($query, $excludeAppointmentId) {
+                    $query->where('id', '!=', $excludeAppointmentId);
+                })
                 ->where(function ($query) use ($slotTime, $slotEndTime) {
                     $query->whereBetween('start_time', [$slotTime, $slotEndTime])
                         ->orWhereBetween('end_time', [$slotTime, $slotEndTime])
@@ -1287,15 +1282,14 @@ class AppointmentController extends Controller
                 })
                 ->first();
 
-            if (!$existingAppointment || $isUrgent) {
-                $isConflict = $existingAppointment ? true : false;
+            if (!$existingAppointment) {
                 $slotEndTimeFormatted = $currentTime->copy()->addMinutes(30)->format('g:i A');
                 $slots[] = [
                     'time' => $slotTime,
                     'end_time' => $slotEndTime,
                     'formatted_time' => $currentTime->format('g:i A') . ' - ' . $slotEndTimeFormatted,
-                    'is_conflict' => $isConflict,
-                    'conflict_message' => $isConflict ? ' (Conflicts with existing booking)' : ''
+                    'is_conflict' => false,
+                    'conflict_message' => ''
                 ];
             }
 

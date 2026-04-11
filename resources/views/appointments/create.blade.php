@@ -164,36 +164,81 @@
     </div>
 
     <script>
-        // JavaScript for dynamic time slot loading
-        document.getElementById('counselor_id').addEventListener('change', function() {
-            // Removed dynamic loading
-        });
+        const counselorSelect = document.getElementById('counselor_id');
+        const dateInput = document.getElementById('appointment_date');
+        const timeSelect = document.getElementById('start_time');
+        const typeSelect = document.getElementById('type');
+        const urgencyDiv = document.getElementById('urgency_reason_div');
+        const reasonField = document.getElementById('reason');
+        const endTimeField = document.getElementById('end_time');
+        const initialSelectedStartTime = @json(old('start_time', ''));
 
-        document.getElementById('appointment_date').addEventListener('change', function() {
-            // Check if selected date is a weekday (Monday through Friday)
-            const selectedDate = new Date(this.value);
-            const dayOfWeek = selectedDate.getDay(); // 0 = Sunday, 1 = Monday, 5 = Friday
+        function populateTimeOptions(slots, emptyMessage, selectedValue = '') {
+            timeSelect.innerHTML = '';
 
-            const timeSelect = document.getElementById('start_time');
-            if (dayOfWeek === 0 || dayOfWeek === 6) { // Sunday or Saturday
-                timeSelect.innerHTML = '<option value="">Appointments are only available on weekdays (Monday through Friday).</option>';
+            if (!slots || slots.length === 0) {
+                timeSelect.innerHTML = `<option value="">${emptyMessage}</option>`;
                 timeSelect.disabled = true;
+                endTimeField.value = '';
                 return;
             }
-            
-            // Re-enable time select if it was disabled
-            timeSelect.disabled = false;
-        });
 
-        // Add event listener for appointment type to handle urgent form
+            timeSelect.disabled = false;
+            timeSelect.innerHTML = '<option value="">Select a time</option>';
+
+            slots.forEach(slot => {
+                const option = document.createElement('option');
+                option.value = slot.time;
+                option.setAttribute('data-end-time', slot.end_time);
+                option.textContent = `${slot.formatted_time}${slot.conflict_message || ''}`;
+                if (selectedValue && slot.time === selectedValue) {
+                    option.selected = true;
+                }
+                timeSelect.appendChild(option);
+            });
+
+            if (timeSelect.value) {
+                const selectedOption = timeSelect.options[timeSelect.selectedIndex];
+                if (selectedOption && selectedOption.getAttribute('data-end-time')) {
+                    endTimeField.value = selectedOption.getAttribute('data-end-time');
+                }
+            }
+        }
+
+        function updateAvailableSlots() {
+            const counselorId = counselorSelect.value;
+            const date = dateInput.value;
+            const isUrgent = typeSelect.value === 'urgent';
+
+            if (!counselorId || !date) {
+                return;
+            }
+
+            const dayOfWeek = new Date(date).getDay();
+            if (dayOfWeek === 0 || dayOfWeek === 6) {
+                populateTimeOptions([], 'Appointments are only available on weekdays (Monday through Friday).');
+                return;
+            }
+
+            fetch(`/api/counselors/${counselorId}/available-slots?date=${encodeURIComponent(date)}&urgent=${isUrgent ? 1 : 0}`)
+                .then(response => response.json())
+                .then(data => {
+                    const selectedValue = timeSelect.value || initialSelectedStartTime;
+                    populateTimeOptions(data.slots, data.message, selectedValue);
+                })
+                .catch(() => {
+                    populateTimeOptions([], 'Unable to load available slots. Please try again later.');
+                });
+        }
+
+        counselorSelect.addEventListener('change', updateAvailableSlots);
+        dateInput.addEventListener('change', updateAvailableSlots);
+
         document.getElementById('type').addEventListener('change', function() {
             const urgencyDiv = document.getElementById('urgency_reason_div');
-            const reasonField = document.getElementById('reason');
 
-            // Update title based on appointment type
             updateAppointmentTitle(this.value);
 
-            // Show/hide urgency reason field based on type
             if (this.value === 'urgent') {
                 urgencyDiv.classList.remove('hidden');
                 reasonField.required = true;
@@ -201,9 +246,10 @@
                 urgencyDiv.classList.add('hidden');
                 reasonField.required = false;
             }
+
+            updateAvailableSlots();
         });
 
-        // Function to update appointment title based on type
         function updateAppointmentTitle(type) {
             const titleElement = document.getElementById('appointment-title');
             if (type === 'urgent') {
@@ -213,24 +259,23 @@
             }
         }
 
-        // Initialize form state based on URL parameters
         document.addEventListener('DOMContentLoaded', function() {
             const urlParams = new URLSearchParams(window.location.search);
             const typeParam = urlParams.get('type');
 
             if (typeParam === 'urgent') {
-                const typeSelect = document.getElementById('type');
                 typeSelect.value = 'urgent';
                 updateAppointmentTitle('urgent');
                 typeSelect.dispatchEvent(new Event('change'));
             }
+
+            if (counselorSelect.value && dateInput.value) {
+                updateAvailableSlots();
+            }
         });
 
-        // Add event listener for time selection to populate end_time
         document.getElementById('start_time').addEventListener('change', function() {
             const selectedOption = this.options[this.selectedIndex];
-            const endTimeField = document.getElementById('end_time');
-            
             if (selectedOption && selectedOption.getAttribute('data-end-time')) {
                 endTimeField.value = selectedOption.getAttribute('data-end-time');
             } else {
@@ -238,28 +283,17 @@
             }
         });
 
-        // Add form submission debugging
         document.querySelector('form').addEventListener('submit', function(e) {
-            const formData = new FormData(this);
-            console.log('Form data being submitted:');
-            for (let [key, value] of formData.entries()) {
-                console.log(key + ': ' + value);
-            }
-            
-            // Check if end_time is empty
             const endTime = document.getElementById('end_time').value;
             if (!endTime) {
                 e.preventDefault();
                 alert('Please select a time slot first.');
                 return false;
             }
-            
-            // Show loading state
+
             const submitButton = this.querySelector('button[type="submit"]');
             submitButton.disabled = true;
             submitButton.textContent = 'Booking Appointment...';
-            
-            console.log('Form submitted successfully');
         });
     </script>
 </x-app-layout> 

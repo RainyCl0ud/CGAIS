@@ -65,7 +65,7 @@
                         <input type="date" id="appointment_date" name="appointment_date" required 
                                min="{{ date('Y-m-d') }}" value="{{ old('appointment_date', $appointment->appointment_date->format('Y-m-d')) }}"
                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm">
-                        <p class="text-xs text-gray-500 mt-1">* Appointments available on Monday and Friday only</p>
+                        <p class="text-xs text-gray-500 mt-1">* Appointments available on weekdays (Monday through Friday)</p>
                         @error('appointment_date')
                             <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                         @enderror
@@ -176,33 +176,76 @@
     </div>
 
     <script>
-        // JavaScript for dynamic time slot loading (counselor is fixed, no change event needed)
+        const counselorId = document.getElementById('counselor_id').value;
+        const dateInput = document.getElementById('appointment_date');
+        const timeSelect = document.getElementById('start_time');
+        const typeSelect = document.getElementById('type');
+        const urgencyDiv = document.getElementById('urgency_reason_div');
+        const reasonField = document.getElementById('reason');
+        const endTimeInput = document.getElementById('end_time');
+        const excludeAppointmentId = @json($appointment->id);
+        const initialSelectedStartTime = @json(old('start_time', $appointment->start_time->format('H:i')));
 
-        document.getElementById('appointment_date').addEventListener('change', function() {
-            const date = this.value;
-            
-            // Check if selected date is Monday or Friday
-            const selectedDate = new Date(date);
-            const dayOfWeek = selectedDate.getDay(); // 0 = Sunday, 1 = Monday, 5 = Friday
-            
-            if (dayOfWeek !== 1 && dayOfWeek !== 5) {
-                const timeSelect = document.getElementById('start_time');
-                timeSelect.innerHTML = '<option value="">Appointments available on Monday and Friday only</option>';
+        function populateTimeOptions(slots, emptyMessage, selectedValue = '') {
+            timeSelect.innerHTML = '';
+
+            if (!slots || slots.length === 0) {
+                timeSelect.innerHTML = `<option value="">${emptyMessage}</option>`;
                 timeSelect.disabled = true;
+                endTimeInput.value = '';
                 return;
             }
-            
-            // Re-enable time select if it was disabled
-            const timeSelect = document.getElementById('start_time');
+
             timeSelect.disabled = false;
-        });
+            timeSelect.innerHTML = '<option value="">Select a time</option>';
 
-        // Add event listener for appointment type to handle urgent form
-        document.getElementById('type').addEventListener('change', function() {
-            const urgencyDiv = document.getElementById('urgency_reason_div');
-            const reasonField = document.getElementById('reason');
+            slots.forEach(slot => {
+                const option = document.createElement('option');
+                option.value = slot.time;
+                option.setAttribute('data-end-time', slot.end_time);
+                option.textContent = `${slot.formatted_time}${slot.conflict_message || ''}`;
+                if (selectedValue && slot.time === selectedValue) {
+                    option.selected = true;
+                }
+                timeSelect.appendChild(option);
+            });
 
-            // Show/hide urgency reason field based on type
+            if (timeSelect.value) {
+                const selectedOption = timeSelect.options[timeSelect.selectedIndex];
+                if (selectedOption && selectedOption.getAttribute('data-end-time')) {
+                    endTimeInput.value = selectedOption.getAttribute('data-end-time');
+                }
+            }
+        }
+
+        function updateAvailableSlots() {
+            const date = dateInput.value;
+            const isUrgent = typeSelect.value === 'urgent';
+
+            if (!counselorId || !date) {
+                return;
+            }
+
+            const dayOfWeek = new Date(date).getDay();
+            if (dayOfWeek === 0 || dayOfWeek === 6) {
+                populateTimeOptions([], 'Appointments are only available on weekdays (Monday through Friday).');
+                return;
+            }
+
+            fetch(`/api/student/counselors/${counselorId}/available-slots?date=${encodeURIComponent(date)}&urgent=${isUrgent ? 1 : 0}&exclude_appointment_id=${excludeAppointmentId}`)
+                .then(response => response.json())
+                .then(data => {
+                    const selectedValue = timeSelect.value || initialSelectedStartTime;
+                    populateTimeOptions(data.slots, data.message, selectedValue);
+                })
+                .catch(() => {
+                    populateTimeOptions([], 'Unable to load available slots. Please try again later.');
+                });
+        }
+
+        dateInput.addEventListener('change', updateAvailableSlots);
+
+        typeSelect.addEventListener('change', function() {
             if (this.value === 'urgent') {
                 urgencyDiv.classList.remove('hidden');
                 reasonField.required = true;
@@ -210,31 +253,34 @@
                 urgencyDiv.classList.add('hidden');
                 reasonField.required = false;
             }
+
+            updateAvailableSlots();
         });
 
-        // Update end time when start time is selected
-        document.getElementById('start_time').addEventListener('change', function() {
+        timeSelect.addEventListener('change', function() {
             const selectedOption = this.options[this.selectedIndex];
-            const endTimeInput = document.getElementById('end_time');
-            
             if (selectedOption && selectedOption.getAttribute('data-end-time')) {
                 endTimeInput.value = selectedOption.getAttribute('data-end-time');
+            } else {
+                endTimeInput.value = '';
             }
         });
 
-        // Initialize form state
         document.addEventListener('DOMContentLoaded', function() {
             const typeSelect = document.getElementById('type');
             const urgencyDiv = document.getElementById('urgency_reason_div');
             const reasonField = document.getElementById('reason');
-            
-            // Show/hide urgency reason field based on current type
+
             if (typeSelect.value === 'urgent') {
                 urgencyDiv.classList.remove('hidden');
                 reasonField.required = true;
             } else {
                 urgencyDiv.classList.add('hidden');
                 reasonField.required = false;
+            }
+
+            if (dateInput.value) {
+                updateAvailableSlots();
             }
         });
     </script>

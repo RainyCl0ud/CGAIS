@@ -172,26 +172,66 @@
     const urgencyDiv = document.getElementById('urgency_reason_div');
     const reasonField = document.getElementById('reason');
     const endTimeField = document.getElementById('end_time');
+    const initialSelectedStartTime = @json(old('start_time', ''));
 
-    // Load slots when counselor or date changes
-    counselorSelect.addEventListener('change', function() {
-        // Removed dynamic loading
-    });
+    function populateTimeOptions(slots, emptyMessage, selectedValue = '') {
+        timeSelect.innerHTML = '';
 
-    dateInput.addEventListener('change', function() {
-        const date = this.value;
-        const dayOfWeek = new Date(date).getDay();
-
-        if (dayOfWeek === 0 || dayOfWeek === 6) {
-            timeSelect.innerHTML = '<option value="">Appointments are only available on weekdays (Monday through Friday).</option>';
+        if (!slots || slots.length === 0) {
+            timeSelect.innerHTML = `<option value="">${emptyMessage}</option>`;
             timeSelect.disabled = true;
+            endTimeField.value = '';
             return;
         }
 
         timeSelect.disabled = false;
-    });
+        timeSelect.innerHTML = '<option value="">Select a time</option>';
 
-    // Function to update appointment title based on type
+        slots.forEach(slot => {
+            const option = document.createElement('option');
+            option.value = slot.time;
+            option.setAttribute('data-end-time', slot.end_time);
+            option.textContent = `${slot.formatted_time}${slot.conflict_message || ''}`;
+            if (selectedValue && slot.time === selectedValue) {
+                option.selected = true;
+            }
+            timeSelect.appendChild(option);
+        });
+
+        if (timeSelect.value) {
+            const selectedOption = timeSelect.options[timeSelect.selectedIndex];
+            if (selectedOption) {
+                endTimeField.value = selectedOption.getAttribute('data-end-time') || '';
+            }
+        }
+    }
+
+    function updateAvailableSlots() {
+        const counselorId = counselorSelect.value;
+        const date = dateInput.value;
+        const isUrgent = typeSelect.value === 'urgent';
+
+        if (!counselorId || !date) {
+            return;
+        }
+
+        const dayOfWeek = new Date(date).getDay();
+        if (dayOfWeek === 0 || dayOfWeek === 6) {
+            populateTimeOptions([], 'Appointments are only available on weekdays (Monday through Friday).');
+            return;
+        }
+
+        fetch(`/api/student/counselors/${counselorId}/available-slots?date=${encodeURIComponent(date)}&urgent=${isUrgent ? 1 : 0}`)
+            .then(response => response.json())
+            .then(data => {
+                const selectedValue = timeSelect.value || initialSelectedStartTime;
+                populateTimeOptions(data.slots, data.message, selectedValue);
+            })
+            .catch(() => {
+                populateTimeOptions([], 'Unable to load available slots. Please try again later.');
+            });
+    }
+
     function updateAppointmentTitle(type) {
         const titleElement = document.getElementById('appointment-title');
 
@@ -212,9 +252,9 @@
         @endif
     }
 
-    // Urgent appointment handling
+    counselorSelect.addEventListener('change', updateAvailableSlots);
+    dateInput.addEventListener('change', updateAvailableSlots);
     typeSelect.addEventListener('change', function() {
-        // Update title based on appointment type
         updateAppointmentTitle(this.value);
 
         if (this.value === 'urgent') {
@@ -224,27 +264,29 @@
             urgencyDiv.classList.add('hidden');
             reasonField.required = false;
         }
+
+        updateAvailableSlots();
     });
 
-    // Initialize form state based on URL parameters
     document.addEventListener('DOMContentLoaded', function() {
         const urlParams = new URLSearchParams(window.location.search);
         const typeParam = urlParams.get('type');
 
         if (typeParam === 'urgent') {
-            const typeSelect = document.getElementById('type');
             typeSelect.value = 'urgent';
             updateAppointmentTitle('urgent');
             typeSelect.dispatchEvent(new Event('change'));
         } else if (typeParam === 'regular') {
-            const typeSelect = document.getElementById('type');
             typeSelect.value = 'regular';
             updateAppointmentTitle('regular');
             typeSelect.dispatchEvent(new Event('change'));
         }
+
+        if (counselorSelect.value && dateInput.value) {
+            updateAvailableSlots();
+        }
     });
 
-    // Set hidden end_time when time is selected
     timeSelect.addEventListener('change', function() {
         const selectedOption = this.options[this.selectedIndex];
         if (selectedOption && selectedOption.getAttribute('data-end-time')) {

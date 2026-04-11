@@ -264,37 +264,22 @@ $validationRules['notes'] = 'nullable|string|max:1000';
             })
             ->first();
 
-        // For urgent appointments, allow override but warn about conflicts
-        if ($existingAppointment && $request->type !== 'urgent') {
+        if ($existingAppointment) {
             return back()->withErrors(['start_time' => 'This time slot is already booked.']);
         }
 
-        // If urgent/referral appointment conflicts with existing appointment, create a note
-        $conflictNote = '';
-        if ($existingAppointment && $request->type === 'urgent') {
-            $conflictNoteType = $user->isStudent() ? 'URGENT' : 'REFERRAL';
-            $conflictNote = "{$conflictNoteType}: This appointment conflicts with existing booking (ID: {$existingAppointment->id}) for {$existingAppointment->user->full_name}. Counselor review required.";
-        }
-
-
         $appointmentData = [
-    'user_id' => $user->id,
-    'counselor_id' => $request->counselor_id,
-    'appointment_date' => $request->appointment_date,
-    'start_time' => $request->start_time,
-    'end_time' => $request->end_time,
-    'type' => $request->type,
-            // For non-students (faculty/Non-Teaching Staff), use resolved category (slug) or default to 'consultation'
+            'user_id' => $user->id,
+            'counselor_id' => $request->counselor_id,
+            'appointment_date' => $request->appointment_date,
+            'start_time' => $request->start_time,
+            'end_time' => $request->end_time,
+            'type' => $request->type,
             'counseling_category' => $resolvedCategory ?? ($user->isStudent() ? null : 'consultation'),
-    'reason' => $request->reason,
-    'notes' => $request->notes,
-    'status' => 'pending',
-];
-
-        // Add conflict note for urgent appointments
-        if ($request->type === 'urgent' && !empty($conflictNote)) {
-            $appointmentData['counselor_notes'] = $conflictNote;
-        }
+            'reason' => $request->reason,
+            'notes' => $request->notes,
+            'status' => 'pending',
+        ];
 
         $appointment = Appointment::create($appointmentData);
 
@@ -534,6 +519,7 @@ $validationRules['notes'] = 'nullable|string|max:1000';
         // Check for conflicts
         $conflict = Appointment::where('counselor_id', $appointment->counselor_id)
             ->where('appointment_date', $request->appointment_date)
+            ->where('status', '!=', 'cancelled')
             ->where('id', '!=', $appointment->id)
             ->where(function($query) use ($request) {
                 $query->where(function($q) use ($request) {
@@ -715,6 +701,7 @@ $validationRules['notes'] = 'nullable|string|max:1000';
 
         $date = $request->get('date');
         $isUrgent = $request->boolean('urgent', false);
+        $excludeAppointmentId = $request->integer('exclude_appointment_id');
         $dayOfWeek = Carbon::parse($date)->dayOfWeek;
 
         // Only allow weekdays (Mon–Fri)
@@ -794,6 +781,9 @@ $validationRules['notes'] = 'nullable|string|max:1000';
             $existingAppointment = Appointment::where('counselor_id', $counselor->id)
                 ->where('appointment_date', $date)
                 ->where('status', '!=', 'cancelled')
+                ->when($excludeAppointmentId, function ($query, $excludeAppointmentId) {
+                    $query->where('id', '!=', $excludeAppointmentId);
+                })
                 ->where(function ($query) use ($slotStart, $slotEnd) {
                     $query->whereBetween('start_time', [$slotStart->format('H:i'), $slotEnd->format('H:i')])
                           ->orWhereBetween('end_time', [$slotStart->format('H:i'), $slotEnd->format('H:i')])
@@ -804,13 +794,13 @@ $validationRules['notes'] = 'nullable|string|max:1000';
                 })
                 ->first();
 
-            if (!$existingAppointment || $isUrgent) {
+            if (!$existingAppointment) {
                 $slots[] = [
                     'time' => $slotStart->format('H:i'),
                     'end_time' => $slotEnd->format('H:i'),
                     'formatted_time' => $slotStart->format('g:i A') . ' - ' . $slotEnd->format('g:i A'),
-                    'is_conflict' => $existingAppointment ? true : false,
-                    'conflict_message' => $existingAppointment ? ' (Conflicts with existing booking)' : ''
+                    'is_conflict' => false,
+                    'conflict_message' => ''
                 ];
             }
 
