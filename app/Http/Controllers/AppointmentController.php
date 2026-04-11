@@ -1256,13 +1256,13 @@ class AppointmentController extends Controller
 
         while ($currentTime < $endTime) {
             $slotTime = $currentTime->format('H:i');
-            $slotEndTime = $currentTime->copy()->addMinutes(30)->format('H:i');
+            $slotEndTime = $currentTime->copy()->addMinutes(60)->format('H:i');
 
             // Skip slots that fall into counselor's unavailable window (status-based)
             $slotStartCarbon = $currentTime->copy();
-            $slotEndCarbon = $currentTime->copy()->addMinutes(30);
+            $slotEndCarbon = $currentTime->copy()->addMinutes(60);
             if (!$counselor->isAvailableForSlot(Carbon::parse($date), $slotStartCarbon, $slotEndCarbon)) {
-                $currentTime->addMinutes(30);
+                $currentTime->addMinutes(60);
                 continue;
             }
 
@@ -1282,18 +1282,19 @@ class AppointmentController extends Controller
                 })
                 ->first();
 
-            if (!$existingAppointment) {
-                $slotEndTimeFormatted = $currentTime->copy()->addMinutes(30)->format('g:i A');
+            if (!$existingAppointment || $isUrgent) {
+                $isConflict = $existingAppointment ? true : false;
+                $slotEndTimeFormatted = $currentTime->copy()->addMinutes(60)->format('g:i A');
                 $slots[] = [
                     'time' => $slotTime,
                     'end_time' => $slotEndTime,
                     'formatted_time' => $currentTime->format('g:i A') . ' - ' . $slotEndTimeFormatted,
-                    'is_conflict' => false,
-                    'conflict_message' => ''
+                    'is_conflict' => $isConflict,
+                    'conflict_message' => $isConflict ? ' (Conflicts with existing booking)' : ''
                 ];
             }
 
-            $currentTime->addMinutes(30);
+            $currentTime->addMinutes(60);
         }
 
         return response()->json([

@@ -770,11 +770,11 @@ $validationRules['notes'] = 'nullable|string|max:1000';
 
         while ($currentTime < $endTime) {
             $slotStart = $currentTime->copy();
-            $slotEnd = $currentTime->copy()->addMinutes(30);
+            $slotEnd = $currentTime->copy()->addMinutes(60);
 
             // Skip slots that fall into counselor's unavailable window (status-based)
             if (!$counselor->isAvailableForSlot(Carbon::parse($date), $slotStart, $slotEnd)) {
-                $currentTime->addMinutes(30);
+                $currentTime->addMinutes(60);
                 continue;
             }
 
@@ -794,13 +794,13 @@ $validationRules['notes'] = 'nullable|string|max:1000';
                 })
                 ->first();
 
-            if (!$existingAppointment) {
+            if (!$existingAppointment || $isUrgent) {
                 $slots[] = [
                     'time' => $slotStart->format('H:i'),
                     'end_time' => $slotEnd->format('H:i'),
                     'formatted_time' => $slotStart->format('g:i A') . ' - ' . $slotEnd->format('g:i A'),
-                    'is_conflict' => false,
-                    'conflict_message' => ''
+                    'is_conflict' => $existingAppointment ? true : false,
+                    'conflict_message' => $existingAppointment ? ' (Conflicts with existing booking)' : ''
                 ];
             }
 
@@ -808,7 +808,7 @@ $validationRules['notes'] = 'nullable|string|max:1000';
                 $debug['found_existing_appointments']++;
             }
 
-            $currentTime->addMinutes(30);
+            $currentTime->addMinutes(60);
         }
 
         $response = [
